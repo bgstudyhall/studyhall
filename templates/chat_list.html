@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Study Hall Portal</title>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial Black', Arial, sans-serif;
+    background: #3D322F;
+    color: #000;
+    min-height: 100vh;
+}
+
+.chat-header {
+    background: #fff;
+    border-bottom: 5px solid #2C2C2C;
+    padding: 1rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.3);
+}
+
+.chat-header-content {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h1 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #2C2C2C;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #2C2C2C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.back-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.search-container {
+    background: #fff;
+    padding: 1rem 1.5rem;
+    border-bottom: 4px solid #2C2C2C;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.2);
+}
+
+.search-box {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border: 4px solid #2C2C2C;
+    border-radius: 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: white;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: #c19a6b;
+    box-shadow: 0 3px 0 #c19a6b, 0 0 0 2px rgba(193, 154, 107, 0.2);
+}
+
+.rank-section {
+    background: #fff;
+    border-bottom: 4px solid #2C2C2C;
+}
+
+.rank-header {
+    padding: 1rem 1.5rem;
+    font-weight: 900;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f5f5f5;
+    border-bottom: 3px solid #2C2C2C;
+}
+
+.rank-divider {
+    height: 3px;
+    background: #2C2C2C;
+    margin: 0;
+}
+
+.user-item {
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    text-decoration: none;
+    color: #000;
+    transition: all 0.3s;
+    cursor: pointer;
+    border-bottom: 3px solid #f0f0f0;
+}
+
+.user-item:hover {
+    background: #fafafa;
+    transform: translateX(5px);
+    border-left: 5px solid #c19a6b;
+    padding-left: calc(1.5rem - 5px);
+}
+
+.user-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #4F3F3B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    position: relative;
+    border: 4px solid #2C2C2C;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.3);
+}
+
+.user-item:hover .user-avatar {
+    transform: scale(1.1) rotate(-5deg);
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4);
+}
+
+.user-avatar.online {
+    border-color: #31a24c;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 6px #31a24c, 0 4px 0 rgba(49, 162, 76, 0.5);
+}
+
+.user-avatar.online::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #31a24c;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    bottom: -3px;
+    right: -3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.user-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.3px;
+}
+
+.user-preview {
+    font-size: 0.85rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.user-preview.unread {
+    color: #2C2C2C;
+    font-weight: 700;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-left: 0.75rem;
+}
+
+.user-time {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.unread-badge {
+    background: linear-gradient(135deg, #0095f6 0%, #0077cc 100%);
+    color: white;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 900;
+    padding: 0 6px;
+    border: 3px solid #2C2C2C;
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #FFFDFC;
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.3));
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    color: #FFFDFC;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 600px) {
+    .user-item {
+        padding: 1rem 1.25rem;
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+        border-width: 3px;
+    }
+
+    .chat-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .rank-header {
+        font-size: 0.85rem;
+        padding: 0.75rem 1.25rem;
+    }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #3D322F;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    border-radius: 10px;
+    border: 3px solid #3D322F;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #a88555 0%, #c19a6b 100%);
+}
+
+.user-avatar[onclick]:hover {
+    transform: scale(1.15) rotate(-5deg);
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4), 0 0 0 3px rgba(193, 154, 107, 0.3) !important;
+    cursor: pointer !important;
+}
+
+.user-avatar img {
+    transition: all 0.3s ease;
+}
+
+.user-avatar:hover img {
+    transform: scale(1.05);
+}
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <div class="chat-header-content">
+            <a href="{{ url_for('index') }}" class="back-btn">←</a>
+            <h1>Messages</h1>
+            <div style="width: 40px;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="userSearch" class="search-box" placeholder="🔍 Search users..." onkeyup="filterUsers()">
+        </div>
+
+        <div id="chatList">
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <p>Loading conversations...</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const RANKS = {{ RANKS | tojson }};
+    let allUsers = {};
+    let profilePictureCache = {};
+
+    function getTimeString(timestamp) {
+        try {
+            const now = new Date();
+            const parts = timestamp.split(' ');
+            const dateParts = parts[0].split('-');
+            const timeParts = parts[1].split(':');
+            const msgDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), parseInt(timeParts[2] || 0));
+            const diffMs = now - msgDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'Now';
+            if (diffMins < 60) return diffMins + 'm';
+            if (diffHours < 24) return diffHours + 'h';
+            if (diffDays < 7) return diffDays + 'd';
+            return msgDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } catch (e) { return ''; }
+    }
+
+    function renderChats() {
+        const chatList = document.getElementById('chatList');
+        let html = '';
+
+        let adminUser = null;
+        for (const [rankId, users] of Object.entries(allUsers)) {
+            for (const user of users) {
+                if (user.username === 'admin') { adminUser = user; break; }
+            }
+            if (adminUser) break;
+        }
+
+        if (adminUser) {
+            let adminColor = '#FFD700';
+            const timeStr = adminUser.lastMessageTime || '';
+            const adminAvatar = profilePictureCache['admin'] ? `<img src="${profilePictureCache['admin']}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : `<span>A</span>`;
+            const displayName = adminUser.instagramName || 'admin';
+
+            html += `<div class="rank-section"><div class="rank-header" style="color: ${adminColor};"><span style="font-size: 1.2rem;">📁️</span> Admin</div>`;
+            html += `<a href="/chat/admin" class="user-item"><div class="user-avatar ${adminUser.isOnline ? 'online' : ''}" style="background: ${adminColor}; cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('admin', '${adminColor}')" id="avatar-container-admin">${adminAvatar}</div><div class="user-content"><div class="user-name" style="color: ${adminColor};">${displayName}</div><div class="user-preview ${adminUser.unread > 0 ? 'unread' : ''}">${adminUser.lastMessage ? (adminUser.lastMessageFromMe ? 'You: ' : '') + adminUser.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${adminUser.unread > 0 ? `<div class="unread-badge">${adminUser.unread}</div>` : ''}</div></a><div class="rank-divider"></div></div>`;
+        }
+
+        const rankOrder = [...{{ RANKS | tojson }}].reverse();
+        rankOrder.push({ id: 'no_rank', name: 'Normal Students', color: '#000' });
+
+        for (const rank of rankOrder) {
+            let usersInRank = (allUsers[rank.id] || []).filter(u => u.username !== 'admin');
+            if (usersInRank.length === 0) continue;
+
+            usersInRank.sort((a, b) => {
+                const getTs = (user) => {
+                    if (!user.lastMessageTimestamp) return 0;
+                    try {
+                        const parts = user.lastMessageTimestamp.split(' ');
+                        const dateParts = parts[0].split('-');
+                        const timeParts = parts[1].split(':');
+                        return new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), 0).getTime();
+                    } catch (e) { return 0; }
+                };
+                return getTs(b) - getTs(a);
+            });
+
+            html += `<div class="rank-section"><div class="rank-header" style="color: ${rank.color};"><span style="font-size: 1.2rem;">🎖</span> ${rank.name}</div>`;
+            for (const user of usersInRank) {
+                const timeStr = user.lastMessageTime || '';
+                const userAvatar = profilePictureCache[user.username] ? `<img src="${profilePictureCache[user.username]}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : `<span>${user.username.charAt(0).toUpperCase()}</span>`;
+                const displayName = user.instagramName || user.username;
+
+                html += `<a href="/chat/${user.username}" class="user-item"><div class="user-avatar ${user.isOnline ? 'online' : ''}" style="background: ${rank.color}; cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('${user.username}', '${rank.color}')" id="avatar-container-${user.username}">${userAvatar}</div><div class="user-content"><div class="user-name" style="color: ${rank.color};">${displayName}</div><div class="user-preview ${user.showUnread ? 'unread' : ''}">${user.lastMessage ? (user.lastMessageFromMe ? 'You: ' : '') + user.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${user.showUnread ? `<div class="unread-badge">${user.unread}</div>` : ''}</div></a>`;
+            }
+            html += `<div class="rank-divider"></div></div>`;
+        }
+
+        if (html === '') html = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversations yet</p></div>`;
+        chatList.innerHTML = html;
+        if (window.currentSearchValue) { document.getElementById('userSearch').value = window.currentSearchValue; filterUsers(); }
+    }
+
+    function updateChatList() {
+        fetch('/api/users_with_ranks').then(r => r.json()).then(data => {
+            allUsers = {};
+            for (const [rankId, users] of Object.entries(data.users_by_rank)) {
+                allUsers[rankId] = users.map(user => ({
+                    username: user.username,
+                    instagramName: user.instagram_name,
+                    isOnline: user.is_online,
+                    unread: user.unread,
+                    lastMessage: user.last_message ? user.last_message.preview : null,
+                    lastMessageFromMe: user.last_message ? user.last_message.from_me : false,
+                    lastMessageTime: user.last_message ? getTimeString(user.last_message.timestamp) : null,
+                    lastMessageTimestamp: user.last_message_timestamp,
+                    showUnread: user.last_message ? !user.last_message.from_me && user.unread > 0 : false
+                }));
+            }
+            renderChats();
+        }).catch(e => console.error('Error loading chats:', e));
+    }
+
+    function sendHeartbeat() { fetch('/api/heartbeat', {method: 'POST'}).catch(e => console.error('Heartbeat error:', e)); }
+
+    function filterUsers() {
+        const searchValue = document.getElementById('userSearch').value.toLowerCase();
+        window.currentSearchValue = searchValue;
+        document.querySelectorAll('.user-item').forEach(item => {
+            const displayName = item.querySelector('.user-name').textContent.toLowerCase();
+            item.style.display = displayName.includes(searchValue) ? 'flex' : 'none';
+        });
+        document.querySelectorAll('.rank-section').forEach(section => {
+            const visibleUsers = section.querySelectorAll('.user-item[style="display: flex;"], .user-item:not([style*="display: none"])');
+            section.style.display = (searchValue === '' || visibleUsers.length > 0) ? 'block' : 'none';
+        });
+    }
+
+    function loadProfilePictures() {
+        document.querySelectorAll('[id^="avatar-container-"]').forEach(container => {
+            const username = container.id.replace('avatar-container-', '');
+            if (profilePictureCache[username]) return;
+            fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
+                if (data.has_profile && data.profile_picture) {
+                    profilePictureCache[username] = data.profile_picture;
+                    const img = document.createElement('img');
+                    img.src = data.profile_picture;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+                    img.onload = () => { container.innerHTML = ''; container.appendChild(img); };
+                }
+            }).catch(e => console.error('Error loading profile:', e));
+        });
+    }
+
+    function checkAndViewProfile(username) {
+        fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
+            if (data.has_profile) window.location.href = `/view_profile/${username}`;
+            else alert('This user hasn\'t set up their profile yet.');
+        }).catch(e => { console.error('Error checking profile:', e); alert('Error loading profile.'); });
+    }
+
+    updateChatList();
+    sendHeartbeat();
+    setInterval(updateChatList, 2000);
+    setInterval(sendHeartbeat, 15000);
+    setTimeout(loadProfilePictures, 500);
+</script>
+</body>
+</html>

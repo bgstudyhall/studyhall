@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ other_user }}</title>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial Black', Arial, sans-serif;
+    background: #000000;
+    color: #ffffff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.chat-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 935px;
+    margin: 0 auto;
+    background: #000000;
+}
+
+.chat-header {
+    background: #1a1a1a;
+    border-bottom: 5px solid #2C2C2C;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.5);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #2C2C2C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.back-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.user-name {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.typing-indicator-header {
+    font-size: 0.85rem;
+    color: #c19a6b;
+    margin-top: 0.25rem;
+    min-height: 18px;
+    font-weight: 700;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #000000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.messages-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    border-radius: 10px;
+    border: 2px solid #1a1a1a;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #a88555 0%, #c19a6b 100%);
+}
+
+.message {
+    display: flex;
+    margin-bottom: 0.5rem;
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-sent {
+    justify-content: flex-end;
+}
+
+.message-received {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 60%;
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    word-wrap: break-word;
+    position: relative;
+    border: 4px solid #2C2C2C;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
+    font-weight: 600;
+}
+
+.voice-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem !important;
+    max-width: 300px;
+}
+
+.voice-play-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: 3px solid white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    flex-shrink: 0;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.voice-play-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.voice-play-btn:active {
+    transform: scale(0.95);
+}
+
+.voice-waveform {
+    flex: 1;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.voice-bar {
+    width: 4px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+
+.voice-duration {
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.message-sent .message-bubble {
+    background: linear-gradient(135deg, #4A00E0 0%, #5a10f0 100%);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+}
+
+.message-received .message-bubble {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    color: #ffffff;
+    border-bottom-left-radius: 4px;
+}
+
+.message-system .message-bubble {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000000;
+    border-radius: 20px;
+    font-weight: 900;
+    text-align: center;
+    max-width: 80%;
+    border-color: #2C2C2C;
+}
+
+.message-text {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.message-received .message-time {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.read-checkmarks {
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.checkmark-single {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.checkmark-double {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.checkmark-read {
+    color: #4fc3f7;
+}
+
+.snap-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    cursor: pointer;
+    text-align: center;
+    padding: 1.5rem !important;
+    transition: all 0.3s;
+    position: relative;
+    border-radius: 20px !important;
+    border: 4px solid #2C2C2C !important;
+    box-shadow: 0 5px 0 rgba(44, 44, 44, 0.5) !important;
+}
+
+.snap-message:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 7px 0 rgba(44, 44, 44, 0.6) !important;
+}
+
+.snap-message:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5) !important;
+}
+
+.snap-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.snap-text {
+    font-weight: 900;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.snap-status {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+    font-weight: 700;
+}
+
+.snap-opened {
+    background: linear-gradient(135deg, #424242 0%, #303030 100%) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.snap-opened:hover {
+    transform: none;
+    box-shadow: 0 5px 0 rgba(44, 44, 44, 0.5) !important;
+}
+
+/* Snapchat-style Camera */
+.camera-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.camera-modal.active {
+    display: flex;
+}
+
+.snap-camera-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    background: #000;
+    border: 6px solid #2C2C2C;
+}
+
+.snap-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    border: 4px solid #2C2C2C;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+    font-weight: 900;
+}
+
+.snap-close-btn:hover {
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.snap-close-btn:active {
+    transform: translateY(1px) rotate(90deg);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#capturedCanvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.snap-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px 20px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+}
+
+.snap-capture-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snap-capture-outer {
+    width: 80px;
+    height: 80px;
+    border: 6px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.8);
+}
+
+.snap-capture-btn:active .snap-capture-outer {
+    transform: scale(0.85);
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.8);
+}
+
+.snap-capture-inner {
+    width: 65px;
+    height: 65px;
+    background: white;
+    border-radius: 50%;
+}
+
+.snap-send-controls {
+    display: none;
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    justify-content: center;
+    gap: 100px;
+    align-items: center;
+}
+
+.snap-send-controls.active {
+    display: flex;
+}
+
+.snap-send-btn,
+.snap-retake-btn {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 4px solid white;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 5px 0 #2C2C2C;
+}
+
+.snap-send-btn:hover,
+.snap-retake-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 7px 0 #2C2C2C;
+}
+
+.snap-send-btn:active,
+.snap-retake-btn:active {
+    transform: translateY(1px) scale(1);
+    box-shadow: 0 3px 0 #2C2C2C;
+}
+
+/* Snapchat-style Snap Viewer */
+.snap-view-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.snap-view-modal.active {
+    display: flex;
+}
+
+.snap-view-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 6px solid #2C2C2C;
+}
+
+.snap-view-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+    z-index: 10;
+}
+
+.snap-view-close {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    border: 4px solid #2C2C2C;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 900;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.snap-view-close:hover {
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.snap-view-username {
+    color: white;
+    font-weight: 900;
+    font-size: 1.1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.snap-view-timer {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.1rem;
+    border: 4px solid #2C2C2C;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.snap-view-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.snap-view-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    z-index: 10;
+}
+
+.snap-view-actions {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.snap-action-btn {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 4px solid white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.snap-action-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.snap-action-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.typing-bubble {
+    display: none;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.typing-bubble.active {
+    display: flex;
+}
+
+.typing-content {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    border: 4px solid #2C2C2C;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
+}
+
+.typing-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #c19a6b;
+    animation: typingAnimation 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingAnimation {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+.no-messages {
+    text-align: center;
+    color: #666;
+    padding: 3rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+.message-input-container {
+    background: #1a1a1a;
+    border-top: 5px solid #2C2C2C;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 -4px 0 rgba(44, 44, 44, 0.5);
+}
+
+.message-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.snap-btn, .voice-btn, .gift-btn {
+    border: 4px solid #2C2C2C;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    color: white;
+    flex-shrink: 0;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.snap-btn {
+    background: linear-gradient(135deg, #F2EE05 0%, #e6e200 100%);
+}
+
+.voice-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.voice-btn.recording {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.gift-btn {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.snap-btn:hover, .gift-btn:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.snap-btn:active, .gift-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.message-input {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: 4px solid #2C2C2C;
+    border-radius: 24px;
+    font-size: 1rem;
+    font-family: Arial, sans-serif;
+    background: #262626;
+    color: #ffffff;
+    transition: all 0.3s;
+    font-weight: 600;
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: #c19a6b;
+    box-shadow: 0 3px 0 #c19a6b;
+}
+
+.message-input::placeholder {
+    color: #666;
+    font-weight: 600;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    color: white;
+    border: 4px solid #2C2C2C;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 80px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.send-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Token Gift Modal */
+.gift-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.gift-modal.active {
+    display: flex;
+}
+
+.gift-modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 6px solid #FFD700;
+    padding: 2.5rem;
+    border-radius: 30px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.6), 0 8px 0 #2C2C2C;
+    animation: giftAppear 0.3s ease-out;
+}
+
+@keyframes giftAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.gift-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    animation: giftBounce 1s ease-in-out infinite;
+}
+
+@keyframes giftBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.gift-title {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #FFD700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gift-subtitle {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.gift-balance {
+    background: rgba(255, 215, 0, 0.15);
+    border: 4px solid #FFD700;
+    padding: 1rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    color: #FFD700;
+    font-weight: 900;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 0 rgba(255, 215, 0, 0.3);
+}
+
+.gift-input-group {
+    margin-bottom: 1.5rem;
+}
+
+.gift-input-label {
+    display: block;
+    text-align: left;
+    color: #fff;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.gift-input {
+    width: 100%;
+    padding: 1rem;
+    border: 4px solid #FFD700;
+    border-radius: 16px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    text-align: center;
+    background: #262626;
+    color: #FFD700;
+    box-shadow: 0 4px 0 rgba(255, 215, 0, 0.3);
+}
+
+.gift-input:focus {
+    outline: none;
+    box-shadow: 0 4px 0 #FFD700, 0 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+.gift-quick-amounts {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.quick-amount-btn {
+    background: rgba(255, 215, 0, 0.2);
+    border: 3px solid #FFD700;
+    color: #FFD700;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 900;
+    transition: all 0.3s;
+    font-size: 1rem;
+    box-shadow: 0 3px 0 rgba(255, 215, 0, 0.3);
+}
+
+.quick-amount-btn:hover {
+    background: #FFD700;
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 rgba(255, 215, 0, 0.5);
+}
+
+.quick-amount-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(255, 215, 0, 0.3);
+}
+
+.gift-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.gift-send-btn, .gift-cancel-btn {
+    flex: 1;
+    padding: 1rem;
+    border: 4px solid #2C2C2C;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.gift-send-btn {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000;
+}
+
+.gift-send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.gift-send-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.gift-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.gift-cancel-btn {
+    background: linear-gradient(135deg, #444 0%, #333 100%);
+    color: #fff;
+}
+
+.gift-cancel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.gift-cancel-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.gift-error {
+    background: rgba(255, 0, 0, 0.2);
+    border: 4px solid #ff0000;
+    color: #ff6666;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: 0 4px 0 rgba(255, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .message-bubble {
+        max-width: 75%;
+    }
+
+    .user-name {
+        font-size: 1rem;
+    }
+
+    .snap-btn, .gift-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <div class="header-left">
+                <a href="{{ url_for('chat') }}" class="back-btn">←</a>
+                <div>
+                    <div class="user-name">{{ other_user }}</div>
+                    <div class="typing-indicator-header" id="typingHeader"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            {% if messages %}
+                {% for msg in messages %}
+                {% if msg.get('type') == 'snap' %}
+                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-message-index="{{ loop.index0 }}">
+                    <div class="message-bubble snap-message {% if msg.get('opened') %}snap-opened{% endif %}" data-snap-index="{{ loop.index0 }}">
+                        <div class="snap-icon">📸</div>
+                        <div class="snap-text">{% if msg.get('opened') %}Opened{% else %}Tap to view{% endif %}</div>
+                        <div class="message-footer">
+                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% elif msg.get('type') == 'voice' %}
+                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
+                    <div class="message-bubble voice-message">
+                        <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
+                        <div class="voice-waveform">
+                            <div class="voice-bar" style="height: 25px;"></div>
+                            <div class="voice-bar" style="height: 35px;"></div>
+                            <div class="voice-bar" style="height: 20px;"></div>
+                            <div class="voice-bar" style="height: 40px;"></div>
+                            <div class="voice-bar" style="height: 30px;"></div>
+                            <div class="voice-bar" style="height: 45px;"></div>
+                            <div class="voice-bar" style="height: 25px;"></div>
+                            <div class="voice-bar" style="height: 35px;"></div>
+                            <div class="voice-bar" style="height: 28px;"></div>
+                            <div class="voice-bar" style="height: 38px;"></div>
+                            <div class="voice-bar" style="height: 22px;"></div>
+                            <div class="voice-bar" style="height: 32px;"></div>
+                            <div class="voice-bar" style="height: 27px;"></div>
+                            <div class="voice-bar" style="height: 37px;"></div>
+                            <div class="voice-bar" style="height: 24px;"></div>
+                        </div>
+                        <div class="voice-duration">{{ msg.duration }}s</div>
+                    </div>
+                    <div class="message-footer" style="margin-top: 0.5rem;">
+                        <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                        {% if msg.from == current_user %}
+                        <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
+                            <span class="checkmark-single">✓</span>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% elif msg.get('type') == 'token_gift' %}
+                <div class="message message-system" data-timestamp="{{ msg.timestamp }}">
+                    <div class="message-bubble">
+                        <div class="message-text">🎁 {{ msg.text }}</div>
+                        <div class="message-footer">
+                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
+                    <div class="message-bubble">
+                        <div class="message-text">{{ msg.text }}</div>
+                        <div class="message-footer">
+                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                            {% if msg.from == current_user %}
+                            <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
+                                <span class="checkmark-single">✓</span>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="no-messages">No messages yet. Start the conversation!</div>
+            {% endif %}
+            <div class="typing-bubble" id="typingBubble">
+                <div class="typing-content">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+<div class="message-input-container">
+            <form class="message-form" id="messageForm">
+                <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
+                <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
+                <button type="button" class="gift-btn" id="giftBtn" title="Send Tokens">🎁</button>
+                <input
+                    type="text"
+                    name="message"
+                    class="message-input"
+                    id="messageInput"
+                    placeholder="Message..."
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-btn" id="sendBtn">Send</button>
+            </form>
+        </div>
+
+    <!-- Camera Modal -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="snap-camera-wrapper">
+            <button class="snap-close-btn" id="closeCameraBtn">✕</button>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="capturedCanvas"></canvas>
+            <div class="snap-bottom-bar">
+                <button class="snap-capture-btn" id="captureBtn">
+                    <div class="snap-capture-outer">
+                        <div class="snap-capture-inner"></div>
+                    </div>
+                </button>
+                <div class="snap-send-controls" id="snapSendControls">
+                    <button class="snap-send-btn" id="sendSnapBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                    <button class="snap-retake-btn" id="retakeBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snap View Modal -->
+    <div class="snap-view-modal" id="snapModal">
+        <div class="snap-view-wrapper">
+            <div class="snap-view-header">
+                <button class="snap-view-close" onclick="closeSnapModal()">✕</button>
+                <div class="snap-view-username">{{ other_user }}</div>
+                <div class="snap-view-timer" id="snapTimer">5</div>
+            </div>
+            <img id="snapImage" class="snap-view-image" src="" alt="Snap">
+            <div class="snap-view-footer">
+                <div class="snap-view-actions">
+                    <button class="snap-action-btn">💬</button>
+                    <button class="snap-action-btn">📥</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Gift Modal -->
+    <div class="gift-modal" id="giftModal">
+        <div class="gift-modal-content">
+            <div class="gift-icon">🎁</div>
+            <div class="gift-title">Send Tokens</div>
+            <div class="gift-subtitle">to {{ other_user }}</div>
+
+            <div class="gift-balance" id="giftBalance">
+                Your Balance: 🎟️ <span id="giftBalanceAmount">0</span>
+            </div>
+
+            <div id="giftError" class="gift-error" style="display: none;"></div>
+
+            <div class="gift-input-group">
+                <label class="gift-input-label">Amount</label>
+                <input type="number" id="giftAmount" class="gift-input" min="1" placeholder="0" autocomplete="off">
+            </div>
+
+            <div class="gift-quick-amounts">
+                <button class="quick-amount-btn" onclick="setGiftAmount(5)">5</button>
+                <button class="quick-amount-btn" onclick="setGiftAmount(10)">10</button>
+                <button class="quick-amount-btn" onclick="setGiftAmount(25)">25</button>
+                <button class="quick-amount-btn" onclick="setGiftAmount(50)">50</button>
+            </div>
+
+            <div class="gift-actions">
+                <button class="gift-cancel-btn" onclick="closeGiftModal()">Cancel</button>
+                <button class="gift-send-btn" id="giftSendBtn" onclick="sendTokens()">Send 🎟️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Recording Modal -->
+    <div class="voice-modal" id="voiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="voice-modal-content" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border: 6px solid #667eea; padding: 3rem; border-radius: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.6), 0 8px 0 #2C2C2C;">
+            <div class="voice-icon" style="font-size: 5rem; margin-bottom: 1rem;">🎤</div>
+            <div class="voice-title" style="font-size: 2rem; font-weight: 900; color: #667eea; margin-bottom: 1rem; text-transform: uppercase;">Recording...</div>
+
+            <div class="voice-timer" id="voiceTimer" style="font-size: 3rem; font-weight: 900; color: white; margin-bottom: 2rem; font-family: monospace;">0:00</div>
+
+            <div class="voice-visualizer" style="display: flex; justify-content: center; gap: 4px; height: 60px; align-items: center; margin-bottom: 2rem;">
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 20px; animation: vizPulse 0.6s ease-in-out infinite;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 30px; animation: vizPulse 0.6s ease-in-out infinite 0.1s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 45px; animation: vizPulse 0.6s ease-in-out infinite 0.2s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 35px; animation: vizPulse 0.6s ease-in-out infinite 0.3s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 50px; animation: vizPulse 0.6s ease-in-out infinite 0.4s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 25px; animation: vizPulse 0.6s ease-in-out infinite 0.5s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 40px; animation: vizPulse 0.6s ease-in-out infinite 0.6s;"></div>
+            </div>
+
+            <style>
+                @keyframes vizPulse {
+                    0%, 100% { height: 20px; opacity: 0.6; }
+                    50% { height: 60px; opacity: 1; }
+                }
+            </style>
+
+            <div class="voice-actions" style="display: flex; gap: 1rem;">
+                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()" style="flex: 1; background: linear-gradient(135deg, #444 0%, #333 100%); color: white; border: 4px solid #2C2C2C; padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: 0 4px 0 #2C2C2C; transition: all 0.3s;">Cancel</button>
+                <button class="voice-send-btn" onclick="sendVoiceMessage()" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 4px solid #2C2C2C; padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: 0 4px 0 #2C2C2C; transition: all 0.3s;">Send 🎤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const otherUser = "{{ other_user }}";
+        const currentUser = "{{ current_user }}";
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingBubble = document.getElementById('typingBubble');
+        const typingHeader = document.getElementById('typingHeader');
+
+        let lastMessageCount = {{ messages|length }};
+        let isTyping = false;
+        let typingTimeout;
+        let stream = null;
+
+        // Camera elements
+        const snapBtn = document.getElementById('snapBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const capturedCanvas = document.getElementById('capturedCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const sendSnapBtn = document.getElementById('sendSnapBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+
+        // Auto-scroll to bottom
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        scrollToBottom();
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+
+        function formatTimestamp(timestamp) {
+    try {
+        const parts = timestamp.split(' ');
+        if (parts.length === 2) {
+            const timePart = parts[1];
+            const [hours, minutes] = timePart.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+            return `${displayHour}:${minutes} ${ampm}`;
+        }
+        return timestamp;
+    } catch (e) {
+        return timestamp;
+    }
+}
+
+        function addMessage(msg, isOwn) {
+            const noMessages = messagesContainer.querySelector('.no-messages');
+            if (noMessages) {
+                noMessages.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+
+            // Handle token gift system messages
+            if (msg.type === 'token_gift') {
+                messageDiv.className = 'message message-system';
+                messageDiv.setAttribute('data-timestamp', msg.timestamp);
+                const time = formatTimestamp(msg.timestamp);
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        <div class="message-text">🎁 ${escapeHtml(msg.text)}</div>
+                        <div class="message-footer">
+                            <span class="message-time">${time}</span>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.insertBefore(messageDiv, typingBubble);
+                scrollToBottom();
+                return;
+            }
+
+            messageDiv.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
+            messageDiv.setAttribute('data-timestamp', msg.timestamp);
+
+            const time = formatTimestamp(msg.timestamp);
+
+            if (msg.type === 'snap') {
+                const snapIndex = lastMessageCount - 1;
+                messageDiv.setAttribute('data-message-index', snapIndex);
+                messageDiv.innerHTML = `
+                    <div class="message-bubble snap-message ${msg.opened ? 'snap-opened' : ''}" data-snap-index="${snapIndex}">
+                        <div class="snap-icon">📸</div>
+                        <div class="snap-text">${msg.opened ? 'Opened' : 'Tap to view'}</div>
+                        <div class="message-footer">
+                            <span class="message-time">${time}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Add click handler for snap
+                const snapBubble = messageDiv.querySelector('.snap-message');
+                if (!msg.opened && !openedSnaps.has(snapIndex)) {
+                    snapBubble.addEventListener('click', () => openSnap(snapIndex, msg.opened));
+                }
+            } else if (msg.type === 'voice') {
+                const waveformBars = Array.from({length: 15}, () => Math.random() * 40 + 10)
+                    .map(height => `<div class="voice-bar" style="height: ${height}px;"></div>`)
+                    .join('');
+
+                messageDiv.innerHTML = `
+                    <div class="message-bubble voice-message">
+                        <button class="voice-play-btn" data-audio="${msg.audio}">▶️</button>
+                        <div class="voice-waveform">${waveformBars}</div>
+                        <div class="voice-duration">${msg.duration}s</div>
+                    </div>
+                    <div class="message-footer" style="margin-top: 0.5rem;">
+                        <span class="message-time">${time}</span>
+                        ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        <div class="message-text">${escapeHtml(msg.text)}</div>
+                        <div class="message-footer">
+                            <span class="message-time">${time}</span>
+                            ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            messagesContainer.insertBefore(messageDiv, typingBubble);
+            scrollToBottom();
+        }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Poll for new messages
+        function pollMessages() {
+            fetch(`/chat/${otherUser}/messages`)
+                .then(response => response.json())
+                .then(data => {
+                    // Check for new messages
+                    if (data.messages.length > lastMessageCount) {
+                        const newMessages = data.messages.slice(lastMessageCount);
+                        newMessages.forEach(msg => {
+                            addMessage(msg, msg.from === currentUser);
+                        });
+                        lastMessageCount = data.messages.length;
+                    }
+
+                    // Update existing snap statuses (for when other person opens them)
+                    const allMessages = document.querySelectorAll('[data-message-index]');
+                    allMessages.forEach(messageDiv => {
+                        const index = parseInt(messageDiv.getAttribute('data-message-index'));
+                        if (data.messages[index] && data.messages[index].type === 'snap' && data.messages[index].opened) {
+                            const bubble = messageDiv.querySelector('.snap-message');
+                            if (bubble && !bubble.classList.contains('snap-opened')) {
+                                bubble.classList.add('snap-opened');
+                                bubble.querySelector('.snap-text').textContent = 'Opened';
+                                bubble.style.cursor = 'not-allowed';
+                                // Remove click event by cloning
+                                const newBubble = bubble.cloneNode(true);
+                                bubble.parentNode.replaceChild(newBubble, bubble);
+                                openedSnaps.add(index);
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error polling messages:', error));
+        }
+
+        // Poll for read receipts
+        function pollReadReceipts() {
+    fetch(`/chat/${otherUser}/read_status`)
+        .then(response => response.json())
+        .then(data => {
+            const lastRead = data.last_read;
+            document.querySelectorAll('.message-sent .read-checkmarks').forEach(checkmark => {
+                const msgTimestamp = checkmark.getAttribute('data-timestamp');
+                // If message timestamp exists and is less than or equal to last read
+                if (msgTimestamp && lastRead && msgTimestamp <= lastRead) {
+                    checkmark.innerHTML = '<span class="checkmark-double checkmark-read">✓✓</span>';
+                } else if (msgTimestamp) {
+                    checkmark.innerHTML = '<span class="checkmark-double">✓✓</span>';
+                }
+            });
+        })
+        .catch(error => console.error('Error polling read receipts:', error));
+}
+
+        // Poll for typing indicator
+        function pollTyping() {
+            fetch(`/chat/${otherUser}/is_typing`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_typing) {
+                        typingBubble.classList.add('active');
+                        typingHeader.textContent = 'typing...';
+                        scrollToBottom();
+                    } else {
+                        typingBubble.classList.remove('active');
+                        typingHeader.textContent = '';
+                    }
+                })
+                .catch(error => console.error('Error polling typing:', error));
+        }
+
+        // Send typing indicator
+        function sendTypingStatus() {
+            fetch(`/chat/${otherUser}/typing`, {
+                method: 'POST'
+            }).catch(error => console.error('Error sending typing status:', error));
+        }
+
+// Mark as read ONLY ONCE on page load - stop aggressive polling
+async function markAsReadNow() {
+    try {
+        const response = await fetch(`/chat/${otherUser}/mark_read`, { method: 'POST' });
+        if (response.ok) {
+            // Force update read receipts immediately
+            pollReadReceipts();
+        }
+    } catch (error) {
+        console.error('Error marking as read:', error);
+    }
+}
+
+// Mark ONLY on initial page load
+markAsReadNow();
+
+// Mark ONLY when user interacts (click/type)
+let hasMarkedOnInteraction = false;
+document.addEventListener('click', () => {
+    if (!hasMarkedOnInteraction) {
+        markAsReadNow();
+        hasMarkedOnInteraction = true;
+    }
+}, { once: true });
+
+messageInput.addEventListener('focus', () => {
+    markAsReadNow();
+}, { once: true });
+
+// Mark on interaction
+document.addEventListener('click', markAsReadNow, { passive: true });
+
+// Mark before leaving page
+window.addEventListener('beforeunload', () => {
+    navigator.sendBeacon(`/chat/${otherUser}/mark_read`);
+});
+
+// Mark when returning to tab
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        markAsReadNow();
+    }
+});
+
+setInterval(pollMessages, 1000);
+setInterval(pollReadReceipts, 2000);
+setInterval(pollTyping, 1000);
+
+        // Handle typing indicator
+        messageInput.addEventListener('input', () => {
+            sendTypingStatus();
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTyping = false;
+            }, 2000);
+        });
+
+        // Handle form submission
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            sendBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+
+                const response = await fetch(`/chat/${otherUser}/send`, {
+    method: 'POST',
+    body: formData
+});
+
+if (response.ok) {
+    messageInput.value = '';
+    await markAsReadNow(); // Mark immediately after sending
+    pollMessages();
+}
+            } catch (error) {
+                console.error('Error sending message:', error);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            sendBtn.disabled = !messageInput.value.trim();
+        });
+
+        sendBtn.disabled = !messageInput.value.trim();
+
+        // Camera functionality
+        snapBtn.addEventListener('click', async () => {
+            cameraModal.classList.add('active');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraVideo.srcObject = stream;
+            } catch (error) {
+                alert('Could not access camera: ' + error.message);
+                cameraModal.classList.remove('active');
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const canvas = capturedCanvas;
+            const video = cameraVideo;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            captureBtn.style.display = 'none';
+            document.getElementById('snapSendControls').classList.add('active');
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        });
+
+        sendSnapBtn.addEventListener('click', async () => {
+            const photoData = capturedCanvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                const response = await fetch(`/chat/${otherUser}/send_snap`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ photo: photoData })
+                });
+
+                if (response.ok) {
+                    closeCameraModal();
+                    pollMessages();
+                }
+            } catch (error) {
+                console.error('Error sending snap:', error);
+                alert('Failed to send snap');
+            }
+        });
+
+        closeCameraBtn.addEventListener('click', closeCameraModal);
+
+        function closeCameraModal() {
+            cameraModal.classList.remove('active');
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        }
+
+        // Attach click handlers to initial snaps
+        document.querySelectorAll('.snap-message:not(.snap-opened)').forEach(bubble => {
+            const snapIndex = parseInt(bubble.getAttribute('data-snap-index'));
+            bubble.addEventListener('click', () => openSnap(snapIndex, false));
+        });
+
+        // Track opened snaps to prevent reopening
+        const openedSnaps = new Set();
+
+        // Open snap functionality
+        async function openSnap(index, isOpened) {
+            // Check if already opened in backend OR already opened in this session
+            if (isOpened || openedSnaps.has(index)) {
+                return; // Already opened, can't view again
+            }
+
+            try {
+                const response = await fetch(`/chat/${otherUser}/open_snap/${index}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Add to opened set immediately to prevent double-opening
+                    openedSnaps.add(index);
+
+                    const snapImage = document.getElementById('snapImage');
+                    snapImage.src = data.photo;
+                    document.getElementById('snapModal').classList.add('active');
+
+                    // Countdown timer
+                    let timeLeft = 5;
+                    document.getElementById('snapTimer').textContent = timeLeft;
+
+                    snapTimer = setInterval(() => {
+                        timeLeft--;
+                        document.getElementById('snapTimer').textContent = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(snapTimer);
+                            closeSnapModal();
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error opening snap:', error);
+            }
+        }
+
+        let snapTimer;
+
+        function closeSnapModal() {
+            document.getElementById('snapModal').classList.remove('active');
+            document.getElementById('snapImage').src = '';
+            if (snapTimer) {
+                clearInterval(snapTimer);
+            }
+        }
+        // Initial read receipts check and mark as read
+        pollReadReceipts();
+        // Send heartbeat to show user as online
+        function sendHeartbeat() {
+            fetch('/api/heartbeat', {
+                method: 'POST'
+            }).catch(error => console.error('Heartbeat error:', error));
+        }
+
+        // Send heartbeat immediately and every 15 seconds
+        sendHeartbeat();
+        setInterval(sendHeartbeat, 15000);
+
+        // Token Gift functionality
+        const giftBtn = document.getElementById('giftBtn');
+        const giftModal = document.getElementById('giftModal');
+        const giftAmount = document.getElementById('giftAmount');
+        const giftSendBtn = document.getElementById('giftSendBtn');
+        let currentUserBalance = {{ users[session.username]['tokens'] }};
+
+        giftBtn.addEventListener('click', () => {
+            // Fetch current balance
+            fetch('/api/user_balance')
+                .then(response => response.json())
+                .then(data => {
+                    currentUserBalance = data.balance;
+                    document.getElementById('giftBalanceAmount').textContent = currentUserBalance;
+                    giftModal.classList.add('active');
+                    giftAmount.value = '';
+                    giftAmount.focus();
+                    document.getElementById('giftError').style.display = 'none';
+                })
+                .catch(error => console.error('Error fetching balance:', error));
+        });
+
+        function setGiftAmount(amount) {
+            giftAmount.value = amount;
+        }
+
+        function closeGiftModal() {
+            giftModal.classList.remove('active');
+            giftAmount.value = '';
+            document.getElementById('giftError').style.display = 'none';
+        }
+
+        async function sendTokens() {
+            const amount = parseInt(giftAmount.value);
+            const errorDiv = document.getElementById('giftError');
+
+            if (!amount || amount <= 0) {
+                errorDiv.textContent = 'Please enter a valid amount';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (amount > currentUserBalance) {
+                errorDiv.textContent = `Insufficient balance! You have ${currentUserBalance} tokens`;
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            giftSendBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/chat/${otherUser}/send_tokens`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount: amount })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeGiftModal();
+                    pollMessages();
+                    currentUserBalance = data.new_balance;
+                } else {
+                    errorDiv.textContent = data.error || 'Failed to send tokens';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error sending tokens:', error);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                giftSendBtn.disabled = false;
+            }
+        }
+
+        // Allow Enter key to send tokens
+        giftAmount.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendTokens();
+            }
+        });
+
+        // ==================== VOICE MESSAGE FUNCTIONALITY ====================
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordingStartTime;
+        let recordingTimer;
+        let audioStream;
+
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceModal = document.getElementById('voiceModal');
+
+        voiceBtn.addEventListener('click', startVoiceRecording);
+
+        async function startVoiceRecording() {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(audioStream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Stop all audio tracks
+                    if (audioStream) {
+                        audioStream.getTracks().forEach(track => track.stop());
+                    }
+                };
+
+                mediaRecorder.start();
+                voiceModal.style.display = 'flex';
+                voiceBtn.classList.add('recording');
+
+                // Start timer
+                recordingStartTime = Date.now();
+                updateRecordingTimer();
+                recordingTimer = setInterval(updateRecordingTimer, 100);
+
+            } catch (error) {
+                alert('Could not access microphone: ' + error.message);
+            }
+        }
+
+        function updateRecordingTimer() {
+            const elapsed = Date.now() - recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const milliseconds = Math.floor((elapsed % 1000) / 100);
+            document.getElementById('voiceTimer').textContent = `${seconds}:${milliseconds}`;
+
+            // Auto-stop at 60 seconds
+            if (seconds >= 60) {
+                sendVoiceMessage();
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            clearInterval(recordingTimer);
+            voiceModal.style.display = 'none';
+            voiceBtn.classList.remove('recording');
+            audioChunks = [];
+        }
+
+        async function sendVoiceMessage() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+
+            clearInterval(recordingTimer);
+
+            // Wait for the audio chunks to be ready
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+
+            reader.onloadend = async () => {
+                const base64Audio = reader.result;
+                const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+
+                try {
+                    const response = await fetch(`/chat/${otherUser}/send_voice`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            audio: base64Audio,
+                            duration: duration
+                        })
+                    });
+
+                    if (response.ok) {
+                        voiceModal.style.display = 'none';
+                        voiceBtn.classList.remove('recording');
+                        pollMessages();
+                    } else {
+                        alert('Failed to send voice message');
+                    }
+                } catch (error) {
+                    console.error('Error sending voice message:', error);
+                    alert('Failed to send voice message');
+                }
+            };
+
+            reader.readAsDataURL(audioBlob);
+        }
+
+        // Handle voice message playback
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('voice-play-btn')) {
+                const audioData = e.target.getAttribute('data-audio');
+                const playBtn = e.target;
+
+                // Create audio element
+                const audio = new Audio(audioData);
+
+                // Change button to pause icon
+                playBtn.textContent = '⏸';
+
+                audio.onended = () => {
+                    playBtn.textContent = '▶️';
+                };
+
+                audio.play();
+            }
+        });
+        </script>
+
+
+    <!-- Chat Notification System -->
+    <div id="chatNotificationContainer"></div>
+
+    <style>
+    .chat-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        border: 5px solid #c19a6b;
+        border-radius: 20px;
+        padding: 1rem 1.5rem;
+        min-width: 300px;
+        max-width: 400px;
+        box-shadow: 0 8px 0 #2C2C2C, 0 12px 30px rgba(193, 154, 107, 0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 999999;
+        animation: slideInRight 0.4s ease-out;
+    }
+    .chat-notification:hover {
+        transform: translateY(-3px) translateX(-5px);
+        box-shadow: 0 12px 0 #2C2C2C, 0 16px 40px rgba(193, 154, 107, 0.6);
+    }
+    .chat-notification:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 0 #2C2C2C;
+    }
+    @keyframes slideInRight {
+        from { transform: translateX(450px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        to { transform: translateX(450px); opacity: 0; }
+    }
+    .chat-notification.hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+    .notification-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .notification-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #c19a6b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        border: 4px solid #2C2C2C;
+        box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
+    }
+    .notification-content { flex: 1; }
+    .notification-title {
+        font-weight: 900;
+        font-size: 0.9rem;
+        color: #c19a6b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .notification-user {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #ffffff;
+        margin-top: 0.25rem;
+    }
+    .notification-action {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 0.25rem;
+        font-weight: 600;
+    }
+    .notification-close {
+        background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+        border: 3px solid #2C2C2C;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 3px 0 #2C2C2C;
+        font-weight: 900;
+    }
+    .notification-close:hover {
+        transform: rotate(90deg) scale(1.1);
+    }
+    </style>
+</body>
+</html>

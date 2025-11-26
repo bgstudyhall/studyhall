@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Study Hall Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa;
+            color: #262626;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 935px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #262626;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .container {
+            max-width: 935px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .message-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+
+        .message-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+        }
+
+        .setup-card {
+            background: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 3px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .setup-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #262626;
+        }
+
+        .setup-description {
+            font-size: 1rem;
+            color: #8e8e8e;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .setup-cost {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance {
+            font-size: 0.9rem;
+            color: #8e8e8e;
+            margin-bottom: 2rem;
+        }
+
+        .profile-section {
+            background: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 3px;
+            padding: 2rem;
+        }
+
+        .profile-picture-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #dbdbdb;
+            margin-bottom: 2rem;
+        }
+
+        .profile-picture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            padding: 2px;
+            flex-shrink: 0;
+        }
+
+        .profile-picture-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-picture-letter {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #8e8e8e;
+        }
+
+        .profile-picture-info {
+            flex: 1;
+        }
+
+        .username-large {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #262626;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #262626;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: #fafafa;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #a8a8a8;
+            background: white;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-hint {
+            color: #8e8e8e;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .instagram-stats {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fafafa;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+        }
+
+        .stats-title {
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stats-text {
+            color: #8e8e8e;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: #0095f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #1877f2;
+        }
+
+        .btn:disabled {
+            background: #b2dffc;
+            cursor: not-allowed;
+        }
+
+        .btn-purchase {
+            background: #0095f6;
+        }
+
+        @media (max-width: 735px) {
+            .profile-picture-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="{{ url_for('index') }}" class="back-btn">←</a>
+            <div class="header-title">Edit Profile</div>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if error %}
+        <div class="message message-error">{{ error }}</div>
+        {% endif %}
+
+        {% if success %}
+        <div class="message message-success">{{ success }}</div>
+        {% endif %}
+
+        {% if not profile.setup_complete %}
+        <div class="setup-card">
+            <div class="setup-title">Connect with your Instagram</div>
+            <div class="setup-description">Create a StudyHall profile and connect it with your Instagram Account. This will display your Instagram Profile picture here, on StudyHall, for others as well as other Instagram data.</div>
+            <div class="setup-cost">100 Tokens</div>
+            <div class="balance">Your balance: {{ user_tokens }} tokens</div>
+            <form method="POST">
+                <input type="hidden" name="action" value="purchase_setup">
+                <button type="submit" class="btn btn-purchase">Set Up Profile</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="profile-section">
+            <div class="profile-picture-section">
+                <div class="profile-picture">
+                    <div class="profile-picture-inner">
+                        {% if profile.profile_picture %}
+                        <img src="{{ profile.profile_picture }}" alt="Profile Picture">
+                        {% else %}
+                        <div class="profile-picture-letter">{{ username[0].upper() }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="profile-picture-info">
+                    <div class="username-large">{{ username }}</div>
+                </div>
+            </div>
+
+            <form method="POST">
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="form-group">
+                    <label class="form-label">Instagram Username</label>
+                    <input type="text" name="instagram_username" class="form-input"
+                           value="{{ profile.instagram_username or '' }}"
+                           placeholder="username">
+                    <p class="form-hint">
+                        You can NOT connect an Account with Instagram in the school WLAN, do it home. Using an Instagram Account not owned by you will get you BANNED on StudyHall.
+                    </p>
+
+                    {% if profile.instagram_username and profile.instagram_followers is not none %}
+                    <div class="instagram-stats">
+                        <div class="stats-title">More Data:</div>
+                        <div class="stats-text">
+                            {{ profile.instagram_followers }} followers · {{ profile.instagram_following }} following
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" class="form-textarea"
+                              placeholder="Tell others about yourself...">{{ profile.bio or '' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn" id="saveProfileBtn">Save Profile</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (!form) return;
+
+        const actionInput = form.querySelector('input[name="action"]');
+        if (!actionInput || actionInput.value !== 'update_profile') return;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('saveProfileBtn');
+            const formData = new FormData(form);
+
+            btn.disabled = true;
+            btn.innerHTML = 'Saving...';
+
+            fetch('/api/update_profile_instagram', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Save Profile';
+                }
+            })
+            .catch(error => {
+                alert('Connection error: ' + error);
+                btn.disabled = false;
+                btn.innerHTML = 'Save Profile';
+            });
+        });
+    });
+    </script>
+</body>
+</html>

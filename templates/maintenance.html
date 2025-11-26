@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - Study Hall Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a2c38 0%, #0f212e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 4rem 3rem;
+            max-width: 900px;
+            width: 100%;
+            border: 1px solid rgba(170, 184, 194, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(193, 154, 107, 0.3);
+        }
+
+        .progress-container {
+            margin: 2.5rem auto;
+            background: #E8E8E8;
+            height: 8px;
+            border-radius: 50px;
+            overflow: hidden;
+            max-width: 400px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #c19a6b 0%, #d4af7a 100%);
+            border-radius: 50px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .notes-section {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2.5rem 0;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .notes-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .notes-title span:first-child {
+            font-size: 1.5rem;
+        }
+
+        .notes-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .notes-list li {
+            padding: 1rem;
+            color: #2d2d2d;
+            font-size: 1rem;
+            line-height: 1.6;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            font-weight: 400;
+        }
+
+        .notes-list li::before {
+            content: '✓';
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-text {
+            margin-top: 2.5rem;
+            color: #888;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        .footer-text strong {
+            color: #1a1a1a;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .timer {
+            display: inline-flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .timer-dot {
+            width: 8px;
+            height: 8px;
+            background: #c19a6b;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .timer-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .timer-dot:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 3rem 2rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .status-badge {
+                padding: 0.65rem 1.5rem;
+                font-size: 0.85rem;
+            }
+
+            .notes-section {
+                padding: 1.5rem;
+            }
+
+            .notes-title {
+                font-size: 1.2rem;
+            }
+
+            .notes-list li {
+                font-size: 0.95rem;
+                padding: 0.85rem;
+            }
+        }
+
+        @media (max-height: 700px) {
+            body {
+                display: block;
+                padding: 1rem;
+            }
+
+            .container {
+                margin: 1rem auto;
+                padding: 2.5rem 2rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .notes-section {
+                padding: 1.5rem;
+                margin: 2rem 0;
+            }
+
+            .status-badge {
+                padding: 0.65rem 1.5rem;
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>StudyHall is Currently Under Maintenance</h1>
+
+        <div class="subtitle">
+            We're making things better. StudyHall will be back shortly.
+        </div>
+
+        <div class="status-badge">
+            Maintenance in Progress
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        {% if maintenance_notes %}
+        <div class="notes-section">
+            <div class="notes-title">
+                <span>📋</span>
+                <span>{{ maintenance_title or "What's Coming" }}</span>
+            </div>
+            <ul class="notes-list">
+                {% for note in maintenance_notes %}
+                <li>{{ note }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="timer">
+            <div class="timer-dot"></div>
+            <div class="timer-dot"></div>
+            <div class="timer-dot"></div>
+        </div>
+
+        <div class="footer-text">
+            Thank you for your patience!<br>
+            <strong>StudyHall Portal</strong>
+        </div>
+    </div>
+</body>
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="{{ url_for('static', filename='future_is_now.mp3') }}" type="audio/mpeg">
+    </audio>
+
+      <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const audio = document.getElementById('bgMusic');
+            audio.volume = 0.4;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function() {
+                    const startAudio = function() {
+                        audio.play();
+                        document.removeEventListener('click', startAudio);
+                        document.removeEventListener('keydown', startAudio);
+                    };
+                    document.addEventListener('click', startAudio);
+                    document.addEventListener('keydown', startAudio);
+                });
+            }
+        });
+    </script>
+</html>

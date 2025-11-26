@@ -1,0 +1,2164 @@
+<document>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Study Hall Lounge 🏛️</title>
+    <style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial Black', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a3a52 0%, #2d5f8d 40%, #4a90c9 100%);
+    background-attachment: fixed;
+    color: #1a1a1a;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Snowfall Animation */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(2px 2px at 90% 60%, white, transparent),
+        radial-gradient(1px 1px at 33% 80%, white, transparent),
+        radial-gradient(2px 2px at 70% 40%, white, transparent);
+    background-size: 200px 200px, 300px 300px, 150px 150px, 250px 250px, 180px 180px, 220px 220px, 280px 280px;
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px, 200px 150px, 90px 200px;
+    animation: snowfall 20s linear infinite;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.8;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(1.5px 1.5px at 10% 20%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 40% 60%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 75% 35%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 25% 75%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1.5px 1.5px at 55% 15%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 85% 85%, rgba(255, 255, 255, 0.8), transparent);
+    background-size: 350px 350px, 400px 400px, 300px 300px, 450px 450px, 380px 380px, 320px 320px;
+    background-position: 20px 30px, 100px 120px, 180px 80px, 50px 200px, 240px 160px, 140px 240px;
+    animation: snowfall 30s linear infinite;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.6;
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+.lounge-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(240, 248, 255, 0.98);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 1;
+    border-left: 8px solid #2c4a6b;
+    border-right: 8px solid #2c4a6b;
+}
+
+.lounge-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-bottom: 5px solid #2c4a6b;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 6px 0 rgba(44, 74, 107, 0.3);
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-title h1 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #1e3a5f;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    border: 4px solid #2c4a6b;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #2c4a6b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2c4a6b;
+}
+
+.back-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+.cookie-banner {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 4px solid #2c4a6b;
+    box-shadow: 0 4px 0 rgba(44, 74, 107, 0.5);
+}
+
+.cookie-banner.claimed {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    box-shadow: 0 2px 0 rgba(44, 74, 107, 0.3);
+}
+
+.cookie-info {
+    flex: 1;
+}
+
+.cookie-title {
+    font-size: 0.95rem;
+    font-weight: 900;
+    margin-bottom: 0.25rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.cookie-banner.claimed .cookie-title {
+    color: #1e3a5f;
+}
+
+.cookie-subtitle {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 700;
+}
+
+.cookie-banner.claimed .cookie-subtitle {
+    color: #546e7a;
+}
+
+.cookie-action {
+    margin-left: 1rem;
+}
+
+.cookie-btn {
+    background: rgba(255, 255, 255, 0.95);
+    color: #42a5f5;
+    border: 3px solid #2c4a6b;
+    padding: 0.65rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2c4a6b;
+    text-transform: uppercase;
+}
+
+.cookie-btn:hover:not(:disabled) {
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.cookie-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+.cookie-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cookie-claimed-text {
+    color: #546e7a;
+    font-size: 0.875rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e1f5fe 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.messages-container::-webkit-scrollbar {
+    width: 12px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: #eceff1;
+    border-radius: 10px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    border-radius: 10px;
+    border: 3px solid #eceff1;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #81d4fa 0%, #64b5f6 100%);
+}
+
+.message {
+    display: flex;
+    gap: 0.75rem;
+    animation: messageSlide 0.3s ease-out;
+    position: relative;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: white;
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    border: 4px solid #2c4a6b;
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.5);
+}
+
+.message.system .message-avatar {
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+    padding: 0.875rem 1rem;
+    border-radius: 16px;
+    border: 4px solid #2c4a6b;
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.3);
+}
+
+.message-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.message-author {
+    font-weight: 900;
+    color: #1e3a5f;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.message.system .message-author {
+    color: #4caf50;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #546e7a;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.message-text {
+    color: #1e3a5f;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-family: Arial, sans-serif;
+}
+
+.message.system .message-text {
+    color: #1a1a1a;
+    font-weight: 900;
+}
+
+.message-actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.reaction-btn {
+    background: white;
+    border: 3px solid #2c4a6b;
+    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-weight: 900;
+    box-shadow: 0 2px 0 rgba(44, 74, 107, 0.3);
+    color: #1e3a5f;
+}
+
+.reaction-btn:hover {
+    background: #e3f2fd;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.4);
+}
+
+.reaction-btn:active {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 rgba(44, 74, 107, 0.3);
+}
+
+.reaction-btn.active {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    border-color: #2c4a6b;
+    color: white;
+}
+
+.reactions-display {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.reaction-count {
+    background: white;
+    border: 3px solid #2c4a6b;
+    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 900;
+    box-shadow: 0 2px 0 rgba(44, 74, 107, 0.3);
+    color: #1e3a5f;
+}
+
+.reaction-count:hover {
+    background: #e3f2fd;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.4);
+}
+
+.reaction-count:active {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 rgba(44, 74, 107, 0.3);
+}
+
+.reaction-count.user-reacted {
+    border-color: #2c4a6b;
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    color: white;
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+    border: 3px solid #2c4a6b;
+    color: white;
+    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 900;
+    box-shadow: 0 2px 0 rgba(44, 74, 107, 0.3);
+    text-transform: uppercase;
+}
+
+.delete-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.4);
+}
+
+.delete-btn:active {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 rgba(44, 74, 107, 0.3);
+}
+
+.snap-message {
+    background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+    padding: 1.25rem;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    border: 4px solid #2c4a6b !important;
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.5) !important;
+}
+
+.snap-message:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 5px 0 rgba(44, 74, 107, 0.6) !important;
+}
+
+.snap-message:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(44, 74, 107, 0.5) !important;
+}
+
+.snap-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.snap-text {
+    font-weight: 900;
+    color: white;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.snap-status {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 0.3rem;
+    font-weight: 700;
+}
+
+.snap-opened {
+    background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.snap-opened:hover {
+    transform: none;
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.5) !important;
+}
+
+.no-messages {
+    text-align: center;
+    color: #546e7a;
+    padding: 2rem;
+    font-weight: 900;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.message-input-container {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-top: 5px solid #2c4a6b;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 -3px 0 rgba(44, 74, 107, 0.5);
+}
+
+.message-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.snap-btn, .voice-btn {
+    border: 4px solid #2c4a6b;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    color: white;
+    box-shadow: 0 3px 0 #2c4a6b;
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+}
+
+.voice-btn.recording {
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.snap-btn:hover, .voice-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.snap-btn:active, .voice-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+.voice-message {
+    background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem !important;
+    max-width: 300px;
+    border-radius: 12px !important;
+}
+
+.voice-play-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: 3px solid white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.3s;
+    flex-shrink: 0;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.voice-play-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.voice-play-btn:active {
+    transform: scale(0.95);
+}
+
+.voice-waveform {
+    flex: 1;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.voice-bar {
+    width: 3px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+
+.voice-duration {
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.message-input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 4px solid #2c4a6b;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-family: Arial, sans-serif;
+    background: white;
+    color: #1a1a1a;
+    transition: all 0.3s;
+    font-weight: 600;
+    box-shadow: 0 3px 0 rgba(44, 74, 107, 0.5);
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: #64b5f6;
+    box-shadow: 0 3px 0 #64b5f6;
+}
+
+.message-input::placeholder {
+    color: #90a4ae;
+    font-weight: 600;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    color: white;
+    border: 4px solid #2c4a6b;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 70px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 #2c4a6b;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.send-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+.send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.fortune-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 58, 82, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.fortune-modal.active {
+    display: flex;
+}
+
+.fortune-content {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 6px solid #2c4a6b;
+    padding: 2.5rem;
+    border-radius: 24px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 6px 0 rgba(44, 74, 107, 0.8);
+    animation: fortuneAppear 0.5s ease-out;
+}
+
+@keyframes fortuneAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.fortune-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: fortuneSpin 1s ease-out;
+    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.1));
+}
+
+@keyframes fortuneSpin {
+    from {
+        transform: rotate(0deg) scale(0);
+    }
+    to {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+.fortune-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.fortune-text {
+    font-size: 1rem;
+    color: #1e3a5f;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 4px solid #2c4a6b;
+    font-family: Arial, sans-serif;
+}
+
+.fortune-reward {
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+    color: white;
+    padding: 0.85rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    border: 4px solid #2c4a6b;
+    box-shadow: 0 4px 0 rgba(44, 74, 107, 0.5);
+    text-transform: uppercase;
+}
+
+.fortune-close-btn {
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    color: #ffffff;
+    border: 4px solid #2c4a6b;
+    padding: 0.85rem 2rem;
+    border-radius: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 #2c4a6b;
+}
+
+.fortune-close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2c4a6b;
+}
+
+.fortune-close-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+/* Camera Modal */
+.camera-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.camera-modal.active {
+    display: flex;
+}
+
+.snap-camera-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    background: #000;
+    border: 6px solid #2c4a6b;
+}
+
+.snap-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+    border: 4px solid #2c4a6b;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.3rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2c4a6b;
+    font-weight: 900;
+}
+
+.snap-close-btn:hover {
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.snap-close-btn:active {
+    transform: translateY(1px) rotate(90deg);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#capturedCanvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.snap-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px 20px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+}
+
+.snap-capture-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snap-capture-outer {
+    width: 70px;
+    height: 70px;
+    border: 5px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.snap-capture-btn:active .snap-capture-outer {
+    transform: scale(0.85);
+    box-shadow: 0 3px 0 #2c4a6b;
+}
+
+.snap-capture-inner {
+    width: 58px;
+    height: 58px;
+    background: white;
+    border-radius: 50%;
+}
+
+.snap-send-controls {
+    display: none;
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    justify-content: center;
+    gap: 100px;
+    align-items: center;
+}
+
+.snap-send-controls.active {
+    display: flex;
+}
+
+.snap-send-btn,
+.snap-retake-btn {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 4px solid white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2c4a6b;
+}
+
+.snap-send-btn:hover,
+.snap-retake-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 0 #2c4a6b;
+}
+
+.snap-send-btn:active,
+.snap-retake-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+/* Snap View Modal */
+.snap-view-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.snap-view-modal.active {
+    display: flex;
+}
+
+.snap-view-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 6px solid #2c4a6b;
+}
+
+.snap-view-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+    z-index: 10;
+}
+
+.snap-view-close {
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+    border: 4px solid #2c4a6b;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 900;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2c4a6b;
+}
+
+.snap-view-close:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.snap-view-username {
+    color: white;
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.snap-view-timer {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.125rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.snap-view-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Reaction Menu */
+#reactionMenu {
+    display: none;
+    position: fixed;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    backdrop-filter: blur(20px);
+    border: 4px solid #2c4a6b;
+    border-radius: 12px;
+    padding: 0.5rem;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 0 rgba(44, 74, 107, 0.5);
+}
+
+#reactionMenu button {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+#reactionMenu button:hover {
+    background: rgba(100, 181, 246, 0.2);
+    transform: scale(1.1);
+}
+
+#reactionMenu button:active {
+    transform: scale(0.95);
+}
+
+/* Clear History Button */
+button[onclick="clearLoungeHistory()"] {
+    background: linear-gradient(135deg, #ef5350 0%, #e53935 100%) !important;
+    color: white !important;
+    border: 4px solid #2c4a6b !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 0.8125rem !important;
+    font-weight: 900 !important;
+    transition: all 0.3s !important;
+    box-shadow: 0 3px 0 #2c4a6b !important;
+    text-transform: uppercase !important;
+}
+
+button[onclick="clearLoungeHistory()"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 0 #2c4a6b !important;
+}
+
+button[onclick="clearLoungeHistory()"]:active {
+    transform: translateY(1px) !important;
+    box-shadow: 0 2px 0 #2c4a6b !important;
+}
+
+/* Voice Recording Modal */
+.voice-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 58, 82, 0.95);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.voice-modal-content {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 6px solid #2c4a6b;
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 6px 0 rgba(44, 74, 107, 0.8);
+}
+
+.voice-icon {
+    font-size: 4.5rem;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 16px rgba(100, 181, 246, 0.4));
+}
+
+.voice-title {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #1e3a5f;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.voice-timer {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #42a5f5;
+    margin-bottom: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, monospace;
+    text-shadow: 3px 3px 0 rgba(100, 181, 246, 0.2);
+}
+
+.voice-visualizer {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    height: 60px;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.viz-bar {
+    width: 4px;
+    background: #64b5f6;
+    border-radius: 2px;
+    animation: vizPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes vizPulse {
+    0%, 100% { height: 20px; opacity: 0.4; }
+    50% { height: 60px; opacity: 1; }
+}
+
+.voice-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.voice-cancel-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+    color: #546e7a;
+    border: 4px solid #2c4a6b;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2c4a6b;
+    text-transform: uppercase;
+}
+
+.voice-cancel-btn:hover {
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.voice-send-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+    color: white;
+    border: 4px solid #2c4a6b;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2c4a6b;
+    text-transform: uppercase;
+}
+
+.voice-send-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 #2c4a6b;
+}
+
+.voice-cancel-btn:active,
+.voice-send-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2c4a6b;
+}
+
+/* System message styling */
+.message.system .message-content {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #4caf50;
+}
+
+@media (max-width: 768px) {
+    .lounge-wrapper {
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .cookie-banner {
+        flex-direction: column;
+        gap: 0.875rem;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .cookie-action {
+        margin-left: 0;
+    }
+
+    .fortune-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .header-title h1 {
+        font-size: 1.25rem;
+    }
+
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+
+    .snap-btn, .voice-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .message-content {
+        padding: 0.75rem 0.875rem;
+    }
+
+    .message-text {
+        font-size: 0.875rem;
+    }
+
+    button[onclick="clearLoungeHistory()"] {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.75rem !important;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="lounge-wrapper">
+        <div class="lounge-header">
+            <div class="header-top">
+    <a href="{{ url_for('index') }}" class="back-btn">←</a>
+    <div class="header-title">
+        <h1>🏛️ The Study Hall Lounge</h1>
+    </div>
+    {% if user_role == 'admin' %}
+    <button onclick="clearLoungeHistory()">
+        🗑️ Clear
+    </button>
+    {% else %}
+    <div style="width: 40px;"></div>
+    {% endif %}
+</div>
+
+            <div class="cookie-banner {% if cookie_state['claimed'] %}claimed{% endif %}" id="cookieBanner">
+                <div class="cookie-info">
+                    {% if not cookie_state['claimed'] %}
+                    <div class="cookie-title">🥠 Fortune Cookie Available</div>
+                    <div class="cookie-subtitle">Resets every 3 hours • +5 tokens</div>
+                    {% else %}
+                    <div class="cookie-title">🥠 Cookie Claimed</div>
+                    <div class="cookie-subtitle">{{ cookie_state['claimed_by'] }} got it at {{ cookie_state['claimed_at'] }}</div>
+                    {% endif %}
+                </div>
+                <div class="cookie-action">
+                    {% if not cookie_state['claimed'] %}
+                    <button class="cookie-btn" id="claimCookieBtn" onclick="claimCookie()">Claim Now</button>
+                    {% else %}
+                    <div class="cookie-claimed-text">Next in <span id="countdown"></span></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="message {% if msg.from == 'system' %}system{% endif %}" data-index="{{ loop.index0 }}">
+                    <div class="message-avatar">
+                        {% if msg.from == 'system' %}
+                        🥠
+                        {% else %}
+                        {{ msg.from[0].upper() }}
+                        {% endif %}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">{% if msg.from == 'system' %}System{% else %}{{ msg.from }}{% endif %}</span>
+                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                        </div>
+
+                        {% if msg.get('type') == 'snap' %}
+                        <div class="message-text snap-message {% if current_user in msg.get('opened_by', []) %}snap-opened{% endif %}" onclick="openGroupSnap({{ loop.index0 }})">
+                            <div class="snap-icon">📸</div>
+                            <div class="snap-text">
+                                {% if current_user in msg.get('opened_by', []) %}
+                                Opened
+                                {% else %}
+                                Tap to view
+                                {% endif %}
+                            </div>
+                            <div class="snap-status">{{ msg.get('opened_by', [])|length }} opened</div>
+                        </div>
+                        {% elif msg.get('type') == 'voice' %}
+                        <div class="message-text voice-message">
+                            <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
+                            <div class="voice-waveform">
+                                <div class="voice-bar" style="height: 20px;"></div>
+                                <div class="voice-bar" style="height: 28px;"></div>
+                                <div class="voice-bar" style="height: 18px;"></div>
+                                <div class="voice-bar" style="height: 32px;"></div>
+                                <div class="voice-bar" style="height: 25px;"></div>
+                                <div class="voice-bar" style="height: 30px;"></div>
+                                <div class="voice-bar" style="height: 22px;"></div>
+                                <div class="voice-bar" style="height: 28px;"></div>
+                                <div class="voice-bar" style="height: 24px;"></div>
+                                <div class="voice-bar" style="height: 30px;"></div>
+                                <div class="voice-bar" style="height: 19px;"></div>
+                                <div class="voice-bar" style="height: 26px;"></div>
+                            </div>
+                            <div class="voice-duration">{{ msg.duration }}s</div>
+                        </div>
+                        {% else %}
+                        <div class="message-text">{{ msg.text }}</div>
+                        {% endif %}
+
+                        <div class="message-actions">
+                            {% if msg.get('type') not in ['snap', 'voice'] %}
+                            <div class="reactions-display" data-index="{{ loop.index0 }}">
+                                {% if loop.index0|string in reactions %}
+                                    {% for emoji, users in reactions[loop.index0|string].items() %}
+                                    <span class="reaction-count {% if current_user in users %}user-reacted{% endif %}"
+                                          onclick="reactToMessage({{ loop.index0 }}, '{{ emoji }}')">
+                                        {{ emoji }} {{ users|length }}
+                                    </span>
+                                    {% endfor %}
+                                {% endif %}
+                                </div>
+                            <button class="reaction-btn" onclick="showReactionMenu(event, {{ loop.index0 }})">➕</button>
+                            {% endif %}
+
+                            {% if user_role in ['admin', 'ambassador'] %}
+                            <button class="delete-btn" onclick="deleteMessage({{ loop.index0 }})">🗑️ Delete</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-messages">Welcome to the lounge! Start the conversation 💬</div>
+            {% endif %}
+        </div>
+
+        <div class="message-input-container">
+            <form class="message-form" id="messageForm">
+                <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
+                <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
+                <input
+                    type="text"
+                    name="message"
+                    class="message-input"
+                    id="messageInput"
+                    placeholder="Message the lounge..."
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-btn" id="sendBtn">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fortune Modal -->
+    <div class="fortune-modal" id="fortuneModal">
+        <div class="fortune-content">
+            <div class="fortune-icon">🥠</div>
+            <div class="fortune-title">Your Fortune</div>
+            <div class="fortune-text" id="fortuneText"></div>
+            <div class="fortune-reward">+5 Tokens Earned! 🎟️</div>
+            <button class="fortune-close-btn" onclick="closeFortuneModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="snap-camera-wrapper">
+            <button class="snap-close-btn" id="closeCameraBtn">✕</button>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="capturedCanvas"></canvas>
+            <div class="snap-bottom-bar">
+                <button class="snap-capture-btn" id="captureBtn">
+                    <div class="snap-capture-outer">
+                        <div class="snap-capture-inner"></div>
+                    </div>
+                </button>
+                <div class="snap-send-controls" id="snapSendControls">
+                    <button class="snap-send-btn" id="sendSnapBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                    <button class="snap-retake-btn" id="retakeBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snap View Modal -->
+    <div class="snap-view-modal" id="snapModal">
+        <div class="snap-view-wrapper">
+            <div class="snap-view-header">
+                <button class="snap-view-close" onclick="closeSnapModal()">✕</button>
+                <div class="snap-view-username" id="snapUsername"></div>
+                <div class="snap-view-timer" id="snapTimer">5</div>
+            </div>
+            <img id="snapImage" class="snap-view-image" src="" alt="Snap">
+        </div>
+    </div>
+
+    <!-- Voice Recording Modal -->
+    <div class="voice-modal" id="voiceModal">
+        <div class="voice-modal-content">
+            <div class="voice-icon">🎤</div>
+            <div class="voice-title">Recording...</div>
+
+            <div class="voice-timer" id="voiceTimer">0:00</div>
+
+            <div class="voice-visualizer">
+                <div class="viz-bar" style="height: 20px; animation-delay: 0s;"></div>
+                <div class="viz-bar" style="height: 30px; animation-delay: 0.1s;"></div>
+                <div class="viz-bar" style="height: 45px; animation-delay: 0.2s;"></div>
+                <div class="viz-bar" style="height: 35px; animation-delay: 0.3s;"></div>
+                <div class="viz-bar" style="height: 50px; animation-delay: 0.4s;"></div>
+                <div class="viz-bar" style="height: 25px; animation-delay: 0.5s;"></div>
+                <div class="viz-bar" style="height: 40px; animation-delay: 0.6s;"></div>
+            </div>
+
+            <div class="voice-actions">
+                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()">Cancel</button>
+                <button class="voice-send-btn" onclick="sendVoiceMessage()">Send 🎤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reaction Menu -->
+    <div id="reactionMenu">
+        <button onclick="selectReaction('👍')">👍</button>
+        <button onclick="selectReaction('👎')">👎</button>
+        <button onclick="selectReaction('❤️')">❤️</button>
+        <button onclick="selectReaction('😂')">😂</button>
+        <button onclick="selectReaction('😀')">😀</button>
+        <button onclick="selectReaction('😡')">😡</button>
+        <button onclick="selectReaction('🔥')">🔥</button>
+        <button onclick="selectReaction('🥋')">🥋</button>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const currentUser = "{{ current_user }}";
+        const userRole = "{{ user_role }}";
+        let lastMessageCount = {{ messages|length }};
+        let currentReactionIndex = null;
+        let stream = null;
+        let snapTimer;
+        const openedSnaps = new Set();
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        scrollToBottom();
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function addMessage(msg, index) {
+            const noMessages = messagesContainer.querySelector('.no-messages');
+            if (noMessages) {
+                noMessages.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = msg.from === 'system' ? 'message system' : 'message';
+            messageDiv.setAttribute('data-index', index);
+
+            const time = msg.timestamp.includes(' ') ? msg.timestamp.split(' ').slice(1).join(' ') : msg.timestamp;
+            const avatar = msg.from === 'system' ? '🥠' : msg.from.charAt(0).toUpperCase();
+            const authorName = msg.from === 'system' ? 'System' : msg.from;
+
+            let messageContent = '';
+
+            if (msg.type === 'snap') {
+                const isOpened = msg.opened_by && msg.opened_by.includes(currentUser);
+                openedSnaps.add(index);
+                messageContent = `
+                    <div class="message-text snap-message ${isOpened ? 'snap-opened' : ''}" onclick="openGroupSnap(${index})">
+                        <div class="snap-icon">📸</div>
+                        <div class="snap-text">${isOpened ? 'Opened' : 'Tap to view'}</div>
+                        <div class="snap-status">${msg.opened_by ? msg.opened_by.length : 0} opened</div>
+                    </div>
+                `;
+            } else if (msg.type === 'voice') {
+                const waveformBars = Array.from({length: 12}, () => Math.random() * 30 + 10)
+                    .map(height => `<div class="voice-bar" style="height: ${height}px;"></div>`)
+                    .join('');
+
+                messageContent = `
+                    <div class="message-text voice-message">
+                        <button class="voice-play-btn" data-audio="${msg.audio}">▶️</button>
+                        <div class="voice-waveform">${waveformBars}</div>
+                        <div class="voice-duration">${msg.duration}s</div>
+                    </div>
+                `;
+            } else {
+                messageContent = `<div class="message-text">${escapeHtml(msg.text)}</div>`;
+            }
+            const deleteBtn = (userRole === 'admin' || userRole === 'ambassador')
+                ? `<button class="delete-btn" onclick="deleteMessage(${index})">🗑️ Delete</button>`
+                : '';
+
+            const reactionControls = (msg.type !== 'snap' && msg.type !== 'voice')
+                ? `<div class="reactions-display" data-index="${index}"></div>
+                   <button class="reaction-btn" onclick="showReactionMenu(event, ${index})">➕</button>`
+                : '';
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">${authorName}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    ${messageContent}
+                    <div class="message-actions">
+                        ${reactionControls}
+                        ${deleteBtn}
+                    </div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function updateReactions(reactions) {
+            const messageElements = document.querySelectorAll('[data-index]');
+            messageElements.forEach(messageEl => {
+                const index = messageEl.getAttribute('data-index');
+                const reactionsDisplay = messageEl.querySelector('.reactions-display');
+
+                if (reactionsDisplay && reactions[index]) {
+                    reactionsDisplay.innerHTML = '';
+
+                    for (const [emoji, users] of Object.entries(reactions[index])) {
+                        const userReacted = users.includes(currentUser);
+                        const reactionSpan = document.createElement('span');
+                        reactionSpan.className = `reaction-count ${userReacted ? 'user-reacted' : ''}`;
+                        reactionSpan.onclick = () => reactToMessage(parseInt(index), emoji);
+                        reactionSpan.textContent = `${emoji} ${users.length}`;
+                        reactionsDisplay.appendChild(reactionSpan);
+                    }
+                }
+            });
+        }
+
+        function pollMessages() {
+            fetch('/lounge/messages')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages.length > lastMessageCount) {
+                        const newMessages = data.messages.slice(lastMessageCount);
+                        newMessages.forEach((msg, idx) => {
+                            addMessage(msg, lastMessageCount + idx);
+                        });
+                        lastMessageCount = data.messages.length;
+                    }
+
+                    updateReactions(data.reactions);
+                    updateCookieBanner(data.cookie_state);
+                    forceMarkAsReadNOW();
+                })
+                .catch(error => console.error('Error polling messages:', error));
+        }
+
+        function updateCookieBanner(cookieState) {
+            const banner = document.getElementById('cookieBanner');
+            const claimBtn = document.getElementById('claimCookieBtn');
+
+            if (cookieState.claimed && claimBtn) {
+                location.reload();
+            }
+        }
+
+        function markLoungeAsRead() {
+            fetch('/lounge/mark_read', {
+                method: 'POST'
+            }).catch(error => console.error('Error marking lounge as read:', error));
+        }
+
+        markLoungeAsRead();
+
+        setInterval(pollMessages, 1000);
+        setInterval(markLoungeAsRead, 3000);
+
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            sendBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+
+                const response = await fetch('/lounge/send', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    messageInput.value = '';
+                    pollMessages();
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            sendBtn.disabled = !messageInput.value.trim();
+        });
+
+        sendBtn.disabled = !messageInput.value.trim();
+
+        async function claimCookie() {
+            const btn = document.getElementById('claimCookieBtn');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/lounge/claim_cookie', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('fortuneText').textContent = data.fortune;
+                    document.getElementById('fortuneModal').classList.add('active');
+                } else {
+                    alert(data.error || 'Cookie already claimed');
+                }
+            } catch (error) {
+                console.error('Error claiming cookie:', error);
+                alert('Failed to claim cookie');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function closeFortuneModal() {
+            document.getElementById('fortuneModal').classList.remove('active');
+            location.reload();
+        }
+
+        function updateCountdown() {
+            fetch('/lounge/messages')
+                .then(response => response.json())
+                .then(data => {
+                    const cookieState = data.cookie_state;
+                    const lastReset = new Date(cookieState.last_reset.replace(' ', 'T'));
+                    const nextReset = new Date(lastReset.getTime() + (3 * 60 * 60 * 1000));
+                    const now = new Date();
+
+                    const diff = nextReset - now;
+
+                    if (diff > 0) {
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                        const countdownEl = document.getElementById('countdown');
+                        if (countdownEl) {
+                            countdownEl.textContent = `${hours}h ${minutes}m`;
+                        }
+                    } else {
+                        const countdownEl = document.getElementById('countdown');
+                        if (countdownEl) {
+                            countdownEl.textContent = '0h 0m';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating countdown:', error));
+        }
+
+        {% if cookie_state['claimed'] %}
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+        {% endif %}
+
+        function showReactionMenu(event, index) {
+            event.stopPropagation();
+            currentReactionIndex = index;
+            const menu = document.getElementById('reactionMenu');
+            menu.style.display = 'block';
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+        }
+
+        function selectReaction(emoji) {
+            if (currentReactionIndex !== null) {
+                reactToMessage(currentReactionIndex, emoji);
+            }
+            document.getElementById('reactionMenu').style.display = 'none';
+        }
+
+        async function reactToMessage(index, emoji) {
+            try {
+                const response = await fetch(`/lounge/react/${index}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ emoji })
+                });
+
+                if (response.ok) {
+                    pollMessages();
+                }
+            } catch (error) {
+                console.error('Error reacting to message:', error);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('reactionMenu');
+            if (menu.style.display === 'block' && !menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        async function deleteMessage(index) {
+            if (!confirm('Delete this message?')) return;
+
+            try {
+                const response = await fetch(`/lounge/delete/${index}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                alert('Failed to delete message');
+            }
+        }
+
+        const snapBtn = document.getElementById('snapBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const capturedCanvas = document.getElementById('capturedCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const sendSnapBtn = document.getElementById('sendSnapBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+
+        snapBtn.addEventListener('click', async () => {
+            cameraModal.classList.add('active');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraVideo.srcObject = stream;
+            } catch (error) {
+                alert('Could not access camera: ' + error.message);
+                cameraModal.classList.remove('active');
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const canvas = capturedCanvas;
+            const video = cameraVideo;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            captureBtn.style.display = 'none';
+            document.getElementById('snapSendControls').classList.add('active');
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        });
+
+        sendSnapBtn.addEventListener('click', async () => {
+            const photoData = capturedCanvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                const response = await fetch('/lounge/send_snap', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ photo: photoData })
+                });
+
+                if (response.ok) {
+                    closeCameraModal();
+                    pollMessages();
+                }
+            } catch (error) {
+                console.error('Error sending snap:', error);
+                alert('Failed to send snap');
+            }
+        });
+
+        closeCameraBtn.addEventListener('click', closeCameraModal);
+
+        function closeCameraModal() {
+            cameraModal.classList.remove('active');
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        }
+
+        async function openGroupSnap(index) {
+            const messages = await fetch('/lounge/messages').then(r => r.json()).then(d => d.messages);
+            const msg = messages[index];
+
+            if (!msg || msg.type !== 'snap') return;
+
+            if (msg.from === currentUser) {
+                alert("You can't view your own snaps!");
+                return;
+            }
+
+            if (msg.opened_by && msg.opened_by.includes(currentUser)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/lounge/open_snap/${index}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    const snapImage = document.getElementById('snapImage');
+                    snapImage.src = data.photo;
+                    document.getElementById('snapUsername').textContent = msg.from;
+                    document.getElementById('snapModal').classList.add('active');
+
+                    let timeLeft = 5;
+                    document.getElementById('snapTimer').textContent = timeLeft;
+
+                    snapTimer = setInterval(() => {
+                        timeLeft--;
+                        document.getElementById('snapTimer').textContent = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(snapTimer);
+                            closeSnapModal();
+                            pollMessages();
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error opening snap:', error);
+            }
+        }
+
+        function closeSnapModal() {
+            document.getElementById('snapModal').classList.remove('active');
+            document.getElementById('snapImage').src = '';
+            if (snapTimer) {
+                clearInterval(snapTimer);
+            }
+            pollMessages();
+        }
+
+        function sendHeartbeat() {
+            fetch('/api/heartbeat', {
+                method: 'POST'
+            }).catch(error => console.error('Heartbeat error:', error));
+        }
+
+        sendHeartbeat();
+        setInterval(sendHeartbeat, 15000);
+
+        async function forceMarkAsReadNOW() {
+            try {
+                await fetch('/lounge/mark_read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } catch (e) {}
+        }
+
+        async function clearLoungeHistory() {
+            if (!confirm('⚠️ Are you sure you want to clear ALL lounge history?\n\nThis action CANNOT be undone!')) {
+                return;
+            }
+
+            if (!confirm('This will delete ALL messages, snaps, and voice messages. Continue?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/lounge/clear_history', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Lounge history cleared successfully!');
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to clear history'));
+                }
+            } catch (error) {
+                console.error('Error clearing lounge history:', error);
+                alert('❌ Network error: ' + error.message);
+            }
+        }
+
+        forceMarkAsReadNOW();
+        setTimeout(forceMarkAsReadNOW, 10);
+        setTimeout(forceMarkAsReadNOW, 50);
+        setTimeout(forceMarkAsReadNOW, 100);
+        setTimeout(forceMarkAsReadNOW, 250);
+        setTimeout(forceMarkAsReadNOW, 500);
+        setTimeout(forceMarkAsReadNOW, 1000);
+
+        setInterval(forceMarkAsReadNOW, 1000);
+
+        document.addEventListener('click', forceMarkAsReadNOW);
+        document.addEventListener('scroll', forceMarkAsReadNOW);
+        document.addEventListener('keypress', forceMarkAsReadNOW);
+        messagesContainer.addEventListener('scroll', forceMarkAsReadNOW);
+
+        window.addEventListener('beforeunload', () => {
+            navigator.sendBeacon('/lounge/mark_read');
+            forceMarkAsReadNOW();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                forceMarkAsReadNOW();
+                setTimeout(forceMarkAsReadNOW, 100);
+                setTimeout(forceMarkAsReadNOW, 500);
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            forceMarkAsReadNOW();
+            setTimeout(forceMarkAsReadNOW, 100);
+        });
+
+        // Voice Message Functionality
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordingStartTime;
+        let recordingTimer;
+        let audioStream;
+
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceModal = document.getElementById('voiceModal');
+
+        voiceBtn.addEventListener('click', startVoiceRecording);
+
+        async function startVoiceRecording() {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(audioStream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    if (audioStream) {
+                        audioStream.getTracks().forEach(track => track.stop());
+                    }
+                };
+
+                mediaRecorder.start();
+                voiceModal.style.display = 'flex';
+                voiceBtn.classList.add('recording');
+
+                recordingStartTime = Date.now();
+                updateRecordingTimer();
+                recordingTimer = setInterval(updateRecordingTimer, 100);
+
+            } catch (error) {
+                alert('Could not access microphone: ' + error.message);
+            }
+        }
+
+        function updateRecordingTimer() {
+            const elapsed = Date.now() - recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const milliseconds = Math.floor((elapsed % 1000) / 100);
+            document.getElementById('voiceTimer').textContent = `${seconds}:${milliseconds}`;
+
+            if (seconds >= 60) {
+                sendVoiceMessage();
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            clearInterval(recordingTimer);
+            voiceModal.style.display = 'none';
+            voiceBtn.classList.remove('recording');
+            audioChunks = [];
+        }
+
+        async function sendVoiceMessage() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+
+            clearInterval(recordingTimer);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+
+            reader.onloadend = async () => {
+                const base64Audio = reader.result;
+                const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+
+                try {
+                    const response = await fetch('/lounge/send_voice', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            audio: base64Audio,
+                            duration: duration
+                        })
+                    });
+
+                    if (response.ok) {
+                        voiceModal.style.display = 'none';
+                        voiceBtn.classList.remove('recording');
+                        pollMessages();
+                    } else {
+                        alert('Failed to send voice message');
+                    }
+                } catch (error) {
+                    console.error('Error sending voice message:', error);
+                    alert('Failed to send voice message');
+                }
+            };
+
+            reader.readAsDataURL(audioBlob);
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('voice-play-btn')) {
+                const audioData = e.target.getAttribute('data-audio');
+                const playBtn = e.target;
+
+                const audio = new Audio(audioData);
+
+                playBtn.textContent = '⏸';
+
+                audio.onended = () => {
+                    playBtn.textContent = '▶️';
+                };
+
+                audio.play();
+            }
+        });
+    </script>
+</body>
+</html>
