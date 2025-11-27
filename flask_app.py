@@ -3,7 +3,6 @@ from functools import wraps
 import io
 import json
 import os
-from openai import OpenAI
 from datetime import datetime, timedelta
 import pytz
 import random
@@ -14,6 +13,9 @@ import re
 from flask import g
 import instaloader
 
+# ===============================================================
+# Flask App Configuration
+# ===============================================================
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
@@ -35,7 +37,9 @@ FORTUNES = [
     "Harpo should play football - Keegan"
 ]
 
-# Add custom Jinja2 filter for time formatting
+# ===============================================================
+# Jinja2 Filters
+# ===============================================================
 @app.template_filter('format_time')
 def format_time_filter(timestamp):
     """Format timestamp to 12-hour format with AM/PM"""
@@ -53,11 +57,14 @@ def format_time_filter(timestamp):
         else:
             dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M')
         return dt.strftime('%I:%M %p')
-    except Exception as e:
+    except Exception:
         return timestamp
 
+# ===============================================================
 # File paths for JSON storage
-DATA_DIR = 'data'
+# ===============================================================
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 GAMES_FILE = os.path.join(DATA_DIR, 'games.json')
 ANNOUNCEMENTS_FILE = os.path.join(DATA_DIR, 'announcements.json')
@@ -85,19 +92,14 @@ COINFLIP_WINS_FILE = 'coinflip_wins.json'
 
 tower_games = {}
 
-OPENAI_API_KEY = "REMOVE_ME"
-
-# AI Configuration files
-AI_USAGE_FILE = os.path.join(DATA_DIR, 'ai_usage.json')
-AI_HISTORY_FILE = os.path.join(DATA_DIR, 'ai_history.json')
-AI_SETTINGS_FILE = os.path.join(DATA_DIR, 'ai_settings.json')
-
 
 # Create data directory if it doesn't exist
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
-# Load or initialize data
+# ===============================================================
+# JSON persistence helpers
+# ===============================================================
 def load_json(filepath, default_data):
     if os.path.exists(filepath):
         try:
@@ -111,7 +113,9 @@ def save_json(filepath, data):
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-# Helper function to get current time in New York timezone
+# ===============================================================
+# Core helpers and time utilities
+# ===============================================================
 def get_ny_time():
     ny_tz = pytz.timezone('America/New_York')
     return datetime.now(ny_tz)
@@ -130,116 +134,9 @@ def save_coinflip_wins(wins):
     with open(COINFLIP_WINS_FILE, 'w') as f:
         json.dump(wins, f, indent=4)
 
-def check_ai_rate_limit(username):
-    """Check if user can make AI request"""
-
-    # Check if AI is enabled
-    if not ai_settings.get('enabled', True):
-        return False, "AI feature is currently disabled"
-
-    # Check blacklist
-    if username in ai_settings.get('blacklisted_users', []):
-        return False, "You have been blocked from using AI"
-
-    # Whitelisted users bypass limits
-    if username in ai_settings.get('whitelisted_users', []):
-        return True, None
-
-    now = get_ny_time()
-    today = now.strftime('%Y-%m-%d')
-    current_hour = now.strftime('%Y-%m-%d-%H')
-
-    # Initialize user data
-    if username not in ai_usage:
-        ai_usage[username] = {
-            'daily': {},
-            'hourly': {},
-            'last_request': None
-        }
-
-    # Check cooldown
-    if ai_usage[username]['last_request']:
-        last_request_time = datetime.strptime(ai_usage[username]['last_request'], '%Y-%m-%d %H:%M:%S')
-        last_request_time = pytz.timezone('America/New_York').localize(last_request_time)
-        cooldown = ai_settings.get('cooldown_seconds', 30)
-
-        if (now - last_request_time).total_seconds() < cooldown:
-            remaining = cooldown - int((now - last_request_time).total_seconds())
-            return False, f"Please wait {remaining} seconds before next request"
-
-    # Check daily limit
-    daily_count = ai_usage[username]['daily'].get(today, 0)
-    daily_limit = ai_settings.get('daily_limit', 10)
-
-    if daily_count >= daily_limit:
-        return False, f"Daily limit reached ({daily_limit} prompts/day)"
-
-    # Check hourly limit
-    hourly_count = ai_usage[username]['hourly'].get(current_hour, 0)
-    hourly_limit = ai_settings.get('hourly_limit', 3)
-
-    if hourly_count >= hourly_limit:
-        return False, f"Hourly limit reached ({hourly_limit} prompts/hour)"
-
-    # Check token balance
-    token_cost = ai_settings.get('token_cost', 5)
-    if users[username].get('tokens', 0) < token_cost:
-        return False, f"Insufficient tokens. Need {token_cost} tokens per request"
-
-    return True, None
-
-def record_ai_usage(username):
-    """Record AI usage for rate limiting"""
-    now = get_ny_time()
-    today = now.strftime('%Y-%m-%d')
-    current_hour = now.strftime('%Y-%m-%d-%H')
-
-    if username not in ai_usage:
-        ai_usage[username] = {'daily': {}, 'hourly': {}, 'last_request': None}
-
-    # Update counters
-    ai_usage[username]['daily'][today] = ai_usage[username]['daily'].get(today, 0) + 1
-    ai_usage[username]['hourly'][current_hour] = ai_usage[username]['hourly'].get(current_hour, 0) + 1
-    ai_usage[username]['last_request'] = now.strftime('%Y-%m-%d %H:%M:%S')
-
-    # Charge tokens
-    token_cost = ai_settings.get('token_cost', 5)
-    users[username]['tokens'] -= token_cost
-
-    # Clean old data (keep only today and current hour)
-    ai_usage[username]['daily'] = {today: ai_usage[username]['daily'][today]}
-    ai_usage[username]['hourly'] = {current_hour: ai_usage[username]['hourly'][current_hour]}
-
-    save_json(AI_USAGE_FILE, ai_usage)
-    save_json(USERS_FILE, users)
-
-def validate_ai_input(prompt):
-    """Validate and sanitize AI input"""
-    prompt = prompt.strip()
-
-    # Check length
-    max_length = ai_settings.get('max_input_length', 500)
-    if len(prompt) > max_length:
-        return False, f"Prompt too long. Maximum {max_length} characters"
-
-    if len(prompt) < 5:
-        return False, "Prompt too short. Please be more specific"
-
-    # Block suspicious patterns
-    suspicious_patterns = [
-        'ignore previous', 'ignore all', 'system:', 'admin:',
-        'bypass', 'override', 'jailbreak', 'pretend you are'
-    ]
-
-    prompt_lower = prompt.lower()
-    for pattern in suspicious_patterns:
-        if pattern in prompt_lower:
-            return False, "Invalid prompt detected"
-
-    return True, prompt
-
-
-# Initialize default data
+# ===============================================================
+# Default in-memory data structures
+# ===============================================================
 default_users = {
     'admin': {
         'password': 'admin123',
@@ -263,20 +160,6 @@ lounge_messages = load_json(LOUNGE_FILE, [])
 lounge_reactions = load_json(LOUNGE_REACTIONS_FILE, {})
 lounge_read_receipts = load_json(LOUNGE_READ_RECEIPTS_FILE, {})
 login_notifications = load_json(LOGIN_NOTIFICATIONS_FILE, {})
-# Load AI data
-ai_usage = load_json(AI_USAGE_FILE, {})
-ai_history = load_json(AI_HISTORY_FILE, {})
-ai_settings = load_json(AI_SETTINGS_FILE, {
-    'enabled': True,
-    'daily_limit': 10,
-    'hourly_limit': 3,
-    'token_cost': 5,
-    'cooldown_seconds': 30,
-    'max_input_length': 500,
-    'max_output_tokens': 150,
-    'whitelisted_users': [],
-    'blacklisted_users': []
-})
 maintenance_mode = load_json(MAINTENANCE_FILE, {
     'enabled': False,
     'title': "What's Coming",
@@ -314,7 +197,10 @@ lottery_state = load_json(LOTTERY_FILE, {
 })
 
 lottery_tickets = load_json(LOTTERY_TICKETS_FILE, {})
-\
+
+# ===============================================================
+# One-time data migration / normalization
+# ===============================================================
 # Migrate existing data
 for game_id in games:
     if 'available' not in games[game_id]:
@@ -346,6 +232,7 @@ for username in users:
 save_json(USERS_FILE, users)
 save_json(GAMES_FILE, games)
 
+# In-memory typing status for chat
 typing_status = {}
 
 @app.before_request
@@ -363,7 +250,9 @@ def periodic_save():
 save_thread = threading.Thread(target=periodic_save, daemon=True)
 save_thread.start()
 
-# Decorators
+# ===============================================================
+# Access control decorators
+# ===============================================================
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -585,9 +474,9 @@ def force_password_change():
             return render_template('change_password.html',
                 error="Both fields are required")
 
-        if len(new_password) < 6:
+        if len(new_password) < 2:
             return render_template('change_password.html',
-                error="Password must be at least 6 characters")
+                error="Password must be at least 2 characters")
 
         if new_password != confirm_password:
             return render_template('change_password.html',
@@ -641,290 +530,6 @@ def index():
     session=session,
     profiles=profiles
 )
-
-@app.route('/ai')
-@maintenance_check
-@login_required
-def ai_page():
-    username = session['username']
-    unread_count = get_unread_count(username)
-    lounge_unread_count = get_lounge_unread_count(username)
-
-    # Get user's remaining prompts
-    now = get_ny_time()
-    today = now.strftime('%Y-%m-%d')
-    current_hour = now.strftime('%Y-%m-%d-%H')
-
-    daily_used = ai_usage.get(username, {}).get('daily', {}).get(today, 0)
-    hourly_used = ai_usage.get(username, {}).get('hourly', {}).get(current_hour, 0)
-
-    daily_remaining = ai_settings.get('daily_limit', 10) - daily_used
-    hourly_remaining = ai_settings.get('hourly_limit', 3) - hourly_used
-
-    # Get user's history (last 10 exchanges)
-    user_history = ai_history.get(username, [])[-10:]
-
-    return render_template('ai.html',
-        user_tokens=users[username].get('tokens', 0),
-        username=username,
-        unread_count=unread_count,
-        lounge_unread_count=lounge_unread_count,
-        user_role=users[username]['role'],
-        ai_enabled=ai_settings.get('enabled', True),
-        daily_remaining=max(0, daily_remaining),
-        hourly_remaining=max(0, hourly_remaining),
-        token_cost=ai_settings.get('token_cost', 5),
-        max_input_length=ai_settings.get('max_input_length', 500),
-        history=user_history
-    )
-
-@app.route('/api/ai_generate', methods=['POST'])
-@login_required
-def ai_generate():
-    username = session['username']
-    data = request.json
-    prompt = data.get('prompt', '').strip()
-
-    # Validate input
-    is_valid, result = validate_ai_input(prompt)
-    if not is_valid:
-        return jsonify({'error': result}), 400
-
-    prompt = result  # Use sanitized prompt
-
-    # Check rate limits
-    can_proceed, error_msg = check_ai_rate_limit(username)
-    if not can_proceed:
-        return jsonify({'error': error_msg}), 429
-
-    try:
-        # Call OpenAI API
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Cost-effective model
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful study assistant for high school students. Provide clear, educational responses in a friendly but professional tone. Keep explanations concise and easy to understand. Avoid overly technical jargon unless necessary."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            max_tokens=ai_settings.get('max_output_tokens', 150),
-            temperature=0.7,
-            top_p=0.9
-        )
-
-        ai_response = response.choices[0].message.content
-        tokens_used = response.usage.total_tokens
-
-        # Record usage
-        record_ai_usage(username)
-
-        # Save to history
-        if username not in ai_history:
-            ai_history[username] = []
-
-        ai_history[username].append({
-            'prompt': prompt,
-            'response': ai_response,
-            'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
-            'tokens_used': tokens_used
-        })
-
-        # Keep only last 50 exchanges per user
-        ai_history[username] = ai_history[username][-50:]
-        save_json(AI_HISTORY_FILE, ai_history)
-
-        # Get updated limits
-        now = get_ny_time()
-        today = now.strftime('%Y-%m-%d')
-        current_hour = now.strftime('%Y-%m-%d-%H')
-
-        daily_used = ai_usage[username]['daily'].get(today, 0)
-        hourly_used = ai_usage[username]['hourly'].get(current_hour, 0)
-
-        return jsonify({
-            'success': True,
-            'response': ai_response,
-            'tokens_used': tokens_used,
-            'new_balance': users[username]['tokens'],
-            'daily_remaining': max(0, ai_settings['daily_limit'] - daily_used),
-            'hourly_remaining': max(0, ai_settings['hourly_limit'] - hourly_used)
-        })
-
-    except Exception as e:
-        print(f"AI Error: {str(e)}")
-        return jsonify({'error': 'AI service temporarily unavailable. Please try again later.'}), 500
-
-@app.route('/api/ai_clear_history', methods=['POST'])
-@login_required
-def ai_clear_history():
-    username = session['username']
-    ai_history[username] = []
-    save_json(AI_HISTORY_FILE, ai_history)
-    return jsonify({'success': True})
-
-@app.route('/api/ai_settings', methods=['GET', 'POST'])
-@admin_required
-def ai_admin_settings():
-    if request.method == 'POST':
-        data = request.json
-
-        ai_settings['enabled'] = data.get('enabled', True)
-        ai_settings['daily_limit'] = int(data.get('daily_limit', 10))
-        ai_settings['hourly_limit'] = int(data.get('hourly_limit', 3))
-        ai_settings['token_cost'] = int(data.get('token_cost', 5))
-        ai_settings['cooldown_seconds'] = int(data.get('cooldown_seconds', 30))
-        ai_settings['max_input_length'] = int(data.get('max_input_length', 500))
-        ai_settings['max_output_tokens'] = int(data.get('max_output_tokens', 150))
-
-        save_json(AI_SETTINGS_FILE, ai_settings)
-        return jsonify({'success': True})
-
-    return jsonify(ai_settings)
-
-@app.route('/api/ai_usage_stats')
-@admin_required
-def ai_usage_stats():
-    stats = []
-    now = get_ny_time()
-    today = now.strftime('%Y-%m-%d')
-
-    for username, usage_data in ai_usage.items():
-        daily_count = usage_data.get('daily', {}).get(today, 0)
-        if daily_count > 0:
-            stats.append({
-                'username': username,
-                'today_count': daily_count,
-                'last_request': usage_data.get('last_request', 'Never')
-            })
-
-    stats.sort(key=lambda x: x['today_count'], reverse=True)
-    return jsonify({'stats': stats})
-
-@app.route('/api/ai_toggle_user', methods=['POST'])
-@admin_required
-def ai_toggle_user_access():
-    data = request.json
-    username = data.get('username')
-    action = data.get('action')  # 'whitelist', 'blacklist', or 'normal'
-
-    if action == 'whitelist':
-        if username not in ai_settings['whitelisted_users']:
-            ai_settings['whitelisted_users'].append(username)
-        if username in ai_settings['blacklisted_users']:
-            ai_settings['blacklisted_users'].remove(username)
-
-    elif action == 'blacklist':
-        if username not in ai_settings['blacklisted_users']:
-            ai_settings['blacklisted_users'].append(username)
-        if username in ai_settings['whitelisted_users']:
-            ai_settings['whitelisted_users'].remove(username)
-
-    elif action == 'normal':
-        if username in ai_settings['whitelisted_users']:
-            ai_settings['whitelisted_users'].remove(username)
-        if username in ai_settings['blacklisted_users']:
-            ai_settings['blacklisted_users'].remove(username)
-
-    save_json(AI_SETTINGS_FILE, ai_settings)
-    return jsonify({'success': True})
-
-@app.route('/api/ai_cost_analytics')
-@admin_required
-def ai_cost_analytics():
-    """Calculate real-time cost analytics"""
-
-    # Pricing (adjust if using different model)
-    INPUT_COST_PER_1M = 0.150  # GPT-4o-mini
-    OUTPUT_COST_PER_1M = 0.600
-
-    total_requests_today = 0
-    total_tokens_today = 0
-    total_cost_today = 0
-
-    now = get_ny_time()
-    today = now.strftime('%Y-%m-%d')
-
-    # Calculate today's usage
-    for username, usage_data in ai_usage.items():
-        daily_count = usage_data.get('daily', {}).get(today, 0)
-        total_requests_today += daily_count
-
-    # Calculate tokens from history (more accurate)
-    for username, history in ai_history.items():
-        for entry in history:
-            if entry.get('timestamp', '').startswith(today):
-                total_tokens_today += entry.get('tokens_used', 180)
-
-    # Calculate cost (assuming 30 input, rest output)
-    avg_input_tokens = 30
-    avg_output_tokens = ai_settings.get('max_output_tokens', 150)
-
-    estimated_input_tokens = total_requests_today * avg_input_tokens
-    estimated_output_tokens = total_requests_today * avg_output_tokens
-
-    total_cost_today = (
-        (estimated_input_tokens / 1_000_000 * INPUT_COST_PER_1M) +
-        (estimated_output_tokens / 1_000_000 * OUTPUT_COST_PER_1M)
-    )
-
-    # Project monthly cost
-    daily_limit = ai_settings.get('daily_limit', 10)
-    registered_users = len(users)
-
-    # Conservative estimate: 40% active users, 50% of daily limit usage
-    active_user_percentage = 0.4
-    usage_percentage = 0.5
-
-    projected_daily_requests = registered_users * active_user_percentage * daily_limit * usage_percentage
-    projected_monthly_requests = projected_daily_requests * 30
-    projected_monthly_tokens = projected_monthly_requests * (avg_input_tokens + avg_output_tokens)
-
-    projected_monthly_cost = (
-        (projected_monthly_requests * avg_input_tokens / 1_000_000 * INPUT_COST_PER_1M) +
-        (projected_monthly_requests * avg_output_tokens / 1_000_000 * OUTPUT_COST_PER_1M)
-    )
-
-    # Worst case: ALL users use ALL prompts every day
-    worst_case_daily_requests = registered_users * daily_limit
-    worst_case_monthly_requests = worst_case_daily_requests * 30
-    worst_case_monthly_cost = (
-        (worst_case_monthly_requests * avg_input_tokens / 1_000_000 * INPUT_COST_PER_1M) +
-        (worst_case_monthly_requests * avg_output_tokens / 1_000_000 * OUTPUT_COST_PER_1M)
-    )
-
-    # Calculate cost per user per month (worst case)
-    cost_per_user_worst_case = worst_case_monthly_cost / registered_users if registered_users > 0 else 0
-
-    return jsonify({
-        'today': {
-            'requests': total_requests_today,
-            'tokens': total_tokens_today,
-            'cost': round(total_cost_today, 4)
-        },
-        'projections': {
-            'realistic': {
-                'monthly_requests': int(projected_monthly_requests),
-                'monthly_tokens': int(projected_monthly_tokens),
-                'monthly_cost': round(projected_monthly_cost, 2)
-            },
-            'worst_case': {
-                'monthly_requests': int(worst_case_monthly_requests),
-                'monthly_tokens': int(worst_case_monthly_tokens),
-                'monthly_cost': round(worst_case_monthly_cost, 2),
-                'cost_per_user': round(cost_per_user_worst_case, 4)
-            }
-        },
-        'settings': {
-            'registered_users': registered_users,
-            'daily_limit': daily_limit,
-            'max_output_tokens': avg_output_tokens,
-            'model': 'gpt-4o-mini'
-        }
-    })
 
 # In app.py, add this route:
 @app.route('/api/reset_cookie', methods=['POST'])
@@ -2930,35 +2535,22 @@ def tower_start():
         return jsonify({'error': 'Minimum bet is 5 tokens'}), 400
     if mode not in [2, 3]:
         return jsonify({'error': 'Invalid mode'}), 400
-    # Check balance
     user_tokens = users[username].get('tokens', 0)
     if user_tokens < bet_amount:
         return jsonify({'error': 'Insufficient tokens'}), 400
-    # Deduct bet upfront
     users[username]['tokens'] -= bet_amount
     save_json(USERS_FILE, users)
-    # -------------------------------
-    # 🔹 Generate fair pattern
-    # -------------------------------
-    # Mode 2 → 1 egg in 2 tiles (50% win chance)
-    # Mode 3 → 60% chance to find egg per level
     pattern = []
     for level in range(9):
         if mode == 2:
-            # 1 egg position (0 or 1), other is bobcat
             pattern.append([random.randint(0, 1)])
-        else:  # mode == 3
-            # 60% chance: use weighted selection
-            # 60% = eggs on positions [0,1], 40% = eggs on positions [1,2] or [0,2]
+        else:
             rand = random.random()
             if rand < 0.6:
-                # 2 eggs: randomly pick which tile is the bobcat
                 bobcat_pos = random.randint(0, 2)
                 pattern.append([i for i in range(3) if i != bobcat_pos])
             else:
-                # 1 egg only (harder)
                 pattern.append([random.randint(0, 2)])
-    # No rigging
     rigged_level = -1
     # -------------------------------
     # 🔹 Save active game session
