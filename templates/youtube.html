@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html><head>
+<title>YouTube Proxy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+        }
+        #header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        h2 {
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -1px;
+        }
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 0, 0, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1.5px solid #ff0000;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .live-text {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        iframe {
+            width: 100%;
+            height: calc(100vh - 60px);
+            border: none;
+        }
+    </style>
+</head><body>
+<div id="header">
+    <h2>
+        YouTube 
+        <span class="live-indicator">
+            <span class="live-dot"></span>
+            <span class="live-text">BG StudyHall</span>
+        </span>
+    </h2>
+</div>
+<div id="player"></div>
+
+<script>
+const wdwf = 'aHR0cHM6Ly9wcml2YXRlLmJvc3RvbmNhcmVlcmNvdW5zZWxvci5jb20vZW1iZWQuaHRtbCNodHRwczovL3lvdXR1YmUuY29t';
+const iframe = document.createElement('iframe');
+iframe.src = atob(wdwf);
+iframe.allowFullscreen = true;
+iframe.style.cssText = 'width:100%;height:calc(100vh - 60px);border:none;';
+document.getElementById('player').appendChild(iframe);
+</script>
+</body></html>

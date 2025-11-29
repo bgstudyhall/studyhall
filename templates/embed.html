@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proxy Embed</title>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #fadeout {
+            transition: all ease-in-out .4s;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        #loadingbox {
+            text-align: center;
+            color: white;
+            padding: 30px;
+            border-radius: 35px;
+            background: rgba(42, 42, 42, 0.8);
+        }
+        
+        #loadingbox h1 {
+            margin-bottom: 10px;
+        }
+        
+        .loader {
+            width: 100%;
+            max-width: 300px;
+            height: 4.8px;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .loader::after {
+            content: '';
+            width: 192px;
+            height: 4.8px;
+            background: #FFF;
+            position: absolute;
+            animation: animloader 2s linear infinite;
+        }
+        
+        @keyframes animloader {
+            0% { left: 0; transform: translateX(-100%); }
+            100% { left: 100%; transform: translateX(0%); }
+        }
+
+        #debug {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: lime;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 90%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    <div id="fadeout">
+        <div id="loadingbox">
+            <h1 id="theh1">deploying proxy....</h1>
+            <p id="thep">this might take a bit</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <div id="debug"></div>
+    
+    <!-- Load bundle first -->
+    <script src="{{ url_for('static', filename='uv/uv.bundle.js') }}"></script>
+    <!-- Load config second (needs Ultraviolet object) -->
+    <script src="/uv.config.js"></script>
+    
+    <script>
+        // Debug logger
+        function log(msg) {
+            console.log('[PROXY DEBUG]', msg);
+            const debugDiv = document.getElementById('debug');
+            debugDiv.innerHTML += msg + '<br>';
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        log('1. Script started');
+        log('2. Location hash: ' + location.hash);
+        log('3. Ultraviolet loaded: ' + (typeof Ultraviolet !== 'undefined'));
+        log('4. Config loaded: ' + (typeof __uv$config !== 'undefined'));
+        log('5. Config bare: ' + (__uv$config ? __uv$config.bare : 'undefined'));
+        
+        // Initialize bare-mux to use the bare server
+        log('6. Setting up bare-mux...');
+        if (typeof BareMux !== 'undefined') {
+            log('7. BareMux found, setting transport...');
+            try {
+                BareMux.SetTransport("EpxMod.EpoxyClient", { wisp: __uv$config.bare });
+                log('8. BareMux transport set');
+            } catch (e) {
+                log('WARNING: BareMux setup failed: ' + e.message);
+            }
+        } else {
+            log('7. BareMux not found (this is OK, will use direct bare)');
+        }
+        
+        // Parse destination URL
+        let destination = "";
+        try {
+            destination = new URL(location.hash.slice(1)).toString();
+            log('9. Destination URL: ' + destination);
+        } catch (err) {
+            log('ERROR: ' + err.message);
+            document.getElementById('theh1').innerText = 'Invalid URL';
+            document.getElementById('thep').innerText = err.message;
+            throw err;
+        }
+        
+        // Register service worker
+        log('10. Service Worker support: ' + ('serviceWorker' in navigator));
+        
+        if ('serviceWorker' in navigator) {
+            log('11. Registering service worker...');
+            
+            navigator.serviceWorker.register(__uv$config.sw, {
+                scope: __uv$config.prefix
+            }).then((registration) => {
+                log('12. ✓ Service worker registered!');
+                log('13. Scope: ' + registration.scope);
+                log('14. Registration state: ' + (registration.active ? registration.active.state : 'none'));
+                log('15. Active: ' + (registration.active ? 'yes' : 'no'));
+                
+                // If already active, proceed immediately
+                if (registration.active && registration.active.state === 'activated') {
+                    log('16. SW is already activated, proceeding...');
+                    proceedWithNavigation();
+                    return;
+                }
+                
+                // Listen for state changes
+                if (registration.installing) {
+                    log('17. SW is installing, listening for state changes...');
+                    registration.installing.addEventListener('statechange', (e) => {
+                        log('18. SW state changed to: ' + e.target.state);
+                        if (e.target.state === 'activated') {
+                            log('19. SW activated, proceeding...');
+                            proceedWithNavigation();
+                        }
+                    });
+                }
+            }).catch((err) => {
+                log('ERROR registering SW: ' + err.message);
+                document.getElementById('theh1').innerText = 'Service Worker Error';
+                document.getElementById('thep').innerText = err.message;
+            });
+        } else {
+            log('ERROR: Service workers not supported!');
+        }
+        
+        function proceedWithNavigation() {
+            log('20. Starting navigation sequence...');
+            
+            setTimeout(() => {
+                log('21. Fading out loading...');
+                document.getElementById('fadeout').style.opacity = "0";
+            }, 500);
+            
+            setTimeout(() => {
+                const encodedUrl = __uv$config.prefix + __uv$config.encodeUrl(destination);
+                log('22. Encoded URL: ' + encodedUrl);
+                log('23. Redirecting to: ' + encodedUrl);
+                window.location.href = encodedUrl;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

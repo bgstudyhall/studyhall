@@ -95,6 +95,25 @@
             background: #a88555;
             transform: translateY(-2px);
         }
+
+        .reset-password-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: #c19a6b;
+            border: 1px solid #c19a6b;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .reset-password-link:hover {
+            background: #c19a6b;
+            color: white;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -119,6 +138,12 @@
 
             <button type="submit">Sign In</button>
         </form>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="https://forms.gle/8p8g6ECAa8xDUAwr8" target="_blank" rel="noopener noreferrer" class="reset-password-link">
+                Reset Password
+            </a>
+        </div>
     </div>
 </body>
 </html>

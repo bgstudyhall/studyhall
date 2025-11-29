@@ -736,12 +736,16 @@ body {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
 }
 
-.snap-btn:hover, .gift-btn:hover {
+.rps-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+}
+
+.snap-btn:hover, .gift-btn:hover, .rps-btn:hover {
     transform: translateY(-3px) scale(1.1);
     box-shadow: 0 6px 0 #2C2C2C;
 }
 
-.snap-btn:active, .gift-btn:active {
+.snap-btn:active, .gift-btn:active, .rps-btn:active {
     transform: translateY(1px);
     box-shadow: 0 2px 0 #2C2C2C;
 }
@@ -1010,6 +1014,265 @@ body {
     box-shadow: 0 4px 0 rgba(255, 0, 0, 0.3);
 }
 
+/* Rock Paper Scissors Game Styles */
+.chat-wrapper.has-game {
+    display: flex;
+    flex-direction: row;
+}
+
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.chat-wrapper.has-game .chat-content {
+    width: 50%;
+    border-right: 5px solid #2C2C2C;
+}
+
+.rps-game-container {
+    width: 50%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-right: 5px solid #2C2C2C;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.rps-game-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 4px solid #2C2C2C;
+    padding-bottom: 1rem;
+}
+
+.rps-game-header h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ff6b6b;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.rps-pot {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rps-loading {
+    text-align: center;
+    padding: 3rem;
+}
+
+.rps-spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #2C2C2C;
+    border-top: 6px solid #ff6b6b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.rps-loading p {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.rps-scores {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(44, 44, 44, 0.5);
+    border-radius: 20px;
+    border: 4px solid #2C2C2C;
+}
+
+.rps-player-score {
+    text-align: center;
+    flex: 1;
+}
+
+.rps-player-name {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.rps-wins {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #ff6b6b;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rps-vs {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #c19a6b;
+    margin: 0 1rem;
+}
+
+.rps-round-info {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.rps-round-number {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #c19a6b;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+}
+
+.rps-moves {
+    display: flex;
+    justify-content: space-around;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.rps-move-display {
+    text-align: center;
+    flex: 1;
+}
+
+.rps-move-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #888;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.rps-move-icon {
+    font-size: 5rem;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(44, 44, 44, 0.5);
+    border-radius: 20px;
+    border: 4px solid #2C2C2C;
+    transition: all 0.3s;
+}
+
+.rps-move-icon.revealed {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+    transform: scale(1.1);
+}
+
+.rps-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.rps-move-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: 4px solid #2C2C2C;
+    border-radius: 20px;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+    text-transform: uppercase;
+}
+
+.rps-move-btn:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.rps-move-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
+.rps-move-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.rps-result {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(255, 215, 0, 0.2);
+    border: 4px solid #FFD700;
+    border-radius: 20px;
+    margin: 1rem 0;
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+}
+
+.rps-invite-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.rps-accept-btn, .rps-decline-btn {
+    flex: 1;
+    padding: 1.5rem;
+    border: 4px solid #2C2C2C;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+    text-transform: uppercase;
+}
+
+.rps-accept-btn {
+    background: linear-gradient(135deg, #31a24c 0%, #2a8f42 100%);
+    color: white;
+}
+
+.rps-decline-btn {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    color: white;
+}
+
+.rps-accept-btn:hover, .rps-decline-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.rps-accept-btn:active, .rps-decline-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #2C2C2C;
+}
+
 @media (max-width: 768px) {
     .message-bubble {
         max-width: 75%;
@@ -1019,27 +1282,86 @@ body {
         font-size: 1rem;
     }
 
-    .snap-btn, .gift-btn {
+    .snap-btn, .gift-btn, .rps-btn {
         width: 45px;
         height: 45px;
         font-size: 1.1rem;
+    }
+
+    .chat-wrapper.has-game {
+        flex-direction: column;
+    }
+
+    .chat-wrapper.has-game .chat-content,
+    .rps-game-container {
+        width: 100%;
+        height: 50vh;
     }
 }
     </style>
 </head>
 <body>
-    <div class="chat-wrapper">
-        <div class="chat-header">
-            <div class="header-left">
-                <a href="{{ url_for('chat') }}" class="back-btn">←</a>
-                <div>
-                    <div class="user-name">{{ other_user }}</div>
-                    <div class="typing-indicator-header" id="typingHeader"></div>
+    <div class="chat-wrapper" id="chatWrapper">
+        <!-- RPS Game UI (shown when game is active) -->
+        <div class="rps-game-container" id="rpsGameContainer" style="display: none;">
+            <div class="rps-game-header">
+                <h2>✂️ Rock Paper Scissors</h2>
+                <div class="rps-pot">Pot: 🎟️ <span id="rpsPotAmount">0</span></div>
+            </div>
+            <div class="rps-game-status" id="rpsGameStatus">
+                <div class="rps-loading" id="rpsLoading">
+                    <div class="rps-spinner"></div>
+                    <p id="rpsLoadingText">Waiting for response...</p>
                 </div>
+            </div>
+            <div class="rps-scores" id="rpsScores" style="display: none;">
+                <div class="rps-player-score">
+                    <div class="rps-player-name">{{ current_user }}</div>
+                    <div class="rps-wins" id="rpsPlayer1Wins">0</div>
+                </div>
+                <div class="rps-vs">VS</div>
+                <div class="rps-player-score">
+                    <div class="rps-player-name">{{ other_user }}</div>
+                    <div class="rps-wins" id="rpsPlayer2Wins">0</div>
+                </div>
+            </div>
+            <div class="rps-round-info" id="rpsRoundInfo" style="display: none;">
+                <div class="rps-round-number">Round <span id="rpsRoundNumber">1</span></div>
+                <div class="rps-moves" id="rpsMoves">
+                    <div class="rps-move-display">
+                        <div class="rps-move-label">{{ current_user }}</div>
+                        <div class="rps-move-icon" id="rpsPlayer1Move">-</div>
+                    </div>
+                    <div class="rps-move-display">
+                        <div class="rps-move-label">{{ other_user }}</div>
+                        <div class="rps-move-icon" id="rpsPlayer2Move">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="rps-actions" id="rpsActions" style="display: none;">
+                <button class="rps-move-btn" data-move="rock" id="rpsRockBtn">🪨 Rock</button>
+                <button class="rps-move-btn" data-move="paper" id="rpsPaperBtn">📄 Paper</button>
+                <button class="rps-move-btn" data-move="scissors" id="rpsScissorsBtn">✂️ Scissors</button>
+            </div>
+            <div class="rps-result" id="rpsResult" style="display: none;"></div>
+            <div class="rps-invite-actions" id="rpsInviteActions" style="display: none;">
+                <button class="rps-accept-btn" id="rpsAcceptBtn">Accept Challenge</button>
+                <button class="rps-decline-btn" id="rpsDeclineBtn">Decline</button>
             </div>
         </div>
 
-        <div class="messages-container" id="messagesContainer">
+        <div class="chat-content" id="chatContent">
+            <div class="chat-header">
+                <div class="header-left">
+                    <a href="{{ url_for('chat') }}" class="back-btn">←</a>
+                    <div>
+                        <div class="user-name">{{ other_user }}</div>
+                        <div class="typing-indicator-header" id="typingHeader"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
             {% if messages %}
                 {% for msg in messages %}
                 {% if msg.get('type') == 'snap' %}
@@ -1126,6 +1448,7 @@ body {
                 <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
                 <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
                 <button type="button" class="gift-btn" id="giftBtn" title="Send Tokens">🎁</button>
+                <button type="button" class="rps-btn" id="rpsBtn" title="Challenge to Rock Paper Scissors">✂️</button>
                 <input
                     type="text"
                     name="message"
@@ -1138,6 +1461,8 @@ body {
                 <button type="submit" class="send-btn" id="sendBtn">Send</button>
             </form>
         </div>
+        </div>
+        <!-- End chat-content -->
 
     <!-- Camera Modal -->
     <div class="camera-modal" id="cameraModal">
@@ -1578,7 +1903,13 @@ if (response.ok) {
             const video = cameraVideo;
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
+            const ctx = canvas.getContext('2d');
+
+            // Reset transform first, then flip horizontally to correct the mirror effect
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0);
 
             video.style.display = 'none';
             canvas.style.display = 'block';
@@ -1591,6 +1922,9 @@ if (response.ok) {
             capturedCanvas.style.display = 'none';
             captureBtn.style.display = 'flex';
             document.getElementById('snapSendControls').classList.remove('active');
+            // Reset canvas transform for next capture
+            const ctx = capturedCanvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
         });
 
         sendSnapBtn.addEventListener('click', async () => {
@@ -1627,6 +1961,9 @@ if (response.ok) {
             capturedCanvas.style.display = 'none';
             captureBtn.style.display = 'flex';
             document.getElementById('snapSendControls').classList.remove('active');
+            // Reset canvas transform for next capture
+            const ctx = capturedCanvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
 
         // Attach click handlers to initial snaps
@@ -1917,6 +2254,329 @@ if (response.ok) {
                 audio.play();
             }
         });
+
+// ==================== ROCK PAPER SCISSORS GAME ====================
+const rpsBtn = document.getElementById('rpsBtn');
+const rpsGameContainer = document.getElementById('rpsGameContainer');
+const chatWrapper = document.getElementById('chatWrapper');
+const rpsLoading = document.getElementById('rpsLoading');
+const rpsLoadingText = document.getElementById('rpsLoadingText');
+const rpsScores = document.getElementById('rpsScores');
+const rpsRoundInfo = document.getElementById('rpsRoundInfo');
+const rpsActions = document.getElementById('rpsActions');
+const rpsResult = document.getElementById('rpsResult');
+const rpsInviteActions = document.getElementById('rpsInviteActions');
+const rpsAcceptBtn = document.getElementById('rpsAcceptBtn');
+const rpsDeclineBtn = document.getElementById('rpsDeclineBtn');
+const rpsPotAmount = document.getElementById('rpsPotAmount');
+const rpsPlayer1Wins = document.getElementById('rpsPlayer1Wins');
+const rpsPlayer2Wins = document.getElementById('rpsPlayer2Wins');
+const rpsRoundNumber = document.getElementById('rpsRoundNumber');
+const rpsPlayer1Move = document.getElementById('rpsPlayer1Move');
+const rpsPlayer2Move = document.getElementById('rpsPlayer2Move');
+const rpsRockBtn = document.getElementById('rpsRockBtn');
+const rpsPaperBtn = document.getElementById('rpsPaperBtn');
+const rpsScissorsBtn = document.getElementById('rpsScissorsBtn');
+
+let rpsGamePollInterval = null;
+
+// RPS Invite Modal
+function showRPSInviteModal() {
+    const betAmount = prompt('Enter bet amount (minimum 5 tokens):', '10');
+    if (!betAmount) return;
+
+    const amount = parseInt(betAmount);
+    if (isNaN(amount) || amount < 5) {
+        alert('Invalid amount. Minimum is 5 tokens.');
+        return;
+    }
+
+    fetch(`/api/rps/invite/${otherUser}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bet_amount: amount })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            showRPSGame();
+            pollRPSStatus();
+        }
+    })
+    .catch(e => {
+        console.error('Error inviting to RPS:', e);
+        alert('Failed to send invite');
+    });
+}
+
+rpsBtn.addEventListener('click', showRPSInviteModal);
+
+// Show RPS Game UI
+function showRPSGame() {
+    rpsGameContainer.style.display = 'flex';
+    chatWrapper.classList.add('has-game');
+    if (!rpsGamePollInterval) {
+        pollRPSStatus();
+    }
+}
+
+// Hide RPS Game UI
+function hideRPSGame() {
+    rpsGameContainer.style.display = 'none';
+    chatWrapper.classList.remove('has-game');
+    if (rpsGamePollInterval) {
+        clearInterval(rpsGamePollInterval);
+        rpsGamePollInterval = null;
+    }
+}
+
+// Poll RPS game status
+function pollRPSStatus() {
+    if (rpsGamePollInterval) return;
+
+    rpsGamePollInterval = setInterval(() => {
+        fetch(`/api/rps/status/${otherUser}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.game) {
+                    hideRPSGame();
+                    return;
+                }
+                updateRPSUI(data.game);
+            })
+            .catch(e => console.error('Error polling RPS status:', e));
+    }, 2000);
+
+    // Initial poll
+    fetch(`/api/rps/status/${otherUser}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.game) {
+                showRPSGame();
+                updateRPSUI(data.game);
+            }
+        })
+        .catch(e => console.error('Error getting RPS status:', e));
+}
+
+// Update RPS UI based on game state
+function updateRPSUI(game) {
+    const isPlayer1 = (currentUser === game.player1);
+    const pot = game.bet_amount * 2;
+    rpsPotAmount.textContent = pot;
+
+    if (game.status === 'pending') {
+        // Show loading if waiting for response
+        rpsLoading.style.display = 'block';
+        rpsScores.style.display = 'none';
+        rpsRoundInfo.style.display = 'none';
+        rpsActions.style.display = 'none';
+        rpsResult.style.display = 'none';
+
+        if (isPlayer1) {
+            rpsLoadingText.textContent = 'Waiting for ' + game.player2 + ' to respond...';
+            rpsInviteActions.style.display = 'none';
+        } else {
+            rpsLoadingText.textContent = game.player1 + ' challenged you to a game!';
+            rpsInviteActions.style.display = 'flex';
+        }
+    } else if (game.status === 'active') {
+        rpsLoading.style.display = 'none';
+        rpsScores.style.display = 'flex';
+        rpsRoundInfo.style.display = 'block';
+        rpsInviteActions.style.display = 'none';
+
+        // Show wins correctly - current user's wins on left, opponent's on right
+        rpsPlayer1Wins.textContent = isPlayer1 ? game.player1_wins : game.player2_wins;
+        rpsPlayer2Wins.textContent = isPlayer1 ? game.player2_wins : game.player1_wins;
+        rpsRoundNumber.textContent = game.current_round;
+
+        // Show moves - swap display if current user is player2
+        const player1Move = isPlayer1 ? game.player1_move : game.player2_move;
+        const player2Move = isPlayer1 ? game.player2_move : game.player1_move;
+
+        if (player1Move === 'chosen') {
+            rpsPlayer1Move.textContent = '✓';
+            rpsPlayer1Move.classList.add('revealed');
+        } else if (player1Move) {
+            rpsPlayer1Move.textContent = getMoveEmoji(player1Move);
+            rpsPlayer1Move.classList.add('revealed');
+        } else {
+            rpsPlayer1Move.textContent = '-';
+            rpsPlayer1Move.classList.remove('revealed');
+        }
+
+        if (player2Move === 'chosen') {
+            rpsPlayer2Move.textContent = '✓';
+            rpsPlayer2Move.classList.add('revealed');
+        } else if (player2Move) {
+            rpsPlayer2Move.textContent = getMoveEmoji(player2Move);
+            rpsPlayer2Move.classList.add('revealed');
+        } else {
+            rpsPlayer2Move.textContent = '-';
+            rpsPlayer2Move.classList.remove('revealed');
+        }
+
+        // Show actions if it's your turn
+        const myMove = isPlayer1 ? game.player1_move : game.player2_move;
+        if (!myMove || myMove === null) {
+            rpsActions.style.display = 'flex';
+            rpsResult.style.display = 'none';
+        } else {
+            rpsActions.style.display = 'none';
+            // Show result if both moved
+            if (game.player1_move && game.player2_move &&
+                game.player1_move !== 'chosen' && game.player2_move !== 'chosen') {
+                const lastRound = game.rounds[game.rounds.length - 1];
+                if (lastRound) {
+                    showRoundResult(lastRound, isPlayer1);
+                }
+            } else {
+                // Waiting for other player
+                rpsResult.style.display = 'block';
+                rpsResult.textContent = 'Waiting for opponent...';
+                rpsResult.style.color = '#c19a6b';
+            }
+        }
+    } else if (game.status === 'completed') {
+        rpsLoading.style.display = 'none';
+        rpsScores.style.display = 'flex';
+        rpsRoundInfo.style.display = 'block';
+        rpsActions.style.display = 'none';
+        rpsInviteActions.style.display = 'none';
+
+        // Show final scores with correct perspective
+        rpsPlayer1Wins.textContent = isPlayer1 ? game.player1_wins : game.player2_wins;
+        rpsPlayer2Wins.textContent = isPlayer1 ? game.player2_wins : game.player1_wins;
+
+        const isWinner = (game.winner === currentUser);
+
+        rpsResult.style.display = 'block';
+
+        if (game.timeout_win) {
+            // Timeout win
+            rpsResult.textContent = isWinner
+                ? `🎉 You won ${pot} tokens! (Opponent timed out)`
+                : `⏱️ You lost - Time ran out!`;
+        } else {
+            // Normal win
+            rpsResult.textContent = isWinner
+                ? `🎉 You won ${pot} tokens!`
+                : `${game.winner} won ${pot} tokens!`;
+        }
+
+        rpsResult.style.color = isWinner ? '#FFD700' : '#ff6b6b';
+
+        // Hide game after 11 seconds
+        setTimeout(() => {
+            hideRPSGame();
+        }, 11000);
+    }
+}
+
+function getMoveEmoji(move) {
+    const emojis = {
+        'rock': '🪨',
+        'paper': '📄',
+        'scissors': '✂️'
+    };
+    return emojis[move] || move;
+}
+
+function showRoundResult(round, isPlayer1) {
+    rpsResult.style.display = 'block';
+    if (round.winner === 'tie') {
+        rpsResult.textContent = 'Tie! 🤝';
+        rpsResult.style.color = '#c19a6b';
+    } else {
+        // Determine if current user won based on their position
+        const won = (isPlayer1 && round.winner === 'player1') || (!isPlayer1 && round.winner === 'player2');
+        rpsResult.textContent = won ? 'You won this round! 🎉' : 'You lost this round 😔';
+        rpsResult.style.color = won ? '#31a24c' : '#ff6b6b';
+    }
+}
+
+// Make a move
+function makeMove(move) {
+    // Disable buttons to prevent double-clicking
+    rpsRockBtn.disabled = true;
+    rpsPaperBtn.disabled = true;
+    rpsScissorsBtn.disabled = true;
+
+    fetch(`/api/rps/move/${otherUser}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ move: move })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            // Re-enable buttons on error
+            rpsRockBtn.disabled = false;
+            rpsPaperBtn.disabled = false;
+            rpsScissorsBtn.disabled = false;
+        } else {
+            updateRPSUI(data.game);
+            // Re-enable buttons after a delay (they'll be hidden anyway if move was successful)
+            setTimeout(() => {
+                rpsRockBtn.disabled = false;
+                rpsPaperBtn.disabled = false;
+                rpsScissorsBtn.disabled = false;
+            }, 1000);
+        }
+    })
+    .catch(e => {
+        console.error('Error making move:', e);
+        alert('Failed to make move');
+        // Re-enable buttons on error
+        rpsRockBtn.disabled = false;
+        rpsPaperBtn.disabled = false;
+        rpsScissorsBtn.disabled = false;
+    });
+}
+
+rpsRockBtn.addEventListener('click', () => makeMove('rock'));
+rpsPaperBtn.addEventListener('click', () => makeMove('paper'));
+rpsScissorsBtn.addEventListener('click', () => makeMove('scissors'));
+
+// Accept/Decline invite
+rpsAcceptBtn.addEventListener('click', () => {
+    fetch(`/api/rps/accept/${otherUser}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                updateRPSUI(data.game);
+            }
+        })
+        .catch(e => {
+            console.error('Error accepting RPS:', e);
+            alert('Failed to accept challenge');
+        });
+});
+
+rpsDeclineBtn.addEventListener('click', () => {
+    fetch(`/api/rps/decline/${otherUser}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                hideRPSGame();
+            }
+        })
+        .catch(e => {
+            console.error('Error declining RPS:', e);
+            alert('Failed to decline challenge');
+        });
+});
+
+// Check for existing game on page load
+pollRPSStatus();
         </script>
 
 
@@ -2016,5 +2676,7 @@ if (response.ok) {
         transform: rotate(90deg) scale(1.1);
     }
     </style>
+    </div>
+    <!-- End chat-wrapper -->
 </body>
 </html>

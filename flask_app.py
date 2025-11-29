@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify, send_from_directory, make_response, Response
 from functools import wraps
 import io
 import json
@@ -89,6 +89,7 @@ LOGIN_NOTIFICATIONS_FILE = os.path.join(DATA_DIR, 'login_notifications.json')
 LOTTERY_FILE = os.path.join(DATA_DIR, 'lottery.json')
 LOTTERY_TICKETS_FILE = os.path.join(DATA_DIR, 'lottery_tickets.json')
 COINFLIP_WINS_FILE = 'coinflip_wins.json'
+RPS_GAMES_FILE = os.path.join(DATA_DIR, 'rps_games.json')
 
 tower_games = {}
 
@@ -176,6 +177,8 @@ cookie_state = load_json(COOKIE_FILE, {
 
 profiles = load_json(PROFILES_FILE, {})
 
+rps_games = load_json(RPS_GAMES_FILE, {})
+
 user_ranks = load_json(RANKS_FILE, {})
 purchases = load_json(PURCHASES_FILE, {})
 codes = load_json(CODES_FILE, {})
@@ -249,6 +252,15 @@ def periodic_save():
 # Start the background thread when your app starts
 save_thread = threading.Thread(target=periodic_save, daemon=True)
 save_thread.start()
+
+# Periodic RPS timeout check
+def periodic_rps_check():
+    while True:
+        time.sleep(60)  # Check every minute
+        check_rps_timeouts()
+
+rps_check_thread = threading.Thread(target=periodic_rps_check, daemon=True)
+rps_check_thread.start()
 
 # ===============================================================
 # Access control decorators
@@ -414,6 +426,8 @@ def login():
                 session.permanent = True
                 session['username'] = actual_username
                 return redirect(url_for('banned'))
+            # Make session permanent so it persists across browser restarts
+            session.permanent = True
             session['username'] = actual_username
 
             # Check if password change is required
@@ -569,7 +583,8 @@ def get_chat_notifications():
                 notifications.append({
                     'from': other_user,
                     'timestamp': msg['timestamp'],
-                    'chat_key': chat_key
+                    'chat_key': chat_key,
+                    'type': msg.get('type', 'message') if msg.get('type') == 'rps_invite' else 'message'
                 })
                 break  # Only get the most recent per chat
 
@@ -577,7 +592,7 @@ def get_chat_notifications():
     notifications.sort(key=lambda x: x['timestamp'], reverse=True)
 
     return jsonify({'notifications': notifications[:5]})  # Limit to 5
-
+    
 @app.route('/submit_feedback', methods=['POST'])
 @login_required
 def submit_feedback():
@@ -1372,12 +1387,15 @@ def get_users_with_ranks():
 
         # Get Instagram full name if profile exists
         instagram_name = None
+        profile_picture = None
         if username in profiles and profiles[username].get('setup_complete', False):
             instagram_name = profiles[username].get('instagram_full_name')
+            profile_picture = profiles[username].get('profile_picture')
 
         users_by_rank[rank_id].append({
             'username': username,
             'instagram_name': instagram_name,
+            'profile_picture': profile_picture,
             'is_online': is_online,
             'last_seen': last_seen_text,
             'unread': unread,
@@ -1675,9 +1693,124 @@ def clear_login_notifications():
     save_json(LOGIN_NOTIFICATIONS_FILE, login_notifications)
     return jsonify({'success': True})
 
-@app.route('/')
-def proxy():
-    return render_template('proxy.html')
+@app.route('/proxy')
+def proxy_page():
+    return render_template('youtube.html')
+@app.route('/proxy/embed')
+def proxy_embed():
+    return render_template('embed.html')
+
+# Serve UV config
+@app.route('/uv.config.js')
+def serve_config():
+    config = """
+self.__uv$config = {
+    prefix: '/service/',
+    bare: 'https://uv.holy.how/bare/',
+    encodeUrl: Ultraviolet.codec.xor.encode,
+    decodeUrl: Ultraviolet.codec.xor.decode,
+    handler: '/uv.handler.js',
+    client: '/uv.client.js',
+    bundle: '/static/uv/uv.bundle.js',
+    config: '/uv.config.js',
+    sw: '/uv.sw.js',
+};
+
+// Disable bare-mux, use direct bare client
+self.__uv$bareOptions = {
+    type: 'fetch'
+};
+"""
+    return Response(config, mimetype='application/javascript')
+
+# Serve WRAPPER service worker that imports everything
+@app.route('/uv.sw.js')
+def serve_sw():
+    wrapper = """// Import Ultraviolet bundle first
+importScripts('/static/uv/uv.bundle.js');
+importScripts('/uv.config.js');
+
+// Completely stub out BareMux to prevent it from initializing
+if (!self.BareMux) {
+    self.BareMux = {};
+}
+// Stub the function that tries to create bare-mux connection
+self.BareMux.createChannel = async () => {
+    throw new Error('BareMux disabled');
+};
+
+// Patch BareClient constructor to skip BareMux
+const OriginalBareClient = Ultraviolet.BareClient;
+Ultraviolet.BareClient = class PatchedBareClient extends OriginalBareClient {
+    constructor(server) {
+        super();
+        // Directly set the server, bypassing BareMux initialization
+        this.server = server || __uv$config.bare;
+        this.working = true;
+    }
+};
+
+importScripts('/uv.sw-core.js');
+
+// Instantiate the service worker  
+const uv = new UVServiceWorker(__uv$config);
+
+// Set up event listeners
+self.addEventListener('fetch', (event) => {
+    if (uv.route(event)) {
+        event.respondWith(
+            (async () => {
+                try {
+                    return await uv.fetch(event);
+                } catch (err) {
+                    console.error('UV fetch error:', err);
+                    return new Response('Proxy error: ' + err.message, { 
+                        status: 500,
+                        headers: { 'Content-Type': 'text/plain' }
+                    });
+                }
+            })()
+        );
+    }
+});
+"""
+    response = Response(wrapper, mimetype='application/javascript')
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+    
+# Serve the ACTUAL service worker code
+@app.route('/uv.sw-core.js')
+def serve_sw_core():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'service', 'uv.sw.js')
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return Response(content, mimetype='application/javascript')
+    except Exception as e:
+        return str(e), 500
+
+# Serve other UV files
+@app.route('/uv.handler.js')
+def serve_handler():
+    try:
+        return send_from_directory(
+            os.path.join(app.root_path, 'static', 'service'),
+            'uv.handler.js',
+            mimetype='application/javascript'
+        )
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/uv.client.js')
+def serve_client():
+    try:
+        return send_from_directory(
+            os.path.join(app.root_path, 'static', 'service'),
+            'uv.client.js',
+            mimetype='application/javascript'
+        )
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/lounge/clear_history', methods=['POST'])
 @login_required
@@ -1906,56 +2039,63 @@ def play_game(game_id):
     let lastNotificationCheck = '';
 
     function checkChatNotifications() {
-        fetch(window.location.origin + '/api/chat_notifications')
-            .then(response => response.json())
-            .then(data => {
-                data.notifications.forEach(notif => {
-                    const notifKey = notif.from + '-' + notif.timestamp;
-                    if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
-                        showChatNotification(notif.from);
-                        shownNotifications.add(notifKey);
-                    }
-                });
-                if (data.notifications.length > 0) {
-                    lastNotificationCheck = data.notifications[0].timestamp;
+    fetch('/api/chat_notifications')
+        .then(response => response.json())
+        .then(data => {
+            data.notifications.forEach(notif => {
+                const notifKey = notif.from + '-' + notif.timestamp;
+                if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
+                    showChatNotification(notif.from, notif.type || 'message');
+                    shownNotifications.add(notifKey);
                 }
-            })
-            .catch(error => console.error('Error checking notifications:', error));
+            });
+            if (data.notifications.length > 0) {
+                lastNotificationCheck = data.notifications[0].timestamp;
+            }
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+}
+
+    function showChatNotification(fromUser, type = 'message') {
+    const container = document.getElementById('chatNotificationContainer');
+    if (!container) return;
+
+    const notification = document.createElement('div');
+    notification.className = 'chat-notification';
+    
+    let title, icon, action;
+    if (type === 'rps_invite') {
+        title = 'RPS Challenge!';
+        icon = '✂️';
+        action = 'challenged you to Rock Paper Scissors';
+    } else {
+        title = 'New Message';
+        icon = '💬';
+        action = 'sent you a message';
     }
-
-    function showChatNotification(fromUser) {
-        const container = document.getElementById('chatNotificationContainer');
-        if (!container) {
-            console.error('Notification container not found!');
-            return;
-        }
-
-        const notification = document.createElement('div');
-        notification.className = 'chat-notification';
-        notification.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-icon">💬</div>
-                <div class="notification-content">
-                    <div class="notification-title">New Message</div>
-                    <div class="notification-user">${fromUser}</div>
-                    <div class="notification-action">Click to open in new tab</div>
-                </div>
-                <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
+    
+    notification.innerHTML = `
+        <div class="notification-header">
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-user">${fromUser}</div>
+                <div class="notification-action">${action}</div>
             </div>
-        `;
+            <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
+        </div>
+    `;
 
-        // ✅ OPEN IN NEW TAB - DON'T CLOSE THE GAME
-        notification.addEventListener('click', () => {
-            window.open('/chat/' + fromUser, '_blank');
-            closeNotification(notification);
-        });
+    notification.addEventListener('click', () => {
+        if (otherUser !== fromUser) {
+            window.location.href = '/chat/' + fromUser;
+        }
+        closeNotification(notification);
+    });
 
-        container.appendChild(notification);
-
-        setTimeout(() => {
-            closeNotification(notification);
-        }, 5000);
-    }
+    container.appendChild(notification);
+    setTimeout(() => closeNotification(notification), 8000);
+}
 
     function closeNotification(notification) {
         notification.classList.add('hiding');
@@ -2974,7 +3114,406 @@ def load_game_progress():
 
     return jsonify({'success': True, 'saves': user_saves})
 
+# ===============================================================
+# Rock Paper Scissors Game API
+# ===============================================================
 
+def get_rps_game_key(user1, user2):
+    """Get consistent game key for two users"""
+    return '-'.join(sorted([user1, user2]))
+
+def determine_rps_winner(move1, move2):
+    """Determine winner of RPS round. Returns 'move1', 'move2', or 'tie'"""
+    if move1 == move2:
+        return 'tie'
+    
+    # Rock beats Scissors
+    if move1 == 'rock' and move2 == 'scissors':
+        return 'move1'
+    if move2 == 'rock' and move1 == 'scissors':
+        return 'move2'
+    
+    # Paper beats Rock
+    if move1 == 'paper' and move2 == 'rock':
+        return 'move1'
+    if move2 == 'paper' and move1 == 'rock':
+        return 'move2'
+    
+    # Scissors beats Paper
+    if move1 == 'scissors' and move2 == 'paper':
+        return 'move1'
+    if move2 == 'scissors' and move1 == 'paper':
+        return 'move2'
+    
+    # Should never reach here
+    return 'tie'
+
+def check_rps_timeouts():
+    """Check for expired invites and moves, handle timeouts"""
+    current_time = get_ny_time().timestamp()
+    games_to_remove = []
+    
+    for game_key, game in list(rps_games.items()):  # Use list() to avoid dict size change during iteration
+        # Check invite timeout (1 hour)
+        if game['status'] == 'pending' and game.get('invite_time'):
+            if current_time - game['invite_time'] > 3600:  # 1 hour
+                games_to_remove.append(game_key)
+        
+        # Check move timeout during active game (1 hour)
+        elif game['status'] == 'active':
+            last_move_time = game.get('last_move_time', game.get('start_time', current_time))
+            if current_time - last_move_time > 3600:  # 1 hour
+                # Find who didn't respond
+                if game.get('player1_move') and not game.get('player2_move'):
+                    # Player 2 didn't respond, player 1 wins
+                    winner = game['player1']
+                    loser = game['player2']
+                elif game.get('player2_move') and not game.get('player1_move'):
+                    # Player 1 didn't respond, player 2 wins
+                    winner = game['player2']
+                    loser = game['player1']
+                else:
+                    # Both haven't moved (shouldn't happen but handle it), refund both
+                    amount = game['bet_amount']
+                    users[game['player1']]['tokens'] = users[game['player1']].get('tokens', 0) + amount
+                    users[game['player2']]['tokens'] = users[game['player2']].get('tokens', 0) + amount
+                    games_to_remove.append(game_key)
+                    save_json(USERS_FILE, users)
+                    continue
+                
+                # Award tokens to winner
+                total_pot = game['bet_amount'] * 2
+                users[winner]['tokens'] = users[winner].get('tokens', 0) + total_pot
+                
+                # Mark game as completed with timeout
+                game['status'] = 'completed'
+                game['winner'] = winner
+                game['timeout_win'] = True
+                game['completion_time'] = current_time
+                save_json(USERS_FILE, users)
+                # Don't remove yet - let the UI show winner for 10 seconds
+    
+    # Remove expired pending invites immediately
+    for game_key in games_to_remove:
+        if game_key in rps_games:
+            del rps_games[game_key]
+    
+    # Remove completed games after 10 seconds
+    completed_to_remove = []
+    for game_key, game in list(rps_games.items()):
+        if game['status'] == 'completed' and game.get('completion_time'):
+            if current_time - game['completion_time'] > 10:  # 10 seconds
+                completed_to_remove.append(game_key)
+    
+    for game_key in completed_to_remove:
+        if game_key in rps_games:
+            del rps_games[game_key]
+    
+    if games_to_remove or completed_to_remove:
+        save_json(RPS_GAMES_FILE, rps_games)
+
+@app.route('/api/rps/invite/<other_user>', methods=['POST'])
+@login_required
+def rps_invite(other_user):
+    """Invite another user to play Rock Paper Scissors"""
+    current_user = session['username']
+    
+    if other_user not in users:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if other_user == current_user:
+        return jsonify({'error': 'Cannot play against yourself'}), 400
+    
+    # Check if current user already has a pending/active game with ANYONE
+    for existing_key in rps_games:
+        existing_game = rps_games[existing_key]
+        if existing_game['status'] in ['pending', 'active']:
+            if current_user in [existing_game['player1'], existing_game['player2']]:
+                return jsonify({'error': 'You already have an active or pending game'}), 400
+    
+    # Check if other user already has a pending/active game with ANYONE
+    for existing_key in rps_games:
+        existing_game = rps_games[existing_key]
+        if existing_game['status'] in ['pending', 'active']:
+            if other_user in [existing_game['player1'], existing_game['player2']]:
+                return jsonify({'error': f'{other_user} is already in a game'}), 400
+    
+    data = request.json
+    bet_amount = int(data.get('bet_amount', 5))
+    
+    if bet_amount < 5:
+        return jsonify({'error': 'Minimum bet is 5 tokens'}), 400
+    
+    # Check if both users have enough tokens
+    if users[current_user].get('tokens', 0) < bet_amount:
+        return jsonify({'error': 'You do not have enough tokens'}), 400
+    
+    if users[other_user].get('tokens', 0) < bet_amount:
+        return jsonify({'error': f'{other_user} does not have enough tokens'}), 400
+    
+    game_key = get_rps_game_key(current_user, other_user)
+    
+    # Create game
+    rps_games[game_key] = {
+        'player1': current_user,
+        'player2': other_user,
+        'bet_amount': bet_amount,
+        'status': 'pending',
+        'invite_time': get_ny_time().timestamp(),
+        'player1_wins': 0,
+        'player2_wins': 0,
+        'rounds': [],
+        'current_round': None
+    }
+    save_json(RPS_GAMES_FILE, rps_games)
+    
+    # Add RPS notification to chat messages for notification system
+    chat_key = get_chat_key(current_user, other_user)
+    if chat_key not in messages:
+        messages[chat_key] = []
+    
+    new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+    messages[chat_key].append({
+        'from': current_user,
+        'to': other_user,
+        'type': 'rps_invite',
+        'text': f'I am challenging you to RPS for {bet_amount} tokens! Lets play it the Bobcat Way.',
+        'timestamp': new_timestamp,
+        'read': False
+    })
+    save_json(MESSAGES_FILE, messages)
+    
+    return jsonify({'success': True, 'game_key': game_key})
+
+@app.route('/api/rps/accept/<other_user>', methods=['POST'])
+@login_required
+def rps_accept(other_user):
+    """Accept an RPS game invite"""
+    current_user = session['username']
+    game_key = get_rps_game_key(current_user, other_user)
+    
+    if game_key not in rps_games:
+        return jsonify({'error': 'No pending game found'}), 404
+    
+    game = rps_games[game_key]
+    
+    if game['status'] != 'pending':
+        return jsonify({'error': 'Game is not pending'}), 400
+    
+    if game['player2'] != current_user:
+        return jsonify({'error': 'You are not the invited player'}), 403
+    
+    # Check if both users still have enough tokens (re-check player1 too)
+    if users[game['player1']].get('tokens', 0) < game['bet_amount']:
+        del rps_games[game_key]
+        save_json(RPS_GAMES_FILE, rps_games)
+        return jsonify({'error': f'{game["player1"]} no longer has enough tokens'}), 400
+    
+    if users[current_user].get('tokens', 0) < game['bet_amount']:
+        del rps_games[game_key]
+        save_json(RPS_GAMES_FILE, rps_games)
+        return jsonify({'error': 'You no longer have enough tokens'}), 400
+    
+    # Deduct tokens from BOTH players when game starts
+    users[game['player1']]['tokens'] -= game['bet_amount']
+    users[current_user]['tokens'] -= game['bet_amount']
+    save_json(USERS_FILE, users)
+    
+    # Start game
+    game['status'] = 'active'
+    game['start_time'] = get_ny_time().timestamp()
+    game['last_move_time'] = get_ny_time().timestamp()
+    game['current_round'] = 1
+    save_json(RPS_GAMES_FILE, rps_games)
+    
+    return jsonify({'success': True, 'game': game})
+
+@app.route('/api/rps/decline/<other_user>', methods=['POST'])
+@login_required
+def rps_decline(other_user):
+    """Decline an RPS game invite"""
+    current_user = session['username']
+    game_key = get_rps_game_key(current_user, other_user)
+    
+    if game_key not in rps_games:
+        return jsonify({'error': 'No pending game found'}), 404
+    
+    game = rps_games[game_key]
+    
+    if game['status'] != 'pending':
+        return jsonify({'error': 'Game is not pending'}), 400
+    
+    if game['player2'] != current_user:
+        return jsonify({'error': 'You are not the invited player'}), 403
+    
+    # Remove game (no tokens to refund since they weren't deducted yet)
+    del rps_games[game_key]
+    save_json(RPS_GAMES_FILE, rps_games)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/rps/status/<other_user>')
+@login_required
+def rps_status(other_user):
+    """Get RPS game status"""
+    current_user = session['username']
+    game_key = get_rps_game_key(current_user, other_user)
+    
+    # Check for timeouts first
+    check_rps_timeouts()
+    
+    if game_key not in rps_games:
+        return jsonify({'game': None})
+    
+    # Get fresh copy after timeout check
+    if game_key not in rps_games:
+        return jsonify({'game': None})
+    
+    game = rps_games[game_key].copy()
+    
+    # Don't reveal opponent's move until both have moved
+    if game['status'] == 'active':
+        if game.get('player1_move') and game.get('player2_move'):
+            # Both moved, show both
+            pass
+        else:
+            # Hide opponent's move - show "chosen" if they've moved but you haven't
+            if current_user == game['player1']:
+                if game.get('player2_move') and not game.get('player1_move'):
+                    # Opponent has moved but you haven't - hide their move
+                    game['player2_move'] = 'chosen'
+                elif not game.get('player2_move'):
+                    game['player2_move'] = None
+            else:  # current_user == player2
+                if game.get('player1_move') and not game.get('player2_move'):
+                    # Opponent has moved but you haven't - hide their move
+                    game['player1_move'] = 'chosen'
+                elif not game.get('player1_move'):
+                    game['player1_move'] = None
+    
+    return jsonify({'game': game})
+
+@app.route('/api/rps/move/<other_user>', methods=['POST'])
+@login_required
+def rps_move(other_user):
+    """Make a move in RPS game"""
+    current_user = session['username']
+    game_key = get_rps_game_key(current_user, other_user)
+    
+    if game_key not in rps_games:
+        return jsonify({'error': 'No active game found'}), 404
+    
+    game = rps_games[game_key]
+    
+    if game['status'] != 'active':
+        return jsonify({'error': 'Game is not active'}), 400
+    
+    data = request.json
+    move = data.get('move')  # 'rock', 'paper', or 'scissors'
+    
+    if move not in ['rock', 'paper', 'scissors']:
+        return jsonify({'error': 'Invalid move'}), 400
+    
+    # Determine which player this is
+    is_player1 = (current_user == game['player1'])
+    move_key = 'player1_move' if is_player1 else 'player2_move'
+    
+    # Check if already moved this round
+    if game.get(move_key):
+        return jsonify({'error': 'You have already made your move this round'}), 400
+    
+    # Record move
+    game[move_key] = move
+    game['last_move_time'] = get_ny_time().timestamp()
+    
+    # Check if both players have moved
+    if game.get('player1_move') and game.get('player2_move'):
+        # Determine winner of this round using helper function
+        p1_move = game['player1_move']
+        p2_move = game['player2_move']
+        
+        # Use helper function to determine which move wins
+        move_winner = determine_rps_winner(p1_move, p2_move)
+        
+        if move_winner == 'tie':
+            winner = 'tie'
+        elif move_winner == 'move1':
+            # Player1's move wins
+            winner = 'player1'
+            game['player1_wins'] += 1
+        else:  # move_winner == 'move2'
+            # Player2's move wins
+            winner = 'player2'
+            game['player2_wins'] += 1
+        
+        # Record round
+        round_data = {
+            'round': game['current_round'],
+            'player1_move': p1_move,
+            'player2_move': p2_move,
+            'winner': winner
+        }
+        game['rounds'].append(round_data)
+        
+        # Check if game is over (first to 3 wins)
+        if game['player1_wins'] >= 3:
+            # Player 1 wins
+            total_pot = game['bet_amount'] * 2
+            users[game['player1']]['tokens'] = users[game['player1']].get('tokens', 0) + total_pot
+            game['status'] = 'completed'
+            game['winner'] = game['player1']
+            game['completion_time'] = get_ny_time().timestamp()
+            game['timeout_win'] = False
+            save_json(USERS_FILE, users)
+            # Don't delete - let UI show winner for 10 seconds
+        elif game['player2_wins'] >= 3:
+            # Player 2 wins
+            total_pot = game['bet_amount'] * 2
+            users[game['player2']]['tokens'] = users[game['player2']].get('tokens', 0) + total_pot
+            game['status'] = 'completed'
+            game['winner'] = game['player2']
+            game['completion_time'] = get_ny_time().timestamp()
+            game['timeout_win'] = False
+            save_json(USERS_FILE, users)
+            # Don't delete - let UI show winner for 10 seconds
+        else:
+            # Next round
+            game['current_round'] += 1
+            game['player1_move'] = None
+            game['player2_move'] = None
+    
+    # Create response with hidden moves if needed
+    # Check if game was deleted (completed) - use the game dict before deletion
+    if game_key not in rps_games:
+        return jsonify({
+            'success': True, 
+            'game': {
+                'status': 'completed', 
+                'winner': game.get('winner'), 
+                'player1_wins': game.get('player1_wins', 0), 
+                'player2_wins': game.get('player2_wins', 0)
+            }
+        })
+    
+    # Only save if game still exists (not deleted)
+    if game_key in rps_games:
+        save_json(RPS_GAMES_FILE, rps_games)
+    
+    game_response = game.copy()
+    if game['status'] == 'active':
+        if game.get('player1_move') and game.get('player2_move'):
+            # Both moved, show both
+            pass
+        else:
+            # Hide opponent's move from response
+            if is_player1:
+                if game.get('player2_move') and not game.get('player1_move'):
+                    game_response['player2_move'] = 'chosen'
+            else:
+                if game.get('player1_move') and not game.get('player2_move'):
+                    game_response['player1_move'] = 'chosen'
+    
+    return jsonify({'success': True, 'game': game_response})
 
 if __name__ == '__main__':
     app.run(debug=True)
