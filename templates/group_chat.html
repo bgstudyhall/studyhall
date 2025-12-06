@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} - Study Hall Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --gold: #ffd700;
+            --gold-dark: #d4af37;
+            --text-dark: #1a1a1a;
+            --text-medium: #4a4a4a;
+            --text-light: #6b7280;
+            --border-main: #2c2c2c;
+            --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
+            --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #1a1f2e 0%, #252d3d 50%, #1a1f2e 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .group-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fffaf5;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 1;
+            border-left: 6px solid var(--border-main);
+            border-right: 6px solid var(--border-main);
+        }
+
+        .group-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-bottom: 6px solid var(--border-main);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.3s;
+            font-weight: 900;
+            box-shadow: var(--shadow-cartoon-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 0 rgba(44, 44, 44, 0.9);
+        }
+
+        .group-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 4px solid var(--border-main);
+            overflow: hidden;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .group-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .group-info h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .group-members-count {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid var(--border-main);
+            border-radius: 10px;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .header-btn.danger {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+        }
+
+        /* Members Panel */
+        .members-panel {
+            display: none;
+            background: white;
+            border-bottom: 4px solid var(--border-main);
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .members-panel.show {
+            display: block;
+        }
+
+        .members-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #eee;
+        }
+
+        .members-panel-title {
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-dark);
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .member-item:hover {
+            background: #f5f5f5;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: white;
+            margin-right: 0.75rem;
+            border: 3px solid var(--border-main);
+            overflow: hidden;
+        }
+
+        .member-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .member-name {
+            flex: 1;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .member-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid var(--border-main);
+        }
+
+        .member-badge.leader {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: var(--text-dark);
+        }
+
+        .kick-btn {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            border: 2px solid var(--border-main);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .kick-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Add Member Section */
+        .add-member-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 3px solid #eee;
+        }
+
+        .add-member-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 3px solid var(--border-main);
+            border-radius: 8px;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .add-member-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: 3px solid var(--border-main);
+            border-radius: 8px;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .add-member-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fffaf5 0%, #f8f9fa 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            border: 3px solid #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.75rem;
+            animation: messageSlide 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message.system .message-avatar {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+            background: white;
+            padding: 1rem 1.2rem;
+            border-radius: 20px;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-author {
+            font-weight: 900;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message.system .message-author {
+            color: var(--gold-dark);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .message-text {
+            color: var(--text-dark);
+            font-size: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .message.system .message-text {
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .reaction-btn, .delete-btn {
+            background: #f8f9fa;
+            border: 3px solid var(--border-main);
+            padding: 0.4rem 0.7rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: 900;
+            box-shadow: 0 2px 0 rgba(44, 44, 44, 0.5);
+            color: var(--text-dark);
+        }
+
+        .reaction-btn:hover, .delete-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
+        }
+
+        .reaction-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            color: white;
+        }
+
+        .reactions-display {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .reaction-count {
+            background: white;
+            border: 3px solid var(--border-main);
+            padding: 0.4rem 0.7rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 900;
+            box-shadow: 0 2px 0 rgba(44, 44, 44, 0.5);
+        }
+
+        .reaction-count:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .reaction-count.user-reacted {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        /* Snap Message */
+        .snap-message {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+            padding: 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: 4px solid var(--border-main) !important;
+            box-shadow: var(--shadow-cartoon-sm) !important;
+        }
+
+        .snap-message:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-cartoon) !important;
+        }
+
+        .snap-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .snap-text {
+            font-weight: 900;
+            color: white;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .snap-status {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.4rem;
+            font-weight: 700;
+        }
+
+        .snap-opened {
+            background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%) !important;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Voice Message */
+        .voice-message {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 1.2rem !important;
+            max-width: 350px;
+            border-radius: 16px !important;
+        }
+
+        .voice-play-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .voice-play-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .voice-waveform {
+            flex: 1;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .voice-bar {
+            width: 3px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 2px;
+        }
+
+        .voice-duration {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: var(--text-medium);
+            padding: 3rem;
+            font-weight: 900;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        /* Message Input */
+        .message-input-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, white 100%);
+            border-top: 6px solid var(--border-main);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 -4px 0 rgba(44, 44, 44, 0.2);
+        }
+
+        .message-form {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .snap-btn, .voice-btn {
+            border: 4px solid var(--border-main);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: var(--shadow-cartoon-sm);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .snap-btn:hover, .voice-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.9rem 1.3rem;
+            border: 4px solid var(--border-main);
+            border-radius: 20px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 4px 0 var(--primary);
+        }
+
+        .message-input::placeholder {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: 4px solid var(--border-main);
+            padding: 0.9rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 31, 46, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .snap-camera-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            background: #000;
+            border: 6px solid var(--border-main);
+        }
+
+        .snap-close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            border: 4px solid var(--border-main);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+            font-weight: 900;
+        }
+
+        .snap-close-btn:hover {
+            transform: translateY(-2px) rotate(90deg);
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #capturedCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .snap-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 20px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+
+        .snap-capture-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .snap-capture-outer {
+            width: 70px;
+            height: 70px;
+            border: 5px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .snap-capture-btn:active .snap-capture-outer {
+            transform: scale(0.85);
+        }
+
+        .snap-capture-inner {
+            width: 58px;
+            height: 58px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .snap-send-controls {
+            display: none;
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            justify-content: center;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .snap-send-controls.active {
+            display: flex;
+        }
+
+        .snap-send-btn,
+        .snap-retake-btn {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 4px solid white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .snap-send-btn:hover,
+        .snap-retake-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Snap View Modal */
+        .snap-view-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            border: 6px solid var(--border-main);
+        }
+
+        .snap-view-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 10;
+        }
+
+        .snap-view-close {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            border: 4px solid var(--border-main);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 900;
+        }
+
+        .snap-view-username {
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .snap-view-timer {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.125rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .snap-view-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Voice Modal */
+        .voice-modal-content {
+            background: #fffaf5;
+            border: 6px solid var(--border-main);
+            padding: 3rem;
+            border-radius: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .voice-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .voice-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.75rem;
+            font-weight: 400;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .voice-timer {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            font-family: monospace;
+        }
+
+        .voice-visualizer {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .viz-bar {
+            width: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: vizPulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes vizPulse {
+            0%, 100% { height: 20px; opacity: 0.4; }
+            50% { height: 60px; opacity: 1; }
+        }
+
+        .voice-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .voice-cancel-btn {
+            flex: 1;
+            background: #f8f9fa;
+            color: var(--text-medium);
+            border: 4px solid var(--border-main);
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .voice-send-btn {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: 4px solid var(--border-main);
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        /* Reaction Menu */
+        #reactionMenu {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            padding: 0.7rem;
+            z-index: 1000;
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        #reactionMenu button {
+            background: transparent;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+            border-radius: 10px;
+        }
+
+        #reactionMenu button:hover {
+            background: #f8f9fa;
+            transform: scale(1.15);
+        }
+
+        @media (max-width: 768px) {
+            .group-wrapper {
+                border-left: 0;
+                border-right: 0;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+            }
+
+            .header-btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            .snap-btn, .voice-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="group-wrapper">
+        <div class="group-header">
+            <div class="header-top">
+                <div class="header-left">
+                    <a href="{{ url_for('chat') }}" class="back-btn">←</a>
+                    <div class="group-avatar">
+                        {% if group.image %}
+                        <img src="{{ group.image }}" alt="{{ group.name }}">
+                        {% else %}
+                        👥
+                        {% endif %}
+                    </div>
+                    <div class="group-info">
+                        <h1>{{ group.name }}</h1>
+                        <div class="group-members-count">{{ group.members|length + 1 }} members</div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="toggleMembersPanel()">👥 Members</button>
+                    {% if not is_leader %}
+                    <button class="header-btn danger" onclick="leaveGroup()">🚪 Leave</button>
+                    {% else %}
+                    <button class="header-btn danger" onclick="deleteGroup()">🗑️ Delete</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Panel -->
+        <div class="members-panel" id="membersPanel">
+            <div class="members-panel-header">
+                <span class="members-panel-title">Group Members</span>
+            </div>
+
+            <!-- Leader -->
+            <div class="member-item">
+                <div class="member-avatar">
+                    {% if group.leader in profiles and profiles[group.leader].get('setup_complete', False) and profiles[group.leader].get('profile_picture') %}
+                    <img src="{{ profiles[group.leader]['profile_picture'] }}" alt="{{ group.leader }}">
+                    {% else %}
+                    {{ group.leader[0].upper() }}
+                    {% endif %}
+                </div>
+                <span class="member-name">
+                    {% if group.leader in profiles and profiles[group.leader].get('instagram_full_name') %}
+                    {{ profiles[group.leader]['instagram_full_name'] }}
+                    {% else %}
+                    {{ group.leader }}
+                    {% endif %}
+                </span>
+                <span class="member-badge leader">👑 Leader</span>
+            </div>
+
+            <!-- Members -->
+            {% for member in group.members %}
+            <div class="member-item" data-username="{{ member }}">
+                <div class="member-avatar">
+                    {% if member in profiles and profiles[member].get('setup_complete', False) and profiles[member].get('profile_picture') %}
+                    <img src="{{ profiles[member]['profile_picture'] }}" alt="{{ member }}">
+                    {% else %}
+                    {{ member[0].upper() }}
+                    {% endif %}
+                </div>
+                <span class="member-name">
+                    {% if member in profiles and profiles[member].get('instagram_full_name') %}
+                    {{ profiles[member]['instagram_full_name'] }}
+                    {% else %}
+                    {{ member }}
+                    {% endif %}
+                </span>
+                {% if is_leader %}
+                <button class="kick-btn" onclick="kickMember('{{ member }}')">Kick</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            {% if is_leader and group.members|length < 5 %}
+            <div class="add-member-section">
+                <select id="addMemberSelect" class="add-member-select">
+                    <option value="">Select a user to add...</option>
+                    {% for user in all_users %}
+                    <option value="{{ user }}">{{ user }}</option>
+                    {% endfor %}
+                </select>
+                <button class="add-member-btn" onclick="addMember()">➕ Add Member</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="message {% if msg.from == 'system' %}system{% endif %}" data-index="{{ loop.index0 }}">
+                    <div class="message-avatar" onclick="viewProfile('{{ msg.from }}')">
+                        {% if msg.from == 'system' %}
+                        🔔
+                        {% elif msg.from in profiles and profiles[msg.from].get('setup_complete', False) and profiles[msg.from].get('profile_picture') %}
+                        <img src="{{ profiles[msg.from]['profile_picture'] }}" alt="{{ msg.from }}">
+                        {% else %}
+                        {{ msg.from[0].upper() }}
+                        {% endif %}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">{% if msg.from == 'system' %}System{% else %}{{ msg.from }}{% endif %}</span>
+                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                        </div>
+
+                        {% if msg.get('type') == 'snap' %}
+                        <div class="message-text snap-message {% if current_user in msg.get('opened_by', []) %}snap-opened{% endif %}" onclick="openGroupSnap({{ loop.index0 }})">
+                            <div class="snap-icon">📸</div>
+                            <div class="snap-text">
+                                {% if current_user in msg.get('opened_by', []) %}
+                                Opened
+                                {% else %}
+                                Tap to view
+                                {% endif %}
+                            </div>
+                            <div class="snap-status">{{ msg.get('opened_by', [])|length }} opened</div>
+                        </div>
+                        {% elif msg.get('type') == 'voice' %}
+                        <div class="message-text voice-message">
+                            <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
+                            <div class="voice-waveform">
+                                <div class="voice-bar" style="height: 20px;"></div>
+                                <div class="voice-bar" style="height: 28px;"></div>
+                                <div class="voice-bar" style="height: 18px;"></div>
+                                <div class="voice-bar" style="height: 32px;"></div>
+                                <div class="voice-bar" style="height: 25px;"></div>
+                                <div class="voice-bar" style="height: 30px;"></div>
+                                <div class="voice-bar" style="height: 22px;"></div>
+                                <div class="voice-bar" style="height: 28px;"></div>
+                            </div>
+                            <div class="voice-duration">{{ msg.duration }}s</div>
+                        </div>
+                        {% else %}
+                        <div class="message-text">{{ msg.text }}</div>
+                        {% endif %}
+
+                        <div class="message-actions">
+                            {% if msg.get('type') not in ['snap', 'voice'] %}
+                            <div class="reactions-display" data-index="{{ loop.index0 }}">
+                                {% if loop.index0|string in reactions %}
+                                    {% for emoji, users in reactions[loop.index0|string].items() %}
+                                    <span class="reaction-count {% if current_user in users %}user-reacted{% endif %}"
+                                          onclick="reactToMessage({{ loop.index0 }}, '{{ emoji }}')">
+                                        {{ emoji }} {{ users|length }}
+                                    </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <button class="reaction-btn" onclick="showReactionMenu(event, {{ loop.index0 }})">➕</button>
+                            {% endif %}
+
+                            {% if is_leader %}
+                            <button class="delete-btn" onclick="deleteMessage({{ loop.index0 }})">🗑️</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-messages">Start the conversation! 💬</div>
+            {% endif %}
+        </div>
+
+        <div class="message-input-container">
+            <form class="message-form" id="messageForm">
+                <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
+                <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
+                <input type="text" name="message" class="message-input" id="messageInput" placeholder="Message the group..." required autocomplete="off">
+                <button type="submit" class="send-btn" id="sendBtn">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal" id="cameraModal">
+        <div class="snap-camera-wrapper">
+            <button class="snap-close-btn" id="closeCameraBtn">✕</button>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="capturedCanvas"></canvas>
+            <div class="snap-bottom-bar">
+                <button class="snap-capture-btn" id="captureBtn">
+                    <div class="snap-capture-outer">
+                        <div class="snap-capture-inner"></div>
+                    </div>
+                </button>
+                <div class="snap-send-controls" id="snapSendControls">
+                    <button class="snap-send-btn" id="sendSnapBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                    <button class="snap-retake-btn" id="retakeBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snap View Modal -->
+    <div class="modal" id="snapModal">
+        <div class="snap-view-wrapper">
+            <div class="snap-view-header">
+                <button class="snap-view-close" onclick="closeSnapModal()">✕</button>
+                <div class="snap-view-username" id="snapUsername"></div>
+                <div class="snap-view-timer" id="snapTimer">5</div>
+            </div>
+            <img id="snapImage" class="snap-view-image" src="" alt="Snap">
+        </div>
+    </div>
+
+    <!-- Voice Recording Modal -->
+    <div class="modal" id="voiceModal">
+        <div class="voice-modal-content">
+            <div class="voice-icon">🎤</div>
+            <div class="voice-title">Recording...</div>
+            <div class="voice-timer" id="voiceTimer">0:00</div>
+            <div class="voice-visualizer">
+                <div class="viz-bar" style="height: 20px; animation-delay: 0s;"></div>
+                <div class="viz-bar" style="height: 30px; animation-delay: 0.1s;"></div>
+                <div class="viz-bar" style="height: 45px; animation-delay: 0.2s;"></div>
+                <div class="viz-bar" style="height: 35px; animation-delay: 0.3s;"></div>
+                <div class="viz-bar" style="height: 50px; animation-delay: 0.4s;"></div>
+                <div class="viz-bar" style="height: 25px; animation-delay: 0.5s;"></div>
+                <div class="viz-bar" style="height: 40px; animation-delay: 0.6s;"></div>
+            </div>
+            <div class="voice-actions">
+                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()">Cancel</button>
+                <button class="voice-send-btn" onclick="sendVoiceMessage()">Send 🎤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reaction Menu -->
+    <div id="reactionMenu">
+        <button onclick="selectReaction('👍')">👍</button>
+        <button onclick="selectReaction('👎')">👎</button>
+        <button onclick="selectReaction('❤️')">❤️</button>
+        <button onclick="selectReaction('😂')">😂</button>
+        <button onclick="selectReaction('😀')">😀</button>
+        <button onclick="selectReaction('😡')">😡</button>
+        <button onclick="selectReaction('🔥')">🔥</button>
+        <button onclick="selectReaction('🥋')">🥋</button>
+    </div>
+
+    <script>
+        const groupId = "{{ group_id }}";
+        const currentUser = "{{ current_user }}";
+        const isLeader = {{ 'true' if is_leader else 'false' }};
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        let lastMessageCount = {{ messages|length }};
+        let currentReactionIndex = null;
+        let stream = null;
+        let snapTimer;
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        scrollToBottom();
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleMembersPanel() {
+            document.getElementById('membersPanel').classList.toggle('show');
+        }
+
+        function viewProfile(username) {
+            if (username === 'system') return;
+            fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
+                if (data.has_profile) window.location.href = `/view_profile/${username}`;
+                else alert('This user hasn\'t set up their profile yet.');
+            }).catch(e => console.error('Error:', e));
+        }
+
+        // Poll for new messages
+        function pollMessages() {
+            fetch(`/api/group/${groupId}/messages`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages && data.messages.length > lastMessageCount) {
+                        location.reload();
+                    }
+                    updateReactions(data.reactions);
+                })
+                .catch(error => console.error('Error polling messages:', error));
+        }
+
+        function updateReactions(reactions) {
+            if (!reactions) return;
+            const messageElements = document.querySelectorAll('[data-index]');
+            messageElements.forEach(messageEl => {
+                const index = messageEl.getAttribute('data-index');
+                const reactionsDisplay = messageEl.querySelector('.reactions-display');
+
+                if (reactionsDisplay && reactions[index]) {
+                    reactionsDisplay.innerHTML = '';
+
+                    for (const [emoji, users] of Object.entries(reactions[index])) {
+                        const userReacted = users.includes(currentUser);
+                        const reactionSpan = document.createElement('span');
+                        reactionSpan.className = `reaction-count ${userReacted ? 'user-reacted' : ''}`;
+                        reactionSpan.onclick = () => reactToMessage(parseInt(index), emoji);
+                        reactionSpan.textContent = `${emoji} ${users.length}`;
+                        reactionsDisplay.appendChild(reactionSpan);
+                    }
+                }
+            });
+        }
+
+        setInterval(pollMessages, 2000);
+
+        // Mark as read
+        function markAsRead() {
+            fetch(`/api/group/${groupId}/mark_read`, { method: 'POST' });
+        }
+        markAsRead();
+        setInterval(markAsRead, 3000);
+
+        // Send message
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            sendBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+
+                const response = await fetch(`/api/group/${groupId}/send`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    messageInput.value = '';
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        // Reactions
+        function showReactionMenu(event, index) {
+            event.stopPropagation();
+            currentReactionIndex = index;
+            const menu = document.getElementById('reactionMenu');
+            menu.style.display = 'block';
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+        }
+
+        function selectReaction(emoji) {
+            if (currentReactionIndex !== null) {
+                reactToMessage(currentReactionIndex, emoji);
+            }
+            document.getElementById('reactionMenu').style.display = 'none';
+        }
+
+        async function reactToMessage(index, emoji) {
+            try {
+                await fetch(`/api/group/${groupId}/react/${index}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emoji })
+                });
+                pollMessages();
+            } catch (error) {
+                console.error('Error reacting:', error);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('reactionMenu');
+            if (menu.style.display === 'block' && !menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Delete message
+        async function deleteMessage(index) {
+            if (!confirm('Delete this message?')) return;
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/delete_message/${index}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error deleting message:', error);
+            }
+        }
+
+        // Member management
+        async function addMember() {
+            const select = document.getElementById('addMemberSelect');
+            const username = select.value;
+            if (!username) return;
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/add_member`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to add member');
+                }
+            } catch (error) {
+                alert('Error adding member');
+            }
+        }
+
+        async function kickMember(username) {
+            if (!confirm(`Remove ${username} from the group?`)) return;
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/kick_member`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to kick member');
+                }
+            } catch (error) {
+                alert('Error kicking member');
+            }
+        }
+
+        async function leaveGroup() {
+            if (!confirm('Are you sure you want to leave this group?')) return;
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/leave`, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/chat';
+                } else {
+                    alert(data.error || 'Failed to leave group');
+                }
+            } catch (error) {
+                alert('Error leaving group');
+            }
+        }
+
+        async function deleteGroup() {
+            if (!confirm('Are you sure you want to DELETE this group? This cannot be undone!')) return;
+            if (!confirm('All messages and data will be permanently deleted. Continue?')) return;
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/delete`, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/chat';
+                } else {
+                    alert(data.error || 'Failed to delete group');
+                }
+            } catch (error) {
+                alert('Error deleting group');
+            }
+        }
+
+        // Snap functionality
+        const snapBtn = document.getElementById('snapBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const capturedCanvas = document.getElementById('capturedCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const sendSnapBtn = document.getElementById('sendSnapBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+
+        snapBtn.addEventListener('click', async () => {
+            cameraModal.classList.add('active');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraVideo.srcObject = stream;
+            } catch (error) {
+                alert('Could not access camera: ' + error.message);
+                cameraModal.classList.remove('active');
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const canvas = capturedCanvas;
+            const video = cameraVideo;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            captureBtn.style.display = 'none';
+            document.getElementById('snapSendControls').classList.add('active');
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        });
+
+        sendSnapBtn.addEventListener('click', async () => {
+            const photoData = capturedCanvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                const response = await fetch(`/api/group/${groupId}/send_snap`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photoData })
+                });
+
+                if (response.ok) {
+                    closeCameraModal();
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error sending snap:', error);
+                alert('Failed to send snap');
+            }
+        });
+
+        closeCameraBtn.addEventListener('click', closeCameraModal);
+
+        function closeCameraModal() {
+            cameraModal.classList.remove('active');
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraVideo.style.display = 'block';
+            capturedCanvas.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            document.getElementById('snapSendControls').classList.remove('active');
+        }
+
+        async function openGroupSnap(index) {
+            try {
+                const response = await fetch(`/api/group/${groupId}/open_snap/${index}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('snapImage').src = data.photo;
+                    document.getElementById('snapUsername').textContent = 'Group Snap';
+                    document.getElementById('snapModal').classList.add('active');
+
+                    let timeLeft = 5;
+                    document.getElementById('snapTimer').textContent = timeLeft;
+
+                    snapTimer = setInterval(() => {
+                        timeLeft--;
+                        document.getElementById('snapTimer').textContent = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(snapTimer);
+                            closeSnapModal();
+                        }
+                    }, 1000);
+                } else {
+                    if (data.error !== 'Already opened') {
+                        alert(data.error || 'Could not open snap');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening snap:', error);
+            }
+        }
+
+        function closeSnapModal() {
+            document.getElementById('snapModal').classList.remove('active');
+            document.getElementById('snapImage').src = '';
+            if (snapTimer) clearInterval(snapTimer);
+            location.reload();
+        }
+
+        // Voice functionality
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordingStartTime;
+        let recordingTimer;
+        let audioStream;
+
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceModal = document.getElementById('voiceModal');
+
+        voiceBtn.addEventListener('click', startVoiceRecording);
+
+        async function startVoiceRecording() {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(audioStream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    if (audioStream) {
+                        audioStream.getTracks().forEach(track => track.stop());
+                    }
+                };
+
+                mediaRecorder.start();
+                voiceModal.style.display = 'flex';
+                voiceBtn.classList.add('recording');
+
+                recordingStartTime = Date.now();
+                updateRecordingTimer();
+                recordingTimer = setInterval(updateRecordingTimer, 100);
+
+            } catch (error) {
+                alert('Could not access microphone: ' + error.message);
+            }
+        }
+
+        function updateRecordingTimer() {
+            const elapsed = Date.now() - recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const milliseconds = Math.floor((elapsed % 1000) / 100);
+            document.getElementById('voiceTimer').textContent = `${seconds}:${milliseconds}`;
+
+            if (seconds >= 60) {
+                sendVoiceMessage();
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            clearInterval(recordingTimer);
+            voiceModal.style.display = 'none';
+            voiceBtn.classList.remove('recording');
+            audioChunks = [];
+        }
+
+        async function sendVoiceMessage() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+
+            clearInterval(recordingTimer);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+
+            reader.onloadend = async () => {
+                const base64Audio = reader.result;
+                const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+
+                try {
+                    const response = await fetch(`/api/group/${groupId}/send_voice`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            audio: base64Audio,
+                            duration: duration
+                        })
+                    });
+
+                    if (response.ok) {
+                        voiceModal.style.display = 'none';
+                        voiceBtn.classList.remove('recording');
+                        location.reload();
+                    } else {
+                        alert('Failed to send voice message');
+                    }
+                } catch (error) {
+                    console.error('Error sending voice message:', error);
+                    alert('Failed to send voice message');
+                }
+            };
+
+            reader.readAsDataURL(audioBlob);
+        }
+
+        // Voice playback
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('voice-play-btn')) {
+                const audioData = e.target.getAttribute('data-audio');
+                const playBtn = e.target;
+
+                const audio = new Audio(audioData);
+                playBtn.textContent = '⏸';
+
+                audio.onended = () => {
+                    playBtn.textContent = '▶️';
+                };
+
+                audio.play();
+            }
+        });
+
+        // Heartbeat
+        function sendHeartbeat() {
+            fetch('/api/heartbeat', { method: 'POST' });
+        }
+        sendHeartbeat();
+        setInterval(sendHeartbeat, 15000);
+    </script>
+</body>
+</html>

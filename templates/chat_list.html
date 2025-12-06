@@ -6,320 +6,764 @@
     <title>Messages - Study Hall Portal</title>
     <style>
         * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    font-family: 'Arial Black', Arial, sans-serif;
-    background: #3D322F;
-    color: #000;
-    min-height: 100vh;
-}
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: #3D322F;
+            color: #000;
+            min-height: 100vh;
+        }
 
-.chat-header {
-    background: #fff;
-    border-bottom: 5px solid #2C2C2C;
-    padding: 1rem 1.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.3);
-}
+        .chat-header {
+            background: #fff;
+            border-bottom: 5px solid #2C2C2C;
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 6px 0 rgba(44, 44, 44, 0.3);
+        }
 
-.chat-header-content {
-    max-width: 600px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        .chat-header-content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.chat-header h1 {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #2C2C2C;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
+        .chat-header h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #2C2C2C;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
 
-.back-btn {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    border: 4px solid #2C2C2C;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: white;
-    padding: 0.5rem 0.75rem;
-    text-decoration: none;
-    transition: all 0.3s;
-    font-weight: 900;
-    box-shadow: 0 4px 0 #2C2C2C;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        .back-btn {
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 900;
+            box-shadow: 0 4px 0 #2C2C2C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.back-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #2C2C2C;
+        }
 
-.back-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
+        .back-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2C2C2C;
+        }
 
-.container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0;
-}
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0;
+        }
 
-.search-container {
-    background: #fff;
-    padding: 1rem 1.5rem;
-    border-bottom: 4px solid #2C2C2C;
-    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.2);
-}
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            background: #fff;
+            border-bottom: 4px solid #2C2C2C;
+        }
 
-.search-box {
-    width: 100%;
-    padding: 0.75rem 1.25rem;
-    border: 4px solid #2C2C2C;
-    border-radius: 24px;
-    font-size: 1rem;
-    font-weight: 600;
-    background: white;
-    transition: all 0.3s;
-    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
-}
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: #f5f5f5;
+            border: none;
+            font-size: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #888;
+            position: relative;
+        }
 
-.search-box:focus {
-    outline: none;
-    border-color: #c19a6b;
-    box-shadow: 0 3px 0 #c19a6b, 0 0 0 2px rgba(193, 154, 107, 0.2);
-}
+        .tab-btn.active {
+            background: #fff;
+            color: #2C2C2C;
+        }
 
-.rank-section {
-    background: #fff;
-    border-bottom: 4px solid #2C2C2C;
-}
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+        }
 
-.rank-header {
-    padding: 1rem 1.5rem;
-    font-weight: 900;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #f5f5f5;
-    border-bottom: 3px solid #2C2C2C;
-}
+        .tab-btn:hover:not(.active) {
+            background: #eee;
+        }
 
-.rank-divider {
-    height: 3px;
-    background: #2C2C2C;
-    margin: 0;
-}
+        .tab-badge {
+            background: linear-gradient(135deg, #0095f6 0%, #0077cc 100%);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+            border: 2px solid #2C2C2C;
+        }
 
-.user-item {
-    background: #fff;
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    text-decoration: none;
-    color: #000;
-    transition: all 0.3s;
-    cursor: pointer;
-    border-bottom: 3px solid #f0f0f0;
-}
+        .tab-content {
+            display: none;
+        }
 
-.user-item:hover {
-    background: #fafafa;
-    transform: translateX(5px);
-    border-left: 5px solid #c19a6b;
-    padding-left: calc(1.5rem - 5px);
-}
+        .tab-content.active {
+            display: block;
+        }
 
-.user-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #4F3F3B;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: white;
-    margin-right: 1rem;
-    flex-shrink: 0;
-    position: relative;
-    border: 4px solid #2C2C2C;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.3);
-}
+        .search-container {
+            background: #fff;
+            padding: 1rem 1.5rem;
+            border-bottom: 4px solid #2C2C2C;
+            box-shadow: 0 4px 0 rgba(44, 44, 44, 0.2);
+        }
 
-.user-item:hover .user-avatar {
-    transform: scale(1.1) rotate(-5deg);
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4);
-}
+        .search-box {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border: 4px solid #2C2C2C;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+        }
 
-.user-avatar.online {
-    border-color: #31a24c;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 6px #31a24c, 0 4px 0 rgba(49, 162, 76, 0.5);
-}
+        .search-box:focus {
+            outline: none;
+            border-color: #c19a6b;
+            box-shadow: 0 3px 0 #c19a6b, 0 0 0 2px rgba(193, 154, 107, 0.2);
+        }
 
-.user-avatar.online::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    background: #31a24c;
-    border: 3px solid #fff;
-    border-radius: 50%;
-    bottom: -3px;
-    right: -3px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
+        /* Create Group Button */
+        .create-group-container {
+            background: #fff;
+            padding: 1rem 1.5rem;
+            border-bottom: 4px solid #2C2C2C;
+        }
 
-.user-content {
-    flex: 1;
-    min-width: 0;
-}
+        .create-group-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            border: 4px solid #2C2C2C;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 #2C2C2C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
 
-.user-name {
-    font-weight: 700;
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.3px;
-}
+        .create-group-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #2C2C2C;
+        }
 
-.user-preview {
-    font-size: 0.85rem;
-    color: #888;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 600;
-}
+        .create-group-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2C2C2C;
+        }
 
-.user-preview.unread {
-    color: #2C2C2C;
-    font-weight: 700;
-}
+        .create-group-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
-.user-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-    margin-left: 0.75rem;
-}
+        .create-group-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 0 #2C2C2C;
+        }
 
-.user-time {
-    font-size: 0.75rem;
-    color: #a0a0a0;
-    font-weight: 700;
-    text-transform: uppercase;
-}
+        .rank-section {
+            background: #fff;
+            border-bottom: 4px solid #2C2C2C;
+        }
 
-.unread-badge {
-    background: linear-gradient(135deg, #0095f6 0%, #0077cc 100%);
-    color: white;
-    min-width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 900;
-    padding: 0 6px;
-    border: 3px solid #2C2C2C;
-    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
-}
+        .rank-header {
+            padding: 1rem 1.5rem;
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f5f5f5;
+            border-bottom: 3px solid #2C2C2C;
+        }
 
-.empty-state {
-    text-align: center;
-    padding: 4rem 1rem;
-    color: #FFFDFC;
-}
+        .rank-divider {
+            height: 3px;
+            background: #2C2C2C;
+            margin: 0;
+        }
 
-.empty-state-icon {
-    font-size: 5rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.3));
-}
+        .user-item, .group-item {
+            background: #fff;
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            text-decoration: none;
+            color: #000;
+            transition: all 0.3s;
+            cursor: pointer;
+            border-bottom: 3px solid #f0f0f0;
+        }
 
-.empty-state p {
-    font-size: 1.1rem;
-    color: #FFFDFC;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
+        .user-item:hover, .group-item:hover {
+            background: #fafafa;
+            transform: translateX(5px);
+            border-left: 5px solid #c19a6b;
+            padding-left: calc(1.5rem - 5px);
+        }
 
-@media (max-width: 600px) {
-    .user-item {
-        padding: 1rem 1.25rem;
-    }
+        .user-avatar, .group-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4F3F3B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: white;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            position: relative;
+            border: 4px solid #2C2C2C;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 rgba(44, 44, 44, 0.3);
+            overflow: hidden;
+        }
 
-    .user-avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
-        border-width: 3px;
-    }
+        .group-avatar {
+            border-radius: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
 
-    .chat-header h1 {
-        font-size: 1.5rem;
-    }
+        .group-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-    .rank-header {
-        font-size: 0.85rem;
-        padding: 0.75rem 1.25rem;
-    }
-}
+        .user-item:hover .user-avatar, .group-item:hover .group-avatar {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4);
+        }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 12px;
-}
+        .user-avatar.online {
+            border-color: #31a24c;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 6px #31a24c, 0 4px 0 rgba(49, 162, 76, 0.5);
+        }
 
-::-webkit-scrollbar-track {
-    background: #3D322F;
-}
+        .user-avatar.online::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #31a24c;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            bottom: -3px;
+            right: -3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    border-radius: 10px;
-    border: 3px solid #3D322F;
-}
+        .user-content, .group-content {
+            flex: 1;
+            min-width: 0;
+        }
 
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #a88555 0%, #c19a6b 100%);
-}
+        .user-name, .group-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.3px;
+        }
 
-.user-avatar[onclick]:hover {
-    transform: scale(1.15) rotate(-5deg);
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4), 0 0 0 3px rgba(193, 154, 107, 0.3) !important;
-    cursor: pointer !important;
-}
+        .user-preview, .group-preview {
+            font-size: 0.85rem;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 600;
+        }
 
-.user-avatar img {
-    transition: all 0.3s ease;
-}
+        .user-preview.unread, .group-preview.unread {
+            color: #2C2C2C;
+            font-weight: 700;
+        }
 
-.user-avatar:hover img {
-    transform: scale(1.05);
-}
+        .group-meta-info {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 0.2rem;
+        }
+
+        .group-member-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin-left: 6px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid #2C2C2C;
+        }
+
+        .group-leader-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            color: #2C2C2C;
+        }
+
+        .user-meta, .group-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+            margin-left: 0.75rem;
+        }
+
+        .user-time, .group-time {
+            font-size: 0.75rem;
+            color: #a0a0a0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .unread-badge {
+            background: linear-gradient(135deg, #0095f6 0%, #0077cc 100%);
+            color: white;
+            min-width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 0 6px;
+            border: 3px solid #2C2C2C;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #FFFDFC;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+            filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.3));
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            color: #FFFDFC;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Create Group Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border: 6px solid #2C2C2C;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 0 #2C2C2C;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 4px solid #2C2C2C;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #2C2C2C;
+        }
+
+        .modal-close {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            border: 4px solid #2C2C2C;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 #2C2C2C;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            color: #2C2C2C;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #c19a6b;
+            box-shadow: 0 3px 0 #c19a6b;
+        }
+
+        .form-hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        /* Member Selection */
+        .member-selection {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            background: #f5f5f5;
+        }
+
+        .member-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .member-option:last-child {
+            border-bottom: none;
+        }
+
+        .member-option:hover {
+            background: #eee;
+        }
+
+        .member-option.selected {
+            background: linear-gradient(135deg, rgba(193, 154, 107, 0.2) 0%, rgba(212, 175, 122, 0.2) 100%);
+        }
+
+        .member-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #2C2C2C;
+            border-radius: 6px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .member-option.selected .member-checkbox {
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            color: white;
+        }
+
+        .member-option-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4F3F3B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: white;
+            margin-right: 0.75rem;
+            border: 3px solid #2C2C2C;
+            overflow: hidden;
+        }
+
+        .member-option-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .member-option-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .selected-count {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        /* Image Upload */
+        .image-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .image-preview {
+            width: 80px;
+            height: 80px;
+            border: 4px solid #2C2C2C;
+            border-radius: 16px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-upload-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: #f5f5f5;
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+        }
+
+        .image-upload-btn:hover {
+            background: #eee;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        /* Price Display */
+        .price-display {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 0 rgba(44, 44, 44, 0.3);
+        }
+
+        .price-amount {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #2C2C2C;
+        }
+
+        .price-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            border: 4px solid #2C2C2C;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 #2C2C2C;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #2C2C2C;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-align: center;
+            border: 3px solid #2C2C2C;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .user-item, .group-item {
+                padding: 1rem 1.25rem;
+            }
+
+            .user-avatar, .group-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+                border-width: 3px;
+            }
+
+            .chat-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .rank-header {
+                font-size: 0.85rem;
+                padding: 0.75rem 1.25rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #3D322F;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+            border-radius: 10px;
+            border: 3px solid #3D322F;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #a88555 0%, #c19a6b 100%);
+        }
+
+        .user-avatar[onclick]:hover {
+            transform: scale(1.15) rotate(-5deg);
+            box-shadow: 0 6px 0 rgba(44, 44, 44, 0.4), 0 0 0 3px rgba(193, 154, 107, 0.3) !important;
+            cursor: pointer !important;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -332,176 +776,494 @@ body {
     </div>
 
     <div class="container">
-        <div class="search-container">
-            <input type="text" id="userSearch" class="search-box" placeholder="🔍 Search users..." onkeyup="filterUsers()">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('chats')" id="chatsTabBtn">
+                💬 Chats
+                <span class="tab-badge" id="chatsBadge" style="display: none;">0</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('groups')" id="groupsTabBtn">
+                👥 Groups
+                <span class="tab-badge" id="groupsBadge" style="display: none;">0</span>
+            </button>
         </div>
 
-        <div id="chatList">
-            <div class="empty-state">
-                <div class="empty-state-icon">💬</div>
-                <p>Loading conversations...</p>
+        <!-- Chats Tab -->
+        <div class="tab-content active" id="chatsTab">
+            <div class="search-container">
+                <input type="text" id="userSearch" class="search-box" placeholder="🔍 Search users..." onkeyup="filterUsers()">
+            </div>
+            <div id="chatList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <p>Loading conversations...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Groups Tab -->
+        <div class="tab-content" id="groupsTab">
+            <div class="create-group-container">
+                <button class="create-group-btn" onclick="openCreateGroupModal()" id="createGroupBtn">
+                    ➕ Create Group (100 🎟️)
+                </button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="groupSearch" class="search-box" placeholder="🔍 Search groups..." onkeyup="filterGroups()">
+            </div>
+            <div id="groupList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>Loading groups...</p>
+                </div>
             </div>
         </div>
     </div>
 
-<script>
-    const RANKS = {{ RANKS | tojson }};
-    let allUsers = {};
-    let profilePictureCache = {};
+    <!-- Create Group Modal -->
+    <div class="modal" id="createGroupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Group</h2>
+                <button class="modal-close" onclick="closeCreateGroupModal()">✕</button>
+            </div>
 
-    function getTimeString(timestamp) {
-        try {
-            const now = new Date();
-            const parts = timestamp.split(' ');
-            const dateParts = parts[0].split('-');
-            const timeParts = parts[1].split(':');
-            const msgDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), parseInt(timeParts[2] || 0));
-            const diffMs = now - msgDate;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            if (diffMins < 1) return 'Now';
-            if (diffMins < 60) return diffMins + 'm';
-            if (diffHours < 24) return diffHours + 'h';
-            if (diffDays < 7) return diffDays + 'd';
-            return msgDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        } catch (e) { return ''; }
-    }
+            <div class="error-message" id="createGroupError"></div>
 
-    function renderChats() {
-        const chatList = document.getElementById('chatList');
-        let html = '';
+            <div class="form-group">
+                <label class="form-label">Group Name</label>
+                <input type="text" class="form-input" id="groupNameInput" placeholder="Enter group name..." maxlength="30">
+                <div class="form-hint">Max 30 characters</div>
+            </div>
 
-        let adminUser = null;
-        for (const [rankId, users] of Object.entries(allUsers)) {
-            for (const user of users) {
-                if (user.username === 'admin') { adminUser = user; break; }
-            }
-            if (adminUser) break;
+            <div class="form-group">
+                <label class="form-label">Select Members (Up to 5)</label>
+                <div class="member-selection" id="memberSelection">
+                    <!-- Members will be populated by JavaScript -->
+                </div>
+                <div class="selected-count" id="selectedCount">0/5 members selected</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Group Image (Optional)</label>
+                <div class="image-upload-container">
+                    <div class="image-preview" id="imagePreview">👥</div>
+                    <label class="image-upload-btn" for="imageInput">
+                        📷 Upload Image
+                    </label>
+                    <input type="file" id="imageInput" accept="image/*" onchange="previewImage(this)">
+                </div>
+            </div>
+
+            <div class="price-display">
+                <div class="price-amount">100 🎟️</div>
+                <div class="price-label">Creation Cost</div>
+            </div>
+
+            <button class="submit-btn" onclick="createGroup()" id="createGroupSubmitBtn">
+                Create Group
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const RANKS = {{ RANKS | tojson }};
+        let allUsers = {};
+        let allGroups = [];
+        let profilePictureCache = {};
+        let selectedMembers = [];
+        let groupImage = null;
+        const currentUsername = "{{ session.username }}";
+        const userHasGroup = {{ 'true' if user_has_group else 'false' }};
+        const userTokens = {{ user_tokens }};
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.getElementById(tab + 'TabBtn').classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
         }
 
-        if (adminUser) {
-            let adminColor = '#FFD700';
-            const timeStr = adminUser.lastMessageTime || '';
-            const adminProfilePic = adminUser.profilePicture || profilePictureCache['admin'];
-            const adminAvatar = adminProfilePic ? `<img src="${adminProfilePic}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : `<span>A</span>`;
-            const displayName = adminUser.instagramName || 'admin';
-
-            html += `<div class="rank-section"><div class="rank-header" style="color: ${adminColor};"><span style="font-size: 1.2rem;">📁️</span> Admin</div>`;
-            html += `<a href="/chat/admin" class="user-item"><div class="user-avatar ${adminUser.isOnline ? 'online' : ''}" style="background: ${adminColor}; cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('admin', '${adminColor}')" id="avatar-container-admin">${adminAvatar}</div><div class="user-content"><div class="user-name" style="color: ${adminColor};">${displayName}</div><div class="user-preview ${adminUser.unread > 0 ? 'unread' : ''}">${adminUser.lastMessage ? (adminUser.lastMessageFromMe ? 'You: ' : '') + adminUser.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${adminUser.unread > 0 ? `<div class="unread-badge">${adminUser.unread}</div>` : ''}</div></a><div class="rank-divider"></div></div>`;
+        function getTimeString(timestamp) {
+            try {
+                const now = new Date();
+                const parts = timestamp.split(' ');
+                const dateParts = parts[0].split('-');
+                const timeParts = parts[1].split(':');
+                const msgDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), parseInt(timeParts[2] || 0));
+                const diffMs = now - msgDate;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                if (diffMins < 1) return 'Now';
+                if (diffMins < 60) return diffMins + 'm';
+                if (diffHours < 24) return diffHours + 'h';
+                if (diffDays < 7) return diffDays + 'd';
+                return msgDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            } catch (e) { return ''; }
         }
 
-        const rankOrder = [...{{ RANKS | tojson }}].reverse();
-        rankOrder.push({ id: 'no_rank', name: 'Normal Students', color: '#000' });
+        function renderChats() {
+            const chatList = document.getElementById('chatList');
+            let html = '';
 
-        for (const rank of rankOrder) {
-            let usersInRank = (allUsers[rank.id] || []).filter(u => u.username !== 'admin');
-            if (usersInRank.length === 0) continue;
-
-            usersInRank.sort((a, b) => {
-                const getTs = (user) => {
-                    if (!user.lastMessageTimestamp) return 0;
-                    try {
-                        const parts = user.lastMessageTimestamp.split(' ');
-                        const dateParts = parts[0].split('-');
-                        const timeParts = parts[1].split(':');
-                        return new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), 0).getTime();
-                    } catch (e) { return 0; }
-                };
-                return getTs(b) - getTs(a);
-            });
-
-            html += `<div class="rank-section"><div class="rank-header" style="color: ${rank.color};"><span style="font-size: 1.2rem;">🎖</span> ${rank.name}</div>`;
-            for (const user of usersInRank) {
-                const timeStr = user.lastMessageTime || '';
-                const userProfilePic = user.profilePicture || profilePictureCache[user.username];
-                const userAvatar = userProfilePic ? `<img src="${userProfilePic}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : `<span>${user.username.charAt(0).toUpperCase()}</span>`;
-                const displayName = user.instagramName || user.username;
-
-                html += `<a href="/chat/${user.username}" class="user-item"><div class="user-avatar ${user.isOnline ? 'online' : ''}" style="background: ${rank.color}; cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('${user.username}', '${rank.color}')" id="avatar-container-${user.username}">${userAvatar}</div><div class="user-content"><div class="user-name" style="color: ${rank.color};">${displayName}</div><div class="user-preview ${user.showUnread ? 'unread' : ''}">${user.lastMessage ? (user.lastMessageFromMe ? 'You: ' : '') + user.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${user.showUnread ? `<div class="unread-badge">${user.unread}</div>` : ''}</div></a>`;
-            }
-            html += `<div class="rank-divider"></div></div>`;
-        }
-
-        if (html === '') html = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversations yet</p></div>`;
-        chatList.innerHTML = html;
-        if (window.currentSearchValue) { document.getElementById('userSearch').value = window.currentSearchValue; filterUsers(); }
-    }
-
-    function updateChatList() {
-        fetch('/api/users_with_ranks').then(r => r.json()).then(data => {
-            allUsers = {};
-            for (const [rankId, users] of Object.entries(data.users_by_rank)) {
-                allUsers[rankId] = users.map(user => ({
-                    username: user.username,
-                    instagramName: user.instagram_name,
-                    profilePicture: user.profile_picture,
-                    isOnline: user.is_online,
-                    unread: user.unread,
-                    lastMessage: user.last_message ? user.last_message.preview : null,
-                    lastMessageFromMe: user.last_message ? user.last_message.from_me : false,
-                    lastMessageTime: user.last_message ? getTimeString(user.last_message.timestamp) : null,
-                    lastMessageTimestamp: user.last_message_timestamp,
-                    showUnread: user.last_message ? !user.last_message.from_me && user.unread > 0 : false
-                }));
-            }
-            // Update profile picture cache with data from API
+            // Find admin user
+            let adminUser = null;
             for (const [rankId, users] of Object.entries(allUsers)) {
                 for (const user of users) {
-                    if (user.profilePicture) {
-                        profilePictureCache[user.username] = user.profilePicture;
+                    if (user.username === 'admin') { adminUser = user; break; }
+                }
+                if (adminUser) break;
+            }
+
+            if (adminUser) {
+                let adminColor = '#FFD700';
+                const timeStr = adminUser.lastMessageTime || '';
+                const adminProfilePic = adminUser.profilePicture || profilePictureCache['admin'];
+                const adminAvatar = adminProfilePic ? `<img src="${adminProfilePic}">` : `<span>A</span>`;
+                const displayName = adminUser.instagramName || 'admin';
+
+                html += `<div class="rank-section"><div class="rank-header" style="color: ${adminColor};"><span style="font-size: 1.2rem;">📁️</span> Admin</div>`;
+                html += `<a href="/chat/admin" class="user-item"><div class="user-avatar ${adminUser.isOnline ? 'online' : ''}" style="background: ${adminColor};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('admin')">${adminAvatar}</div><div class="user-content"><div class="user-name" style="color: ${adminColor};">${displayName}</div><div class="user-preview ${adminUser.unread > 0 ? 'unread' : ''}">${adminUser.lastMessage ? (adminUser.lastMessageFromMe ? 'You: ' : '') + adminUser.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${adminUser.unread > 0 ? `<div class="unread-badge">${adminUser.unread}</div>` : ''}</div></a><div class="rank-divider"></div></div>`;
+            }
+
+            const rankOrder = [...RANKS].reverse();
+            rankOrder.push({ id: 'no_rank', name: 'Normal Students', color: '#000' });
+
+            for (const rank of rankOrder) {
+                let usersInRank = (allUsers[rank.id] || []).filter(u => u.username !== 'admin');
+                if (usersInRank.length === 0) continue;
+
+                usersInRank.sort((a, b) => {
+                    const getTs = (user) => {
+                        if (!user.lastMessageTimestamp) return 0;
+                        try {
+                            const parts = user.lastMessageTimestamp.split(' ');
+                            const dateParts = parts[0].split('-');
+                            const timeParts = parts[1].split(':');
+                            return new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), 0).getTime();
+                        } catch (e) { return 0; }
+                    };
+                    return getTs(b) - getTs(a);
+                });
+
+                html += `<div class="rank-section"><div class="rank-header" style="color: ${rank.color};"><span style="font-size: 1.2rem;">🎖</span> ${rank.name}</div>`;
+                for (const user of usersInRank) {
+                    const timeStr = user.lastMessageTime || '';
+                    const userProfilePic = user.profilePicture || profilePictureCache[user.username];
+                    const userAvatar = userProfilePic ? `<img src="${userProfilePic}">` : `<span>${user.username.charAt(0).toUpperCase()}</span>`;
+                    const displayName = user.instagramName || user.username;
+
+                    html += `<a href="/chat/${user.username}" class="user-item"><div class="user-avatar ${user.isOnline ? 'online' : ''}" style="background: ${rank.color};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('${user.username}')">${userAvatar}</div><div class="user-content"><div class="user-name" style="color: ${rank.color};">${displayName}</div><div class="user-preview ${user.showUnread ? 'unread' : ''}">${user.lastMessage ? (user.lastMessageFromMe ? 'You: ' : '') + user.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${user.showUnread ? `<div class="unread-badge">${user.unread}</div>` : ''}</div></a>`;
+                }
+                html += `<div class="rank-divider"></div></div>`;
+            }
+
+            if (html === '') html = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversations yet</p></div>`;
+            chatList.innerHTML = html;
+            if (window.currentSearchValue) { document.getElementById('userSearch').value = window.currentSearchValue; filterUsers(); }
+        }
+
+        function renderGroups() {
+            const groupList = document.getElementById('groupList');
+
+            if (allGroups.length === 0) {
+                groupList.innerHTML = `<div class="empty-state"><div class="empty-state-icon">👥</div><p>No groups yet. Create one!</p></div>`;
+                return;
+            }
+
+            let html = '';
+
+            // Sort groups: member groups first, then by last message
+            const memberGroups = allGroups.filter(g => g.is_member);
+            const otherGroups = allGroups.filter(g => !g.is_member);
+
+            if (memberGroups.length > 0) {
+                html += `<div class="rank-section"><div class="rank-header" style="color: #c19a6b;"><span style="font-size: 1.2rem;">⭐</span> Your Groups</div>`;
+
+                for (const group of memberGroups) {
+                    const timeStr = group.last_message ? getTimeString(group.last_message.timestamp) : '';
+                    const isLeader = group.leader === currentUsername;
+                    const badge = isLeader ? '<span class="group-member-badge group-leader-badge">👑 Leader</span>' : '<span class="group-member-badge">Member</span>';
+
+                    html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
+                        <div class="group-avatar">${group.image ? `<img src="${group.image}">` : '👥'}</div>
+                        <div class="group-content">
+                            <div class="group-name">${group.name} ${badge}</div>
+                            <div class="group-preview ${group.unread > 0 ? 'unread' : ''}">${group.last_message ? (group.last_message.from === currentUsername ? 'You: ' : group.last_message.from + ': ') + group.last_message.preview : 'No messages yet'}</div>
+                            <div class="group-meta-info">${group.member_count} members</div>
+                        </div>
+                        <div class="group-meta">
+                            ${timeStr ? `<div class="group-time">${timeStr}</div>` : ''}
+                            ${group.unread > 0 ? `<div class="unread-badge">${group.unread}</div>` : ''}
+                        </div>
+                    </a>`;
+                }
+                html += `<div class="rank-divider"></div></div>`;
+            }
+
+            if (otherGroups.length > 0) {
+                html += `<div class="rank-section"><div class="rank-header" style="color: #888;"><span style="font-size: 1.2rem;">🔍</span> Discover Groups</div>`;
+
+                for (const group of otherGroups) {
+                    html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
+                        <div class="group-avatar">${group.image ? `<img src="${group.image}">` : '👥'}</div>
+                        <div class="group-content">
+                            <div class="group-name">${group.name}</div>
+                            <div class="group-preview">Led by ${group.leader}</div>
+                            <div class="group-meta-info">${group.member_count} members</div>
+                        </div>
+                        <div class="group-meta">
+                            <div class="group-time">View</div>
+                        </div>
+                    </a>`;
+                }
+                html += `<div class="rank-divider"></div></div>`;
+            }
+
+            groupList.innerHTML = html;
+        }
+
+        function updateChatList() {
+            fetch('/api/users_with_ranks').then(r => r.json()).then(data => {
+                allUsers = {};
+                let totalUnread = 0;
+                for (const [rankId, users] of Object.entries(data.users_by_rank)) {
+                    allUsers[rankId] = users.map(user => {
+                        const userData = {
+                            username: user.username,
+                            instagramName: user.instagram_name,
+                            profilePicture: user.profile_picture,
+                            isOnline: user.is_online,
+                            unread: user.unread,
+                            lastMessage: user.last_message ? user.last_message.preview : null,
+                            lastMessageFromMe: user.last_message ? user.last_message.from_me : false,
+                            lastMessageTime: user.last_message ? getTimeString(user.last_message.timestamp) : null,
+                            lastMessageTimestamp: user.last_message_timestamp,
+                            showUnread: user.last_message ? !user.last_message.from_me && user.unread > 0 : false
+                        };
+                        if (userData.showUnread) totalUnread += userData.unread;
+                        if (user.profile_picture) profilePictureCache[user.username] = user.profile_picture;
+                        return userData;
+                    });
+                }
+                renderChats();
+
+                // Update badge
+                const chatsBadge = document.getElementById('chatsBadge');
+                if (totalUnread > 0) {
+                    chatsBadge.textContent = totalUnread;
+                    chatsBadge.style.display = 'inline';
+                } else {
+                    chatsBadge.style.display = 'none';
+                }
+            }).catch(e => console.error('Error loading chats:', e));
+        }
+
+        function updateGroupList() {
+            fetch('/groups').then(r => r.text()).then(html => {
+                // Parse groups from the page data - we need a separate API endpoint
+                // For now, let's create a workaround
+            }).catch(e => console.error('Error loading groups:', e));
+
+            // Get groups unread count
+            fetch('/api/groups/unread_count').then(r => r.json()).then(data => {
+                const groupsBadge = document.getElementById('groupsBadge');
+                if (data.count > 0) {
+                    groupsBadge.textContent = data.count;
+                    groupsBadge.style.display = 'inline';
+                } else {
+                    groupsBadge.style.display = 'none';
+                }
+            }).catch(e => console.error('Error loading groups unread:', e));
+        }
+
+        // Load groups from template data
+        allGroups = {{ groups | tojson if groups is defined else '[]' }};
+        renderGroups();
+
+        function filterUsers() {
+            const searchValue = document.getElementById('userSearch').value.toLowerCase();
+            window.currentSearchValue = searchValue;
+            document.querySelectorAll('#chatList .user-item').forEach(item => {
+                const displayName = item.querySelector('.user-name').textContent.toLowerCase();
+                item.style.display = displayName.includes(searchValue) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('#chatList .rank-section').forEach(section => {
+                const visibleUsers = section.querySelectorAll('.user-item:not([style*="display: none"])');
+                section.style.display = visibleUsers.length > 0 ? 'block' : 'none';
+            });
+        }
+
+        function filterGroups() {
+            const searchValue = document.getElementById('groupSearch').value.toLowerCase();
+            document.querySelectorAll('#groupList .group-item').forEach(item => {
+                const groupName = item.getAttribute('data-group-name') || '';
+                item.style.display = groupName.includes(searchValue) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('#groupList .rank-section').forEach(section => {
+                const visibleGroups = section.querySelectorAll('.group-item:not([style*="display: none"])');
+                section.style.display = visibleGroups.length > 0 ? 'block' : 'none';
+            });
+        }
+
+        function checkAndViewProfile(username) {
+            fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
+                if (data.has_profile) window.location.href = `/view_profile/${username}`;
+                else alert('This user hasn\'t set up their profile yet.');
+            }).catch(e => { console.error('Error checking profile:', e); alert('Error loading profile.'); });
+        }
+
+        // Create Group Modal Functions
+        function openCreateGroupModal() {
+            if (userHasGroup) {
+                alert('You can only create one group!');
+                return;
+            }
+            if (userTokens < 100) {
+                alert('You need 100 tokens to create a group!');
+                return;
+            }
+
+            document.getElementById('createGroupModal').classList.add('active');
+            populateMemberSelection();
+        }
+
+        function closeCreateGroupModal() {
+            document.getElementById('createGroupModal').classList.remove('active');
+            document.getElementById('groupNameInput').value = '';
+            selectedMembers = [];
+            groupImage = null;
+            document.getElementById('imagePreview').innerHTML = '👥';
+            updateSelectedCount();
+            document.getElementById('createGroupError').classList.remove('show');
+        }
+
+        function populateMemberSelection() {
+            const container = document.getElementById('memberSelection');
+            let html = '';
+
+            // Get all users except current user
+            const allUsersList = [];
+            for (const [rankId, users] of Object.entries(allUsers)) {
+                for (const user of users) {
+                    if (user.username !== currentUsername) {
+                        allUsersList.push(user);
                     }
                 }
             }
-            renderChats();
-            // Load any missing profile pictures as fallback
-            setTimeout(loadProfilePictures, 100);
-        }).catch(e => console.error('Error loading chats:', e));
-    }
 
-    function sendHeartbeat() { fetch('/api/heartbeat', {method: 'POST'}).catch(e => console.error('Heartbeat error:', e)); }
+            for (const user of allUsersList) {
+                const avatar = user.profilePicture ? `<img src="${user.profilePicture}">` : user.username.charAt(0).toUpperCase();
+                const displayName = user.instagramName || user.username;
 
-    function filterUsers() {
-        const searchValue = document.getElementById('userSearch').value.toLowerCase();
-        window.currentSearchValue = searchValue;
-        document.querySelectorAll('.user-item').forEach(item => {
-            const displayName = item.querySelector('.user-name').textContent.toLowerCase();
-            item.style.display = displayName.includes(searchValue) ? 'flex' : 'none';
-        });
-        document.querySelectorAll('.rank-section').forEach(section => {
-            const visibleUsers = section.querySelectorAll('.user-item[style="display: flex;"], .user-item:not([style*="display: none"])');
-            section.style.display = (searchValue === '' || visibleUsers.length > 0) ? 'block' : 'none';
-        });
-    }
+                html += `<div class="member-option" onclick="toggleMember('${user.username}')" data-username="${user.username}">
+                    <div class="member-checkbox" id="checkbox-${user.username}"></div>
+                    <div class="member-option-avatar">${avatar}</div>
+                    <div class="member-option-name">${displayName}</div>
+                </div>`;
+            }
 
-    function loadProfilePictures() {
-        document.querySelectorAll('[id^="avatar-container-"]').forEach(container => {
-            const username = container.id.replace('avatar-container-', '');
-            if (profilePictureCache[username]) return;
-            fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
-                if (data.has_profile && data.profile_picture) {
-                    profilePictureCache[username] = data.profile_picture;
-                    const img = document.createElement('img');
-                    img.src = data.profile_picture;
-                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
-                    img.onload = () => { container.innerHTML = ''; container.appendChild(img); };
+            container.innerHTML = html || '<p style="padding: 1rem; text-align: center; color: #888;">No users available</p>';
+        }
+
+        function toggleMember(username) {
+            const option = document.querySelector(`.member-option[data-username="${username}"]`);
+            const checkbox = document.getElementById(`checkbox-${username}`);
+
+            if (selectedMembers.includes(username)) {
+                selectedMembers = selectedMembers.filter(m => m !== username);
+                option.classList.remove('selected');
+                checkbox.innerHTML = '';
+            } else {
+                if (selectedMembers.length >= 5) {
+                    alert('Maximum 5 members allowed!');
+                    return;
                 }
-            }).catch(e => console.error('Error loading profile:', e));
-        });
-    }
+                selectedMembers.push(username);
+                option.classList.add('selected');
+                checkbox.innerHTML = '✓';
+            }
 
-    function checkAndViewProfile(username) {
-        fetch(`/api/get_profile/${username}`).then(r => r.json()).then(data => {
-            if (data.has_profile) window.location.href = `/view_profile/${username}`;
-            else alert('This user hasn\'t set up their profile yet.');
-        }).catch(e => { console.error('Error checking profile:', e); alert('Error loading profile.'); });
-    }
+            updateSelectedCount();
+        }
 
-    updateChatList();
-    sendHeartbeat();
-    setInterval(updateChatList, 2000);
-    setInterval(sendHeartbeat, 15000);
-    setTimeout(loadProfilePictures, 500);
-</script>
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = `${selectedMembers.length}/5 members selected`;
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    groupImage = e.target.result;
+                    document.getElementById('imagePreview').innerHTML = `<img src="${groupImage}">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function createGroup() {
+            const name = document.getElementById('groupNameInput').value.trim();
+            const errorDiv = document.getElementById('createGroupError');
+
+            if (!name) {
+                errorDiv.textContent = 'Please enter a group name';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            const submitBtn = document.getElementById('createGroupSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch('/api/group/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        members: selectedMembers,
+                        image: groupImage
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeCreateGroupModal();
+                    window.location.href = `/group/${data.group_id}`;
+                } else {
+                    errorDiv.textContent = data.error || 'Failed to create group';
+                    errorDiv.classList.add('show');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Group';
+            }
+        }
+
+        function sendHeartbeat() {
+            fetch('/api/heartbeat', { method: 'POST' }).catch(e => console.error('Heartbeat error:', e));
+        }
+
+        // Initialize
+        updateChatList();
+        updateGroupList();
+        sendHeartbeat();
+        setInterval(updateChatList, 2000);
+        setInterval(updateGroupList, 5000);
+        setInterval(sendHeartbeat, 15000);
+
+        // Update create group button state
+        if (userHasGroup) {
+            document.getElementById('createGroupBtn').disabled = true;
+            document.getElementById('createGroupBtn').innerHTML = '✓ You Already Have a Group';
+        }
+    </script>
 </body>
 </html>

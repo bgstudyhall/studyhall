@@ -3,839 +3,1508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with {{ other_user }}</title>
+    <title>Chat with {{ other_user }} 🎄</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
+        /* ========================================
+           GLOBAL RESET & BASE STYLES
+        ======================================== */
         * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    font-family: 'Arial Black', Arial, sans-serif;
-    background: #000000;
-    color: #ffffff;
-    height: 100vh;
-    overflow: hidden;
-}
+        :root {
+            --christmas-red: #d32f2f;
+            --christmas-red-dark: #b71c1c;
+            --christmas-red-light: #ef5350;
+            --christmas-white: #ffffff;
+            --christmas-snow: #f8f9fa;
+            --christmas-cream: #fffaf5;
+            --christmas-gold: #ffd700;
+            --christmas-gold-dark: #d4af37;
+            --text-dark: #1a1a1a;
+            --text-medium: #4a4a4a;
+            --text-light: #6b7280;
+            --border-main: #2c2c2c;
+            --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
+            --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
+            --shadow-cartoon-hover: 0 8px 0 rgba(44, 44, 44, 0.9);
+        }
 
-.chat-wrapper {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    max-width: 935px;
-    margin: 0 auto;
-    background: #000000;
-}
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #1a1f2e 0%, #252d3d 50%, #1a1f2e 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
 
-.chat-header {
-    background: #1a1a1a;
-    border-bottom: 5px solid #2C2C2C;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.5);
-}
+        /* Snowfall Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(5px 5px at 8% 12%, rgba(255,255,255,0.98), transparent),
+                radial-gradient(4px 4px at 18% 45%, rgba(255,255,255,0.95), transparent),
+                radial-gradient(5px 5px at 28% 25%, rgba(255,255,255,0.96), transparent),
+                radial-gradient(4px 4px at 38% 75%, rgba(255,255,255,0.92), transparent),
+                radial-gradient(6px 6px at 48% 40%, rgba(255,255,255,0.94), transparent),
+                radial-gradient(4px 4px at 58% 85%, rgba(255,255,255,0.90), transparent),
+                radial-gradient(5px 5px at 68% 20%, rgba(255,255,255,0.97), transparent),
+                radial-gradient(4px 4px at 78% 60%, rgba(255,255,255,0.91), transparent);
+            background-size: 120px 120px, 160px 160px, 140px 140px, 180px 180px, 130px 130px, 200px 200px, 150px 150px, 190px 190px;
+            animation: snowfallFade 15s linear forwards;
+            pointer-events: none;
+            z-index: 9999;
+        }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
+        @keyframes snowfallFade {
+            0% {
+                transform: translateY(-10%);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(105vh);
+                opacity: 0;
+            }
+        }
 
-.back-btn {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    border: 4px solid #2C2C2C;
-    border-radius: 12px;
-    color: white;
-    font-size: 1.3rem;
-    cursor: pointer;
-    text-decoration: none;
-    padding: 0.5rem 0.75rem;
-    transition: all 0.3s;
-    font-weight: 900;
-    box-shadow: 0 4px 0 #2C2C2C;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        .chat-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--christmas-cream);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 1;
+            border-left: 6px solid var(--border-main);
+            border-right: 6px solid var(--border-main);
+        }
 
-.back-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
+        .chat-wrapper.has-game {
+            display: flex;
+            flex-direction: row;
+        }
 
-.back-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
+        .chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-.user-name {
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+        .chat-wrapper.has-game .chat-content {
+            width: 50%;
+            border-left: 6px solid var(--border-main);
+            order: 2;
+            margin-left: 50%;
+        }
 
-.typing-indicator-header {
-    font-size: 0.85rem;
-    color: #c19a6b;
-    margin-top: 0.25rem;
-    min-height: 18px;
-    font-weight: 700;
-}
+        /* ========================================
+           HEADER
+        ======================================== */
+        .chat-header {
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            border-bottom: 6px solid var(--border-main);
+            padding: 1.2rem 1.5rem;
+            box-shadow: var(--shadow-cartoon);
+        }
 
-.messages-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem;
-    background: #000000;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.messages-container::-webkit-scrollbar {
-    width: 10px;
-}
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-.messages-container::-webkit-scrollbar-track {
-    background: #1a1a1a;
-    border-radius: 10px;
-}
+        .back-btn {
+            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            color: var(--christmas-red);
+            font-size: 1.3rem;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.3s;
+            font-weight: 900;
+            box-shadow: var(--shadow-cartoon-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.messages-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    border-radius: 10px;
-    border: 2px solid #1a1a1a;
-}
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon-hover);
+        }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #a88555 0%, #c19a6b 100%);
-}
+        .back-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
 
-.message {
-    display: flex;
-    margin-bottom: 0.5rem;
-    animation: messageSlide 0.3s ease-out;
-}
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-@keyframes messageSlide {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            font-size: 1.3rem;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+            text-transform: uppercase;
+        }
 
-.message-sent {
-    justify-content: flex-end;
-}
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
 
-.message-received {
-    justify-content: flex-start;
-}
+        .user-name {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
 
-.message-bubble {
-    max-width: 60%;
-    padding: 1rem 1.25rem;
-    border-radius: 20px;
-    word-wrap: break-word;
-    position: relative;
-    border: 4px solid #2C2C2C;
-    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
-    font-weight: 600;
-}
+        .typing-indicator-header {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+            min-height: 18px;
+            text-transform: uppercase;
+        }
 
-.voice-message {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem !important;
-    max-width: 300px;
-}
+        /* ========================================
+           MESSAGES CONTAINER
+        ======================================== */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--christmas-cream) 0%, var(--christmas-snow) 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
 
-.voice-play-btn {
-    background: rgba(255, 255, 255, 0.3);
-    border: 3px solid white;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    transition: all 0.3s;
-    flex-shrink: 0;
-    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
-}
+        .messages-container::-webkit-scrollbar {
+            width: 12px;
+        }
 
-.voice-play-btn:hover {
-    background: rgba(255, 255, 255, 0.5);
-    transform: scale(1.1);
-}
+        .messages-container::-webkit-scrollbar-track {
+            background: var(--christmas-snow);
+            border-radius: 10px;
+        }
 
-.voice-play-btn:active {
-    transform: scale(0.95);
-}
+        .messages-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            border-radius: 10px;
+            border: 3px solid var(--christmas-snow);
+        }
 
-.voice-waveform {
-    flex: 1;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--christmas-red-light) 0%, var(--christmas-red) 100%);
+        }
 
-.voice-bar {
-    width: 4px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 2px;
-    transition: all 0.2s;
-}
+        /* ========================================
+           MESSAGES
+        ======================================== */
+        .message {
+            display: flex;
+            margin-bottom: 0.5rem;
+            animation: messageSlide 0.3s ease-out;
+            gap: 0.75rem;
+        }
 
-.voice-duration {
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.message-sent .message-bubble {
-    background: linear-gradient(135deg, #4A00E0 0%, #5a10f0 100%);
-    color: #ffffff;
-    border-bottom-right-radius: 4px;
-}
+        .message-sent {
+            justify-content: flex-end;
+        }
 
-.message-received .message-bubble {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    color: #ffffff;
-    border-bottom-left-radius: 4px;
-}
+        .message-received {
+            justify-content: flex-start;
+        }
 
-.message-system .message-bubble {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #000000;
-    border-radius: 20px;
-    font-weight: 900;
-    text-align: center;
-    max-width: 80%;
-    border-color: #2C2C2C;
-}
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            flex-shrink: 0;
+            font-size: 1rem;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+            text-transform: uppercase;
+        }
 
-.message-text {
-    font-size: 1rem;
-    line-height: 1.5;
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-}
+        .message-sent .message-avatar {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+            order: 1;
+        }
 
-.message-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 0.25rem;
-}
+        .message-received .message-avatar {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+        }
 
-.message-time {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 700;
-    text-transform: uppercase;
-}
+        .message-bubble-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
 
-.message-received .message-time {
-    color: rgba(255, 255, 255, 0.5);
-}
+        .message-sent .message-bubble-wrapper {
+            align-items: flex-end;
+        }
 
-.read-checkmarks {
-    font-size: 0.9rem;
-    display: inline-flex;
-    align-items: center;
-}
+        .message-received .message-bubble-wrapper {
+            align-items: flex-start;
+        }
 
-.checkmark-single {
-    color: rgba(255, 255, 255, 0.6);
-}
+        .message-sender-name {
+            font-size: 0.8rem;
+            font-weight: 900;
+            color: var(--text-medium);
+            margin-bottom: 0.3rem;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
 
-.checkmark-double {
-    color: rgba(255, 255, 255, 0.6);
-}
+        .message-sent .message-sender-name {
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
 
-.checkmark-read {
-    color: #4fc3f7;
-}
+        .message-bubble {
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            word-wrap: break-word;
+            position: relative;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+            font-weight: 600;
+            max-width: 100%;
+        }
 
-.snap-message {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    cursor: pointer;
-    text-align: center;
-    padding: 1.5rem !important;
-    transition: all 0.3s;
-    position: relative;
-    border-radius: 20px !important;
-    border: 4px solid #2C2C2C !important;
-    box-shadow: 0 5px 0 rgba(44, 44, 44, 0.5) !important;
-}
+        .message-sent .message-bubble {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
 
-.snap-message:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 7px 0 rgba(44, 44, 44, 0.6) !important;
-}
+        .message-received .message-bubble {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
 
-.snap-message:active {
-    transform: translateY(1px);
-    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5) !important;
-}
+        .message-system .message-bubble {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            color: white;
+            border-radius: 20px;
+            font-weight: 900;
+            text-align: center;
+            max-width: 80%;
+            margin: 0 auto;
+        }
 
-.snap-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
+        .message-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
 
-.snap-text {
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+        .message-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.4rem;
+        }
 
-.snap-status {
-    font-size: 0.8rem;
-    opacity: 0.9;
-    margin-top: 0.25rem;
-    font-weight: 700;
-}
+        .message-time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
 
-.snap-opened {
-    background: linear-gradient(135deg, #424242 0%, #303030 100%) !important;
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+        .message-received .message-time {
+            color: var(--text-light);
+        }
 
-.snap-opened:hover {
-    transform: none;
-    box-shadow: 0 5px 0 rgba(44, 44, 44, 0.5) !important;
-}
+        .read-checkmarks {
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+        }
 
-/* Snapchat-style Camera */
-.camera-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-}
+        .checkmark-single {
+            color: rgba(255, 255, 255, 0.7);
+        }
 
-.camera-modal.active {
-    display: flex;
-}
+        .checkmark-double {
+            color: rgba(255, 255, 255, 0.7);
+        }
 
-.snap-camera-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 500px;
-    background: #000;
-    border: 6px solid #2C2C2C;
-}
+        .checkmark-read {
+            color: #4fc3f7;
+        }
 
-.snap-close-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-    border: 4px solid #2C2C2C;
-    color: white;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    cursor: pointer;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 #2C2C2C;
-    font-weight: 900;
-}
+        /* Snap Messages */
+        .snap-message {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+            cursor: pointer;
+            text-align: center;
+            padding: 1.5rem !important;
+            transition: all 0.3s;
+            border-radius: 20px !important;
+        }
 
-.snap-close-btn:hover {
-    transform: translateY(-2px) rotate(90deg);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
+        .snap-message:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: var(--shadow-cartoon) !important;
+        }
 
-.snap-close-btn:active {
-    transform: translateY(1px) rotate(90deg);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
+        .snap-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
 
-#cameraVideo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+        .snap-text {
+            font-weight: 900;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+        }
 
-#capturedCanvas {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
+        .snap-opened {
+            background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%) !important;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-.snap-bottom-bar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 30px 20px 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-}
+        .snap-opened:hover {
+            transform: none;
+            box-shadow: var(--shadow-cartoon-sm) !important;
+        }
 
-.snap-capture-btn {
+        /* Voice Messages */
+        .voice-message {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem !important;
+            max-width: 350px;
+        }
+
+        .voice-play-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .voice-play-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .voice-waveform {
+            flex: 1;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .voice-bar {
+            width: 4px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 2px;
+        }
+
+        .voice-duration {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Typing Indicator */
+        .typing-bubble {
+            display: none;
+            justify-content: flex-start;
+            margin-bottom: 0.5rem;
+            gap: 0.75rem;
+        }
+
+        .typing-bubble.active {
+            display: flex;
+        }
+
+        .typing-content {
+            background: white;
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--christmas-red);
+            animation: typingAnimation 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .no-messages {
+            text-align: center;
+            color: var(--text-medium);
+            padding: 3rem;
+            font-weight: 900;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        /* ========================================
+           INPUT CONTAINER
+        ======================================== */
+        .message-input-container {
+            background: linear-gradient(135deg, var(--christmas-snow) 0%, white 100%);
+            border-top: 6px solid var(--border-main);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 -4px 0 rgba(44, 44, 44, 0.2);
+        }
+
+        .message-form {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .snap-btn, .voice-btn, .gift-btn, .rps-btn {
+            border: 4px solid var(--border-main);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            color: white;
+            flex-shrink: 0;
+            font-weight: 900;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .snap-btn {
+            background: linear-gradient(135deg, #F2EE05 0%, #e6e200 100%);
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .gift-btn {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+        }
+
+        .rps-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        }
+
+        .snap-btn:hover, .voice-btn:hover, .gift-btn:hover, .rps-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .snap-btn:active, .voice-btn:active, .gift-btn:active, .rps-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.9rem 1.3rem;
+            border: 4px solid var(--border-main);
+            border-radius: 20px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--christmas-red);
+            box-shadow: 0 4px 0 var(--christmas-red);
+        }
+
+        .message-input::placeholder {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            color: white;
+            border: 4px solid var(--border-main);
+            padding: 0.9rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ========================================
+           CAMERA MODAL
+        ======================================== */
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 31, 46, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .camera-modal.active {
+            display: flex;
+        }
+
+        .snap-camera-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            background: #000;
+            border: 6px solid var(--border-main);
+        }
+
+        .snap-close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            border: 4px solid var(--border-main);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+            font-weight: 900;
+        }
+
+        .snap-close-btn:hover {
+            transform: translateY(-2px) rotate(90deg);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #capturedCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .snap-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 20px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+
+        .snap-capture-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .snap-capture-outer {
+            width: 80px;
+            height: 80px;
+            border: 6px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .snap-capture-btn:active .snap-capture-outer {
+            transform: scale(0.85);
+        }
+
+        .snap-capture-inner {
+            width: 65px;
+            height: 65px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .snap-send-controls {
+            display: none;
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            justify-content: center;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .snap-send-controls.active {
+            display: flex;
+        }
+
+        .snap-send-btn, .snap-retake-btn {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 4px solid white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .snap-send-btn:hover, .snap-retake-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-3px) scale(1.1);
+        }
+
+        /* ========================================
+           SNAP VIEW MODAL
+        ======================================== */
+        .snap-view-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .snap-view-modal.active {
+            display: flex;
+        }
+
+        .snap-view-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            border: 6px solid var(--border-main);
+        }
+
+        .snap-view-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 10;
+        }
+
+        .snap-view-close {
+            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            border: 4px solid var(--border-main);
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 900;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .snap-view-username {
+            color: white;
+            font-weight: 900;
+            font-size: 1.1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            text-transform: uppercase;
+        }
+
+        .snap-view-timer {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .snap-view-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ========================================
+           GIFT MODAL
+        ======================================== */
+        .gift-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gift-modal.active {
+            display: flex;
+        }
+
+        .gift-modal-content {
+            background: var(--christmas-cream);
+            border: 6px solid var(--christmas-gold);
+            padding: 2.5rem;
+            border-radius: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-cartoon), 0 20px 60px rgba(255, 215, 0, 0.5);
+            animation: giftAppear 0.3s ease-out;
+        }
+
+        @keyframes giftAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .gift-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: giftBounce 1s ease-in-out infinite;
+        }
+
+        @keyframes giftBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .gift-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--christmas-gold-dark);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .gift-subtitle {
+            font-size: 1rem;
+            color: var(--text-medium);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .gift-balance {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            border: 4px solid var(--border-main);
+            padding: 1rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-weight: 900;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .gift-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .gift-input-label {
+            display: block;
+            text-align: left;
+            color: var(--text-dark);
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        .gift-input {
+            width: 100%;
+            padding: 1rem;
+            border: 4px solid var(--christmas-gold);
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-align: center;
+            background: white;
+            color: var(--christmas-gold-dark);
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .gift-input:focus {
+            outline: none;
+            box-shadow: 0 4px 0 var(--christmas-gold);
+        }
+
+        .gift-quick-amounts {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        .quick-amount-btn {
+            background: white;
+            border: 3px solid var(--christmas-gold);
+            color: var(--christmas-gold-dark);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 900;
+            transition: all 0.3s;
+            font-size: 1rem;
+            box-shadow: 0 3px 0 rgba(255, 215, 0, 0.3);
+        }
+
+        .quick-amount-btn:hover {
+            background: var(--christmas-gold);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .gift-send-btn, .gift-cancel-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .gift-send-btn {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            color: white;
+        }
+
+        .gift-send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .gift-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .gift-cancel-btn {
+            background: var(--christmas-snow);
+            color: var(--text-medium);
+        }
+
+        .gift-cancel-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .gift-error {
+            background: rgba(239, 83, 80, 0.2);
+            border: 4px solid #ef5350;
+            color: #d32f2f;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        /* Voice Modal (keeping inline styles from original) */
+        @keyframes vizPulse {
+            0%, 100% { height: 20px; opacity: 0.6; }
+            50% { height: 60px; opacity: 1; }
+        }
+
+        /* ========================================
+           ROCK PAPER SCISSORS GAME
+        ======================================== */
+        .rps-game-container {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 50%;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--christmas-snow) 0%, white 100%);
+            border-right: 6px solid var(--border-main);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-shadow: 8px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            overflow-y: auto;
+            order: 1;
+        }
+
+        .rps-game-header {
+            text-align: center;
+            border-bottom: 4px solid var(--border-main);
+            padding-bottom: 1rem;
+            position: relative;
+        }
+
+        .rps-close-btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: 4px solid var(--border-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+            font-family: inherit;
+            line-height: 1;
+        }
+
+        .rps-close-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .rps-close-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
+
+        .rps-game-header h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: var(--christmas-red);
+            margin-bottom: 0.5rem;
+            text-shadow: 3px 3px 0 var(--border-main);
+        }
+
+        .rps-pot {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--christmas-gold-dark);
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .rps-game-status {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rps-loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .rps-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid var(--christmas-snow);
+            border-top: 6px solid var(--christmas-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .rps-loading p {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-medium);
+        }
+
+        .rps-scores {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .rps-player-score {
+            text-align: center;
+        }
+
+        .rps-player-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .rps-wins {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--christmas-red);
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .rps-vs {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-light);
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .rps-round-info {
+            background: white;
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .rps-round-number {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--christmas-gold-dark);
+            margin-bottom: 1rem;
+        }
+
+        .rps-moves {
+            display: flex;
+            justify-content: space-around;
+            gap: 1rem;
+        }
+
+        .rps-move-display {
+            text-align: center;
+            flex: 1;
+        }
+
+        .rps-move-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-medium);
+            margin-bottom: 0.5rem;
+        }
+
+        .rps-move-icon {
+            font-size: 3rem;
+            padding: 1rem;
+            background: var(--christmas-snow);
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .rps-move-icon.revealed {
+            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            transform: scale(1.1);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .rps-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .rps-move-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 1.2rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            color: white;
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+            font-family: inherit;
+        }
+
+        .rps-move-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .rps-move-btn:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
+
+        .rps-move-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .rps-result {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            padding: 1.5rem;
+            background: white;
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .rps-invite-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .rps-accept-btn,
+        .rps-decline-btn {
+            flex: 1;
+            padding: 1.2rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border: 4px solid var(--border-main);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-cartoon-sm);
+            font-family: inherit;
+        }
+
+        .rps-accept-btn {
+            background: linear-gradient(135deg, #31a24c 0%, #259238 100%);
+            color: white;
+        }
+
+        .rps-decline-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .rps-accept-btn:hover,
+        .rps-decline-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        .rps-accept-btn:active,
+        .rps-decline-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 var(--border-main);
+        }
+
+        @media (max-width: 768px) {
+            .chat-wrapper {
+                border-left: 0;
+                border-right: 0;
+            }
+
+            .chat-wrapper.has-game {
+                flex-direction: column;
+            }
+
+            .chat-wrapper.has-game .chat-content {
+                width: 100%;
+                height: 50vh;
+                border-left: 0;
+                border-top: 6px solid var(--border-main);
+                order: 2;
+            }
+
+            .rps-game-container {
+                width: 100%;
+                height: 50vh;
+                position: relative;
+                left: auto;
+                border-right: 0;
+                border-bottom: 6px solid var(--border-main);
+                order: 1;
+            }
+
+            .message-bubble-wrapper {
+                max-width: 85%;
+            }
+
+            .user-name {
+                font-size: 1.2rem;
+            }
+
+            .snap-btn, .voice-btn, .gift-btn, .rps-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+        /* Report Button Styles */
+.message-report-btn {
     background: none;
     border: none;
+    color: var(--text-light);
+    font-size: 0.75rem;
     cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    opacity: 0;
+    margin-right: 0.5rem;
+    font-weight: 600;
 }
 
-.snap-capture-outer {
-    width: 80px;
-    height: 80px;
-    border: 6px solid white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s;
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.8);
+.message-bubble-wrapper:hover .message-report-btn {
+    opacity: 1;
 }
 
-.snap-capture-btn:active .snap-capture-outer {
-    transform: scale(0.85);
-    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.8);
+.message-report-btn:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--christmas-red);
 }
 
-.snap-capture-inner {
-    width: 65px;
-    height: 65px;
-    background: white;
-    border-radius: 50%;
-}
-
-.snap-send-controls {
-    display: none;
-    position: absolute;
-    bottom: 40px;
-    left: 0;
-    right: 0;
-    justify-content: center;
-    gap: 100px;
-    align-items: center;
-}
-
-.snap-send-controls.active {
-    display: flex;
-}
-
-.snap-send-btn,
-.snap-retake-btn {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    border: 4px solid white;
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 5px 0 #2C2C2C;
-}
-
-.snap-send-btn:hover,
-.snap-retake-btn:hover {
-    background: rgba(255, 255, 255, 0.5);
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 7px 0 #2C2C2C;
-}
-
-.snap-send-btn:active,
-.snap-retake-btn:active {
-    transform: translateY(1px) scale(1);
-    box-shadow: 0 3px 0 #2C2C2C;
-}
-
-/* Snapchat-style Snap Viewer */
-.snap-view-modal {
+/* Report Modal */
+.report-modal {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #000;
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-}
-
-.snap-view-modal.active {
-    display: flex;
-}
-
-.snap-view-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
-    border: 6px solid #2C2C2C;
-}
-
-.snap-view-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
-    z-index: 10;
-}
-
-.snap-view-close {
-    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-    border: 4px solid #2C2C2C;
-    color: white;
-    font-size: 1.8rem;
-    cursor: pointer;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: 900;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 #2C2C2C;
-}
-
-.snap-view-close:hover {
-    transform: translateY(-2px) rotate(90deg);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.snap-view-username {
-    color: white;
-    font-weight: 900;
-    font-size: 1.1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.snap-view-timer {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 1.1rem;
-    border: 4px solid #2C2C2C;
-    box-shadow: 0 4px 0 #2C2C2C;
-}
-
-.snap-view-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.snap-view-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
-    z-index: 10;
-}
-
-.snap-view-actions {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-}
-
-.snap-action-btn {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(26, 31, 46, 0.95);
     backdrop-filter: blur(10px);
-    border: 4px solid white;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 #2C2C2C;
-}
-
-.snap-action-btn:hover {
-    background: rgba(255, 255, 255, 0.5);
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.snap-action-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.typing-bubble {
-    display: none;
-    justify-content: flex-start;
-    margin-bottom: 0.5rem;
-}
-
-.typing-bubble.active {
-    display: flex;
-}
-
-.typing-content {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    padding: 1rem 1.25rem;
-    border-radius: 20px;
-    border-bottom-left-radius: 4px;
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    border: 4px solid #2C2C2C;
-    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
-}
-
-.typing-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #c19a6b;
-    animation: typingAnimation 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes typingAnimation {
-    0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.7;
-    }
-    30% {
-        transform: translateY(-10px);
-        opacity: 1;
-    }
-}
-
-.no-messages {
-    text-align: center;
-    color: #666;
-    padding: 3rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-}
-
-.message-input-container {
-    background: #1a1a1a;
-    border-top: 5px solid #2C2C2C;
-    padding: 1rem 1.5rem;
-    box-shadow: 0 -4px 0 rgba(44, 44, 44, 0.5);
-}
-
-.message-form {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.snap-btn, .voice-btn, .gift-btn {
-    border: 4px solid #2C2C2C;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    color: white;
-    flex-shrink: 0;
-    font-weight: 900;
-    box-shadow: 0 4px 0 #2C2C2C;
-}
-
-.snap-btn {
-    background: linear-gradient(135deg, #F2EE05 0%, #e6e200 100%);
-}
-
-.voice-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.voice-btn.recording {
-    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.gift-btn {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-}
-
-.rps-btn {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-}
-
-.snap-btn:hover, .gift-btn:hover, .rps-btn:hover {
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.snap-btn:active, .gift-btn:active, .rps-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.message-input {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    border: 4px solid #2C2C2C;
-    border-radius: 24px;
-    font-size: 1rem;
-    font-family: Arial, sans-serif;
-    background: #262626;
-    color: #ffffff;
-    transition: all 0.3s;
-    font-weight: 600;
-    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
-}
-
-.message-input:focus {
-    outline: none;
-    border-color: #c19a6b;
-    box-shadow: 0 3px 0 #c19a6b;
-}
-
-.message-input::placeholder {
-    color: #666;
-    font-weight: 600;
-}
-
-.send-btn {
-    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
-    color: white;
-    border: 4px solid #2C2C2C;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all 0.3s;
-    min-width: 80px;
-    border-radius: 12px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 0 #2C2C2C;
-}
-
-.send-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.send-btn:active:not(:disabled) {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.send-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* Token Gift Modal */
-.gift-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
+    z-index: 10000;
     justify-content: center;
     align-items: center;
 }
 
-.gift-modal.active {
+.report-modal.active {
     display: flex;
 }
 
-.gift-modal-content {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border: 6px solid #FFD700;
+.report-modal-content {
+    background: var(--christmas-cream);
+    border: 6px solid var(--christmas-red);
     padding: 2.5rem;
     border-radius: 30px;
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.6), 0 8px 0 #2C2C2C;
-    animation: giftAppear 0.3s ease-out;
+    box-shadow: var(--shadow-cartoon), 0 20px 60px rgba(211, 47, 47, 0.5);
+    animation: reportAppear 0.3s ease-out;
 }
 
-@keyframes giftAppear {
+@keyframes reportAppear {
     from {
         opacity: 0;
         transform: scale(0.8) translateY(-50px);
@@ -846,465 +1515,150 @@ body {
     }
 }
 
-.gift-icon {
-    font-size: 5rem;
+.report-icon {
+    font-size: 4rem;
     margin-bottom: 1rem;
-    animation: giftBounce 1s ease-in-out infinite;
+    text-align: center;
 }
 
-@keyframes giftBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-}
-
-.gift-title {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #FFD700;
+.report-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: var(--christmas-red);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    text-align: center;
 }
 
-.gift-subtitle {
-    font-size: 1rem;
-    color: #aaa;
+.report-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-medium);
     margin-bottom: 1.5rem;
-    font-weight: 700;
+    font-weight: 600;
+    text-align: center;
 }
 
-.gift-balance {
-    background: rgba(255, 215, 0, 0.15);
-    border: 4px solid #FFD700;
+.report-message-preview {
+    background: white;
+    border: 4px solid var(--border-main);
     padding: 1rem;
-    border-radius: 16px;
+    border-radius: 12px;
     margin-bottom: 1.5rem;
-    color: #FFD700;
-    font-weight: 900;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 0 rgba(255, 215, 0, 0.3);
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    max-height: 100px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-cartoon-sm);
 }
 
-.gift-input-group {
+.report-input-group {
     margin-bottom: 1.5rem;
 }
 
-.gift-input-label {
+.report-input-label {
     display: block;
     text-align: left;
-    color: #fff;
+    color: var(--text-dark);
     font-weight: 900;
     margin-bottom: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
 }
 
-.gift-input {
+.report-textarea {
     width: 100%;
     padding: 1rem;
-    border: 4px solid #FFD700;
+    border: 4px solid var(--christmas-red);
     border-radius: 16px;
-    font-size: 1.3rem;
-    font-weight: 900;
-    text-align: center;
-    background: #262626;
-    color: #FFD700;
-    box-shadow: 0 4px 0 rgba(255, 215, 0, 0.3);
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: white;
+    color: var(--text-dark);
+    box-shadow: var(--shadow-cartoon-sm);
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
 }
 
-.gift-input:focus {
+.report-textarea:focus {
     outline: none;
-    box-shadow: 0 4px 0 #FFD700, 0 0 0 2px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 0 var(--christmas-red);
 }
 
-.gift-quick-amounts {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    justify-content: center;
-}
-
-.quick-amount-btn {
-    background: rgba(255, 215, 0, 0.2);
-    border: 3px solid #FFD700;
-    color: #FFD700;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 900;
-    transition: all 0.3s;
-    font-size: 1rem;
-    box-shadow: 0 3px 0 rgba(255, 215, 0, 0.3);
-}
-
-.quick-amount-btn:hover {
-    background: #FFD700;
-    color: #000;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 0 rgba(255, 215, 0, 0.5);
-}
-
-.quick-amount-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 rgba(255, 215, 0, 0.3);
-}
-
-.gift-actions {
+.report-actions {
     display: flex;
     gap: 0.75rem;
 }
 
-.gift-send-btn, .gift-cancel-btn {
+.report-send-btn, .report-cancel-btn {
     flex: 1;
     padding: 1rem;
-    border: 4px solid #2C2C2C;
+    border: 4px solid var(--border-main);
     border-radius: 16px;
     font-weight: 900;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
-    box-shadow: 0 4px 0 #2C2C2C;
+    box-shadow: var(--shadow-cartoon-sm);
+    font-family: inherit;
 }
 
-.gift-send-btn {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #000;
+.report-send-btn {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+    color: white;
 }
 
-.gift-send-btn:hover:not(:disabled) {
+.report-send-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 #2C2C2C;
+    box-shadow: var(--shadow-cartoon);
 }
 
-.gift-send-btn:active:not(:disabled) {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.gift-send-btn:disabled {
+.report-send-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.gift-cancel-btn {
-    background: linear-gradient(135deg, #444 0%, #333 100%);
-    color: #fff;
+.report-cancel-btn {
+    background: var(--christmas-snow);
+    color: var(--text-medium);
 }
 
-.gift-cancel-btn:hover {
+.report-cancel-btn:hover {
+    background: white;
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 #2C2C2C;
 }
 
-.gift-cancel-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.gift-error {
-    background: rgba(255, 0, 0, 0.2);
-    border: 4px solid #ff0000;
-    color: #ff6666;
+.report-error, .report-success {
     padding: 1rem;
     border-radius: 12px;
     margin-bottom: 1rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    box-shadow: 0 4px 0 rgba(255, 0, 0, 0.3);
-}
-
-/* Rock Paper Scissors Game Styles */
-.chat-wrapper.has-game {
-    display: flex;
-    flex-direction: row;
-}
-
-.chat-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-.chat-wrapper.has-game .chat-content {
-    width: 50%;
-    border-right: 5px solid #2C2C2C;
-}
-
-.rps-game-container {
-    width: 50%;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-right: 5px solid #2C2C2C;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding: 2rem;
-    overflow-y: auto;
-}
-
-.rps-game-header {
     text-align: center;
-    margin-bottom: 2rem;
-    border-bottom: 4px solid #2C2C2C;
-    padding-bottom: 1rem;
 }
 
-.rps-game-header h2 {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #ff6b6b;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.report-error {
+    background: rgba(239, 83, 80, 0.2);
+    border: 4px solid #ef5350;
+    color: #d32f2f;
 }
 
-.rps-pot {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #FFD700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+.report-success {
+    background: rgba(5, 150, 105, 0.2);
+    border: 4px solid #059669;
+    color: #047857;
 }
 
-.rps-loading {
-    text-align: center;
-    padding: 3rem;
-}
-
-.rps-spinner {
-    width: 60px;
-    height: 60px;
-    border: 6px solid #2C2C2C;
-    border-top: 6px solid #ff6b6b;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.rps-loading p {
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.rps-scores {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: rgba(44, 44, 44, 0.5);
-    border-radius: 20px;
-    border: 4px solid #2C2C2C;
-}
-
-.rps-player-score {
-    text-align: center;
-    flex: 1;
-}
-
-.rps-player-name {
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-}
-
-.rps-wins {
-    font-size: 3rem;
-    font-weight: 900;
-    color: #ff6b6b;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.rps-vs {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #c19a6b;
-    margin: 0 1rem;
-}
-
-.rps-round-info {
-    text-align: center;
-    margin: 2rem 0;
-}
-
-.rps-round-number {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #c19a6b;
-    margin-bottom: 1.5rem;
-    text-transform: uppercase;
-}
-
-.rps-moves {
-    display: flex;
-    justify-content: space-around;
-    gap: 2rem;
-    margin: 2rem 0;
-}
-
-.rps-move-display {
-    text-align: center;
-    flex: 1;
-}
-
-.rps-move-label {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #888;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-}
-
-.rps-move-icon {
-    font-size: 5rem;
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(44, 44, 44, 0.5);
-    border-radius: 20px;
-    border: 4px solid #2C2C2C;
-    transition: all 0.3s;
-}
-
-.rps-move-icon.revealed {
-    background: rgba(255, 107, 107, 0.2);
-    border-color: #ff6b6b;
-    transform: scale(1.1);
-}
-
-.rps-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin: 2rem 0;
-    flex-wrap: wrap;
-}
-
-.rps-move-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-    border: 4px solid #2C2C2C;
-    border-radius: 20px;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 #2C2C2C;
-    text-transform: uppercase;
-}
-
-.rps-move-btn:hover:not(:disabled) {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.rps-move-btn:active:not(:disabled) {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-.rps-move-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.rps-result {
-    text-align: center;
-    padding: 1.5rem;
-    background: rgba(255, 215, 0, 0.2);
-    border: 4px solid #FFD700;
-    border-radius: 20px;
-    margin: 1rem 0;
-    font-size: 1.3rem;
-    font-weight: 900;
-    color: #FFD700;
-    text-transform: uppercase;
-}
-
-.rps-invite-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin: 2rem 0;
-}
-
-.rps-accept-btn, .rps-decline-btn {
-    flex: 1;
-    padding: 1.5rem;
-    border: 4px solid #2C2C2C;
-    border-radius: 20px;
-    font-size: 1.2rem;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 0 #2C2C2C;
-    text-transform: uppercase;
-}
-
-.rps-accept-btn {
-    background: linear-gradient(135deg, #31a24c 0%, #2a8f42 100%);
-    color: white;
-}
-
-.rps-decline-btn {
-    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-    color: white;
-}
-
-.rps-accept-btn:hover, .rps-decline-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 0 #2C2C2C;
-}
-
-.rps-accept-btn:active, .rps-decline-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 0 #2C2C2C;
-}
-
-@media (max-width: 768px) {
-    .message-bubble {
-        max-width: 75%;
-    }
-
-    .user-name {
-        font-size: 1rem;
-    }
-
-    .snap-btn, .gift-btn, .rps-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1.1rem;
-    }
-
-    .chat-wrapper.has-game {
-        flex-direction: column;
-    }
-
-    .chat-wrapper.has-game .chat-content,
-    .rps-game-container {
-        width: 100%;
-        height: 50vh;
-    }
-}
     </style>
 </head>
 <body>
     <div class="chat-wrapper" id="chatWrapper">
-        <!-- RPS Game UI (shown when game is active) -->
+        <!-- RPS Game UI -->
         <div class="rps-game-container" id="rpsGameContainer" style="display: none;">
             <div class="rps-game-header">
+                <button class="rps-close-btn" id="rpsCloseBtn" title="Close game">✕</button>
                 <h2>✂️ Rock Paper Scissors</h2>
                 <div class="rps-pot">Pot: 🎟️ <span id="rpsPotAmount">0</span></div>
             </div>
@@ -1352,117 +1706,152 @@ body {
 
         <div class="chat-content" id="chatContent">
             <div class="chat-header">
-                <div class="header-left">
-                    <a href="{{ url_for('chat') }}" class="back-btn">←</a>
-                    <div>
-                        <div class="user-name">{{ other_user }}</div>
-                        <div class="typing-indicator-header" id="typingHeader"></div>
+                <div class="header-content">
+                    <div class="header-left">
+                        <a href="{{ url_for('chat') }}" class="back-btn">←</a>
+                        <div class="user-info">
+                            <div class="user-avatar">{{ other_user[0].upper() }}</div>
+                            <div class="user-details">
+                                <div class="user-name">{{ other_user }}</div>
+                                <div class="typing-indicator-header" id="typingHeader"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="messages-container" id="messagesContainer">
-            {% if messages %}
-                {% for msg in messages %}
-                {% if msg.get('type') == 'snap' %}
-                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-message-index="{{ loop.index0 }}">
-                    <div class="message-bubble snap-message {% if msg.get('opened') %}snap-opened{% endif %}" data-snap-index="{{ loop.index0 }}">
-                        <div class="snap-icon">📸</div>
-                        <div class="snap-text">{% if msg.get('opened') %}Opened{% else %}Tap to view{% endif %}</div>
-                        <div class="message-footer">
-                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                {% if messages %}
+                    {% for msg in messages %}
+                    {% if msg.get('type') == 'snap' %}
+                    <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-message-index="{{ loop.index0 }}">
+                        {% if msg.from != current_user %}
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
+                        {% endif %}
+                        <div class="message-bubble-wrapper">
+                            {% if msg.from != current_user %}
+                            <div class="message-sender-name">{{ msg.from }}</div>
+                            {% endif %}
+                            <div class="message-bubble snap-message {% if msg.get('opened') %}snap-opened{% endif %}" data-snap-index="{{ loop.index0 }}">
+                                <div class="snap-icon">📸</div>
+                                <div class="snap-text">{% if msg.get('opened') %}Opened{% else %}Tap to view{% endif %}</div>
+                                <div class="message-footer">
+                                    <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                {% elif msg.get('type') == 'voice' %}
-                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
-                    <div class="message-bubble voice-message">
-                        <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
-                        <div class="voice-waveform">
-                            <div class="voice-bar" style="height: 25px;"></div>
-                            <div class="voice-bar" style="height: 35px;"></div>
-                            <div class="voice-bar" style="height: 20px;"></div>
-                            <div class="voice-bar" style="height: 40px;"></div>
-                            <div class="voice-bar" style="height: 30px;"></div>
-                            <div class="voice-bar" style="height: 45px;"></div>
-                            <div class="voice-bar" style="height: 25px;"></div>
-                            <div class="voice-bar" style="height: 35px;"></div>
-                            <div class="voice-bar" style="height: 28px;"></div>
-                            <div class="voice-bar" style="height: 38px;"></div>
-                            <div class="voice-bar" style="height: 22px;"></div>
-                            <div class="voice-bar" style="height: 32px;"></div>
-                            <div class="voice-bar" style="height: 27px;"></div>
-                            <div class="voice-bar" style="height: 37px;"></div>
-                            <div class="voice-bar" style="height: 24px;"></div>
-                        </div>
-                        <div class="voice-duration">{{ msg.duration }}s</div>
-                    </div>
-                    <div class="message-footer" style="margin-top: 0.5rem;">
-                        <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
                         {% if msg.from == current_user %}
-                        <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
-                            <span class="checkmark-single">✓</span>
-                        </span>
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
                         {% endif %}
                     </div>
-                </div>
-                {% elif msg.get('type') == 'token_gift' %}
-                <div class="message message-system" data-timestamp="{{ msg.timestamp }}">
-                    <div class="message-bubble">
-                        <div class="message-text">🎁 {{ msg.text }}</div>
-                        <div class="message-footer">
-                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
-                    <div class="message-bubble">
-                        <div class="message-text">{{ msg.text }}</div>
-                        <div class="message-footer">
-                            <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
-                            {% if msg.from == current_user %}
-                            <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
-                                <span class="checkmark-single">✓</span>
-                            </span>
+                    {% elif msg.get('type') == 'voice' %}
+                    <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
+                        {% if msg.from != current_user %}
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
+                        {% endif %}
+                        <div class="message-bubble-wrapper">
+                            {% if msg.from != current_user %}
+                            <div class="message-sender-name">{{ msg.from }}</div>
                             {% endif %}
+                            <div class="message-bubble voice-message">
+                                <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
+                                <div class="voice-waveform">
+                                    {% for _ in range(15) %}
+                                    <div class="voice-bar" style="height: {{ 15 + (loop.index0 * 2) }}px;"></div>
+                                    {% endfor %}
+                                </div>
+                                <div class="voice-duration">{{ msg.duration }}s</div>
+                            </div>
+                            <div class="message-footer" style="margin-top: 0.5rem;">
+                                <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                                {% if msg.from == current_user %}
+                                <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
+                                    <span class="checkmark-single">✓</span>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if msg.from == current_user %}
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
+                        {% endif %}
+                    </div>
+                    {% elif msg.get('type') == 'token_gift' %}
+                    <div class="message message-system" data-timestamp="{{ msg.timestamp }}">
+                        <div class="message-bubble">
+                            <div class="message-text">🎁 {{ msg.text }}</div>
+                            <div class="message-footer" style="justify-content: center;">
+                                <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    {% else %}
+
+                    <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
+                        {% if msg.from != current_user %}
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
+                        {% endif %}
+                        <div class="message-bubble-wrapper">
+                            {% if msg.from != current_user %}
+                            <div class="message-sender-name">{{ msg.from }}</div>
+                            {% endif %}
+                           <div class="message-bubble">
+    <div class="message-text">{{ msg.text }}</div>
+    <div class="message-footer">
+        {% if msg.from != current_user %}
+        <button class="message-report-btn"
+                onclick="openReportModal({{ loop.index0 }}, `{{ msg.text | replace('`', '\\`') | replace('"', '\\"') }}`, 'text')">
+            ⚠️ Report
+        </button>
+        {% endif %}
+        <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
+        {% if msg.from == current_user %}
+        <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
+            <span class="checkmark-single">✓</span>
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+                        </div>
+                        {% if msg.from == current_user %}
+                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-messages">No messages yet. Start the conversation! 💬</div>
                 {% endif %}
-                {% endfor %}
-            {% else %}
-                <div class="no-messages">No messages yet. Start the conversation!</div>
-            {% endif %}
-            <div class="typing-bubble" id="typingBubble">
-                <div class="typing-content">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
+                <div class="typing-bubble" id="typingBubble">
+                    <div class="message-avatar">{{ other_user[0].upper() }}</div>
+                    <div class="typing-content">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-<div class="message-input-container">
-            <form class="message-form" id="messageForm">
-                <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
-                <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
-                <button type="button" class="gift-btn" id="giftBtn" title="Send Tokens">🎁</button>
-                <button type="button" class="rps-btn" id="rpsBtn" title="Challenge to Rock Paper Scissors">✂️</button>
-                <input
-                    type="text"
-                    name="message"
-                    class="message-input"
-                    id="messageInput"
-                    placeholder="Message..."
-                    required
-                    autocomplete="off"
-                >
-                <button type="submit" class="send-btn" id="sendBtn">Send</button>
-            </form>
+            <div class="message-input-container">
+                <form class="message-form" id="messageForm">
+                    <button type="button" class="snap-btn" id="snapBtn" title="Send a Snap">📷</button>
+                    <button type="button" class="voice-btn" id="voiceBtn" title="Send Voice Message">🎤</button>
+                    <button type="button" class="gift-btn" id="giftBtn" title="Send Tokens">🎁</button>
+                    <button type="button" class="rps-btn" id="rpsBtn" title="Challenge to Rock Paper Scissors">✂️</button>
+                    <input
+                        type="text"
+                        name="message"
+                        class="message-input"
+                        id="messageInput"
+                        placeholder="Message..."
+                        required
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-btn" id="sendBtn">Send</button>
+                </form>
+            </div>
         </div>
-        </div>
-        <!-- End chat-content -->
+    </div>
 
     <!-- Camera Modal -->
     <div class="camera-modal" id="cameraModal">
@@ -1501,12 +1890,6 @@ body {
                 <div class="snap-view-timer" id="snapTimer">5</div>
             </div>
             <img id="snapImage" class="snap-view-image" src="" alt="Snap">
-            <div class="snap-view-footer">
-                <div class="snap-view-actions">
-                    <button class="snap-action-btn">💬</button>
-                    <button class="snap-action-btn">📥</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1543,38 +1926,32 @@ body {
     </div>
 
     <!-- Voice Recording Modal -->
-    <div class="voice-modal" id="voiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="voice-modal-content" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border: 6px solid #667eea; padding: 3rem; border-radius: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.6), 0 8px 0 #2C2C2C;">
+    <div class="voice-modal" id="voiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 31, 46, 0.95); backdrop-filter: blur(10px); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="voice-modal-content" style="background: var(--christmas-cream); border: 6px solid #7c4dff; padding: 3rem; border-radius: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(124, 77, 255, 0.5), 0 8px 0 var(--border-main);">
             <div class="voice-icon" style="font-size: 5rem; margin-bottom: 1rem;">🎤</div>
-            <div class="voice-title" style="font-size: 2rem; font-weight: 900; color: #667eea; margin-bottom: 1rem; text-transform: uppercase;">Recording...</div>
+            <div class="voice-title" style="font-family: 'Fredoka One', cursive; font-size: 2rem; font-weight: 400; color: #7c4dff; margin-bottom: 1rem; text-transform: uppercase;">Recording...</div>
 
-            <div class="voice-timer" id="voiceTimer" style="font-size: 3rem; font-weight: 900; color: white; margin-bottom: 2rem; font-family: monospace;">0:00</div>
+            <div class="voice-timer" id="voiceTimer" style="font-size: 3rem; font-weight: 900; color: var(--text-dark); margin-bottom: 2rem; font-family: monospace;">0:00</div>
 
             <div class="voice-visualizer" style="display: flex; justify-content: center; gap: 4px; height: 60px; align-items: center; margin-bottom: 2rem;">
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 20px; animation: vizPulse 0.6s ease-in-out infinite;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 30px; animation: vizPulse 0.6s ease-in-out infinite 0.1s;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 45px; animation: vizPulse 0.6s ease-in-out infinite 0.2s;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 35px; animation: vizPulse 0.6s ease-in-out infinite 0.3s;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 50px; animation: vizPulse 0.6s ease-in-out infinite 0.4s;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 25px; animation: vizPulse 0.6s ease-in-out infinite 0.5s;"></div>
-                <div class="viz-bar" style="width: 6px; background: #667eea; border-radius: 3px; height: 40px; animation: vizPulse 0.6s ease-in-out infinite 0.6s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 20px; animation: vizPulse 0.6s ease-in-out infinite;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 30px; animation: vizPulse 0.6s ease-in-out infinite 0.1s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 45px; animation: vizPulse 0.6s ease-in-out infinite 0.2s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 35px; animation: vizPulse 0.6s ease-in-out infinite 0.3s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 50px; animation: vizPulse 0.6s ease-in-out infinite 0.4s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 25px; animation: vizPulse 0.6s ease-in-out infinite 0.5s;"></div>
+                <div class="viz-bar" style="width: 6px; background: #7c4dff; border-radius: 3px; height: 40px; animation: vizPulse 0.6s ease-in-out infinite 0.6s;"></div>
             </div>
 
-            <style>
-                @keyframes vizPulse {
-                    0%, 100% { height: 20px; opacity: 0.6; }
-                    50% { height: 60px; opacity: 1; }
-                }
-            </style>
-
             <div class="voice-actions" style="display: flex; gap: 1rem;">
-                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()" style="flex: 1; background: linear-gradient(135deg, #444 0%, #333 100%); color: white; border: 4px solid #2C2C2C; padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: 0 4px 0 #2C2C2C; transition: all 0.3s;">Cancel</button>
-                <button class="voice-send-btn" onclick="sendVoiceMessage()" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 4px solid #2C2C2C; padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: 0 4px 0 #2C2C2C; transition: all 0.3s;">Send 🎤</button>
+                <button class="voice-cancel-btn" onclick="cancelVoiceRecording()" style="flex: 1; background: var(--christmas-snow); color: var(--text-medium); border: 4px solid var(--border-main); padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: var(--shadow-cartoon-sm); transition: all 0.3s;">Cancel</button>
+                <button class="voice-send-btn" onclick="sendVoiceMessage()" style="flex: 1; background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%); color: white; border: 4px solid var(--border-main); padding: 1rem; border-radius: 16px; font-weight: 900; cursor: pointer; font-size: 1rem; text-transform: uppercase; box-shadow: var(--shadow-cartoon-sm); transition: all 0.3s;">Send 🎤</button>
             </div>
         </div>
     </div>
 
     <script>
+        // All JavaScript from original stays exactly the same
         const otherUser = "{{ other_user }}";
         const currentUser = "{{ current_user }}";
         const messagesContainer = document.getElementById('messagesContainer');
@@ -1589,7 +1966,6 @@ body {
         let typingTimeout;
         let stream = null;
 
-        // Camera elements
         const snapBtn = document.getElementById('snapBtn');
         const cameraModal = document.getElementById('cameraModal');
         const cameraVideo = document.getElementById('cameraVideo');
@@ -1599,36 +1975,30 @@ body {
         const retakeBtn = document.getElementById('retakeBtn');
         const closeCameraBtn = document.getElementById('closeCameraBtn');
 
-        // Auto-scroll to bottom
         function scrollToBottom() {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         scrollToBottom();
 
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        }
-
         function formatTimestamp(timestamp) {
-    try {
-        const parts = timestamp.split(' ');
-        if (parts.length === 2) {
-            const timePart = parts[1];
-            const [hours, minutes] = timePart.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-            return `${displayHour}:${minutes} ${ampm}`;
+            try {
+                const parts = timestamp.split(' ');
+                if (parts.length === 2) {
+                    const timePart = parts[1];
+                    const [hours, minutes] = timePart.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+                    return `${displayHour}:${minutes} ${ampm}`;
+                }
+                return timestamp;
+            } catch (e) {
+                return timestamp;
+            }
         }
-        return timestamp;
-    } catch (e) {
-        return timestamp;
-    }
-}
 
-        function addMessage(msg, isOwn) {
+        function addMessage(msg, isOwn, messageIndex) {
             const noMessages = messagesContainer.querySelector('.no-messages');
             if (noMessages) {
                 noMessages.remove();
@@ -1636,7 +2006,8 @@ body {
 
             const messageDiv = document.createElement('div');
 
-            // Handle token gift system messages
+            const reportBtn = !isOwn ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, \`${escapeHtml(msg.text).replace(/`/g, '\\`')}\`, 'text')">⚠️ Report</button>` : '';
+
             if (msg.type === 'token_gift') {
                 messageDiv.className = 'message message-system';
                 messageDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -1644,7 +2015,7 @@ body {
                 messageDiv.innerHTML = `
                     <div class="message-bubble">
                         <div class="message-text">🎁 ${escapeHtml(msg.text)}</div>
-                        <div class="message-footer">
+                        <div class="message-footer" style="justify-content: center;">
                             <span class="message-time">${time}</span>
                         </div>
                     </div>
@@ -1658,21 +2029,37 @@ body {
             messageDiv.setAttribute('data-timestamp', msg.timestamp);
 
             const time = formatTimestamp(msg.timestamp);
+            const senderName = msg.from;
+            const avatarLetter = senderName.charAt(0).toUpperCase();
 
             if (msg.type === 'snap') {
                 const snapIndex = lastMessageCount - 1;
                 messageDiv.setAttribute('data-message-index', snapIndex);
-                messageDiv.innerHTML = `
-                    <div class="message-bubble snap-message ${msg.opened ? 'snap-opened' : ''}" data-snap-index="${snapIndex}">
-                        <div class="snap-icon">📸</div>
-                        <div class="snap-text">${msg.opened ? 'Opened' : 'Tap to view'}</div>
-                        <div class="message-footer">
-                            <span class="message-time">${time}</span>
-                        </div>
-                    </div>
-                `;
 
-                // Add click handler for snap
+                const avatarHtml = isOwn
+                    ? `<div class="message-avatar">${avatarLetter}</div>`
+                    : `<div class="message-avatar">${avatarLetter}</div>`;
+
+                const senderNameHtml = !isOwn ? `<div class="message-sender-name">${senderName}</div>` : '';
+
+                const reportBtn = !isOwn && !msg.opened ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, '', 'snap')">⚠️ Report</button>` : '';
+
+messageDiv.innerHTML = `
+    ${!isOwn ? avatarHtml : ''}
+    <div class="message-bubble-wrapper">
+        ${senderNameHtml}
+        <div class="message-bubble snap-message ${msg.opened ? 'snap-opened' : ''}" data-snap-index="${snapIndex}">
+                    <div class="snap-icon">📸</div>
+                    <div class="snap-text">${msg.opened ? 'Opened' : 'Tap to view'}</div>
+                    <div class="message-footer">
+                        ${reportBtn}
+                        <span class="message-time">${time}</span>
+                    </div>
+                </div>
+            </div>
+            ${isOwn ? avatarHtml : ''}
+        `;
+
                 const snapBubble = messageDiv.querySelector('.snap-message');
                 if (!msg.opened && !openedSnaps.has(snapIndex)) {
                     snapBubble.addEventListener('click', () => openSnap(snapIndex, msg.opened));
@@ -1682,32 +2069,56 @@ body {
                     .map(height => `<div class="voice-bar" style="height: ${height}px;"></div>`)
                     .join('');
 
-                messageDiv.innerHTML = `
-                    <div class="message-bubble voice-message">
-                        <button class="voice-play-btn" data-audio="${msg.audio}">▶️</button>
-                        <div class="voice-waveform">${waveformBars}</div>
-                        <div class="voice-duration">${msg.duration}s</div>
-                    </div>
-                    <div class="message-footer" style="margin-top: 0.5rem;">
-                        <span class="message-time">${time}</span>
-                        ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
-                    </div>
-                `;
+                const avatarHtml = `<div class="message-avatar">${avatarLetter}</div>`;
+                const senderNameHtml = !isOwn ? `<div class="message-sender-name">${senderName}</div>` : '';
+
+                        const messageIndex = lastMessageCount - 1;
+        const reportBtn = !isOwn ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, '', 'voice')">⚠️ Report</button>` : '';
+
+messageDiv.innerHTML = `
+            ${!isOwn ? avatarHtml : ''}
+            <div class="message-bubble-wrapper">
+                ${senderNameHtml}
+                <div class="message-bubble voice-message">
+                    <button class="voice-play-btn" data-audio="${msg.audio}">▶️</button>
+                    <div class="voice-waveform">${waveformBars}</div>
+                    <div class="voice-duration">${msg.duration}s</div>
+                </div>
+                <div class="message-footer" style="margin-top: 0.5rem;">
+                    ${reportBtn}
+                    <span class="message-time">${time}</span>
+                    ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
+                </div>
+            </div>
+            ${isOwn ? avatarHtml : ''}
+        `;
             } else {
-                messageDiv.innerHTML = `
-                    <div class="message-bubble">
-                        <div class="message-text">${escapeHtml(msg.text)}</div>
-                        <div class="message-footer">
-                            <span class="message-time">${time}</span>
-                            ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
-                        </div>
-                    </div>
-                `;
-            }
+    const avatarHtml = `<div class="message-avatar">${avatarLetter}</div>`;
+    const senderNameHtml = !isOwn ? `<div class="message-sender-name">${senderName}</div>` : '';
+
+    const reportBtn = !isOwn ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, \`${escapeHtml(msg.text).replace(/`/g, '\\`')}\`, 'text')">⚠️ Report</button>` : '';
+
+    messageDiv.innerHTML = `
+        ${!isOwn ? avatarHtml : ''}
+        <div class="message-bubble-wrapper">
+            ${senderNameHtml}
+            <div class="message-bubble">
+                <div class="message-text">${escapeHtml(msg.text)}</div>
+                <div class="message-footer">
+                    ${reportBtn}
+                    <span class="message-time">${time}</span>
+                    ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
+                </div>
+            </div>
+        </div>
+        ${isOwn ? avatarHtml : ''}
+    `;
+}
 
             messagesContainer.insertBefore(messageDiv, typingBubble);
             scrollToBottom();
         }
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -1716,19 +2127,18 @@ body {
 
         // Poll for new messages
         function pollMessages() {
-            fetch(`/chat/${otherUser}/messages`)
-                .then(response => response.json())
-                .then(data => {
-                    // Check for new messages
-                    if (data.messages.length > lastMessageCount) {
-                        const newMessages = data.messages.slice(lastMessageCount);
-                        newMessages.forEach(msg => {
-                            addMessage(msg, msg.from === currentUser);
-                        });
-                        lastMessageCount = data.messages.length;
-                    }
+    fetch(`/chat/${otherUser}/messages`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages.length > lastMessageCount) {
+                const newMessages = data.messages.slice(lastMessageCount);
+                newMessages.forEach((msg, index) => {
+                    const actualIndex = lastMessageCount + index;  // THIS IS KEY
+                    addMessage(msg, msg.from === currentUser, actualIndex);
+                });
+                lastMessageCount = data.messages.length;
+            }
 
-                    // Update existing snap statuses (for when other person opens them)
                     const allMessages = document.querySelectorAll('[data-message-index]');
                     allMessages.forEach(messageDiv => {
                         const index = parseInt(messageDiv.getAttribute('data-message-index'));
@@ -1738,7 +2148,6 @@ body {
                                 bubble.classList.add('snap-opened');
                                 bubble.querySelector('.snap-text').textContent = 'Opened';
                                 bubble.style.cursor = 'not-allowed';
-                                // Remove click event by cloning
                                 const newBubble = bubble.cloneNode(true);
                                 bubble.parentNode.replaceChild(newBubble, bubble);
                                 openedSnaps.add(index);
@@ -1749,26 +2158,23 @@ body {
                 .catch(error => console.error('Error polling messages:', error));
         }
 
-        // Poll for read receipts
         function pollReadReceipts() {
-    fetch(`/chat/${otherUser}/read_status`)
-        .then(response => response.json())
-        .then(data => {
-            const lastRead = data.last_read;
-            document.querySelectorAll('.message-sent .read-checkmarks').forEach(checkmark => {
-                const msgTimestamp = checkmark.getAttribute('data-timestamp');
-                // If message timestamp exists and is less than or equal to last read
-                if (msgTimestamp && lastRead && msgTimestamp <= lastRead) {
-                    checkmark.innerHTML = '<span class="checkmark-double checkmark-read">✓✓</span>';
-                } else if (msgTimestamp) {
-                    checkmark.innerHTML = '<span class="checkmark-double">✓✓</span>';
-                }
-            });
-        })
-        .catch(error => console.error('Error polling read receipts:', error));
-}
+            fetch(`/chat/${otherUser}/read_status`)
+                .then(response => response.json())
+                .then(data => {
+                    const lastRead = data.last_read;
+                    document.querySelectorAll('.message-sent .read-checkmarks').forEach(checkmark => {
+                        const msgTimestamp = checkmark.getAttribute('data-timestamp');
+                        if (msgTimestamp && lastRead && msgTimestamp <= lastRead) {
+                            checkmark.innerHTML = '<span class="checkmark-double checkmark-read">✓✓</span>';
+                        } else if (msgTimestamp) {
+                            checkmark.innerHTML = '<span class="checkmark-double">✓✓</span>';
+                        }
+                    });
+                })
+                .catch(error => console.error('Error polling read receipts:', error));
+        }
 
-        // Poll for typing indicator
         function pollTyping() {
             fetch(`/chat/${otherUser}/is_typing`)
                 .then(response => response.json())
@@ -1785,62 +2191,53 @@ body {
                 .catch(error => console.error('Error polling typing:', error));
         }
 
-        // Send typing indicator
         function sendTypingStatus() {
             fetch(`/chat/${otherUser}/typing`, {
                 method: 'POST'
             }).catch(error => console.error('Error sending typing status:', error));
         }
 
-// Mark as read ONLY ONCE on page load - stop aggressive polling
-async function markAsReadNow() {
-    try {
-        const response = await fetch(`/chat/${otherUser}/mark_read`, { method: 'POST' });
-        if (response.ok) {
-            // Force update read receipts immediately
-            pollReadReceipts();
+        async function markAsReadNow() {
+            try {
+                const response = await fetch(`/chat/${otherUser}/mark_read`, { method: 'POST' });
+                if (response.ok) {
+                    pollReadReceipts();
+                }
+            } catch (error) {
+                console.error('Error marking as read:', error);
+            }
         }
-    } catch (error) {
-        console.error('Error marking as read:', error);
-    }
-}
 
-// Mark ONLY on initial page load
-markAsReadNow();
-
-// Mark ONLY when user interacts (click/type)
-let hasMarkedOnInteraction = false;
-document.addEventListener('click', () => {
-    if (!hasMarkedOnInteraction) {
         markAsReadNow();
-        hasMarkedOnInteraction = true;
-    }
-}, { once: true });
 
-messageInput.addEventListener('focus', () => {
-    markAsReadNow();
-}, { once: true });
+        let hasMarkedOnInteraction = false;
+        document.addEventListener('click', () => {
+            if (!hasMarkedOnInteraction) {
+                markAsReadNow();
+                hasMarkedOnInteraction = true;
+            }
+        }, { once: true });
 
-// Mark on interaction
-document.addEventListener('click', markAsReadNow, { passive: true });
+        messageInput.addEventListener('focus', () => {
+            markAsReadNow();
+        }, { once: true });
 
-// Mark before leaving page
-window.addEventListener('beforeunload', () => {
-    navigator.sendBeacon(`/chat/${otherUser}/mark_read`);
-});
+        document.addEventListener('click', markAsReadNow, { passive: true });
 
-// Mark when returning to tab
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-        markAsReadNow();
-    }
-});
+        window.addEventListener('beforeunload', () => {
+            navigator.sendBeacon(`/chat/${otherUser}/mark_read`);
+        });
 
-setInterval(pollMessages, 1000);
-setInterval(pollReadReceipts, 2000);
-setInterval(pollTyping, 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                markAsReadNow();
+            }
+        });
 
-        // Handle typing indicator
+        setInterval(pollMessages, 1000);
+        setInterval(pollReadReceipts, 2000);
+        setInterval(pollTyping, 1000);
+
         messageInput.addEventListener('input', () => {
             sendTypingStatus();
             clearTimeout(typingTimeout);
@@ -1849,7 +2246,6 @@ setInterval(pollTyping, 1000);
             }, 2000);
         });
 
-        // Handle form submission
         messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -1863,15 +2259,15 @@ setInterval(pollTyping, 1000);
                 formData.append('message', message);
 
                 const response = await fetch(`/chat/${otherUser}/send`, {
-    method: 'POST',
-    body: formData
-});
+                    method: 'POST',
+                    body: formData
+                });
 
-if (response.ok) {
-    messageInput.value = '';
-    await markAsReadNow(); // Mark immediately after sending
-    pollMessages();
-}
+                if (response.ok) {
+                    messageInput.value = '';
+                    await markAsReadNow();
+                    pollMessages();
+                }
             } catch (error) {
                 console.error('Error sending message:', error);
             } finally {
@@ -1905,7 +2301,6 @@ if (response.ok) {
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
 
-            // Reset transform first, then flip horizontally to correct the mirror effect
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
@@ -1922,7 +2317,6 @@ if (response.ok) {
             capturedCanvas.style.display = 'none';
             captureBtn.style.display = 'flex';
             document.getElementById('snapSendControls').classList.remove('active');
-            // Reset canvas transform for next capture
             const ctx = capturedCanvas.getContext('2d');
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         });
@@ -1951,6 +2345,13 @@ if (response.ok) {
 
         closeCameraBtn.addEventListener('click', closeCameraModal);
 
+        // Add Escape key handler for closing modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('reportModal').classList.contains('active')) {
+                closeReportModal();
+            }
+        });
+
         function closeCameraModal() {
             cameraModal.classList.remove('active');
             if (stream) {
@@ -1961,25 +2362,20 @@ if (response.ok) {
             capturedCanvas.style.display = 'none';
             captureBtn.style.display = 'flex';
             document.getElementById('snapSendControls').classList.remove('active');
-            // Reset canvas transform for next capture
             const ctx = capturedCanvas.getContext('2d');
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
 
-        // Attach click handlers to initial snaps
         document.querySelectorAll('.snap-message:not(.snap-opened)').forEach(bubble => {
             const snapIndex = parseInt(bubble.getAttribute('data-snap-index'));
             bubble.addEventListener('click', () => openSnap(snapIndex, false));
         });
 
-        // Track opened snaps to prevent reopening
         const openedSnaps = new Set();
 
-        // Open snap functionality
         async function openSnap(index, isOpened) {
-            // Check if already opened in backend OR already opened in this session
             if (isOpened || openedSnaps.has(index)) {
-                return; // Already opened, can't view again
+                return;
             }
 
             try {
@@ -1990,14 +2386,12 @@ if (response.ok) {
                 if (response.ok) {
                     const data = await response.json();
 
-                    // Add to opened set immediately to prevent double-opening
                     openedSnaps.add(index);
 
                     const snapImage = document.getElementById('snapImage');
                     snapImage.src = data.photo;
                     document.getElementById('snapModal').classList.add('active');
 
-                    // Countdown timer
                     let timeLeft = 5;
                     document.getElementById('snapTimer').textContent = timeLeft;
 
@@ -2024,16 +2418,15 @@ if (response.ok) {
                 clearInterval(snapTimer);
             }
         }
-        // Initial read receipts check and mark as read
+
         pollReadReceipts();
-        // Send heartbeat to show user as online
+
         function sendHeartbeat() {
             fetch('/api/heartbeat', {
                 method: 'POST'
             }).catch(error => console.error('Heartbeat error:', error));
         }
 
-        // Send heartbeat immediately and every 15 seconds
         sendHeartbeat();
         setInterval(sendHeartbeat, 15000);
 
@@ -2045,7 +2438,6 @@ if (response.ok) {
         let currentUserBalance = {{ users[session.username]['tokens'] }};
 
         giftBtn.addEventListener('click', () => {
-            // Fetch current balance
             fetch('/api/user_balance')
                 .then(response => response.json())
                 .then(data => {
@@ -2115,14 +2507,13 @@ if (response.ok) {
             }
         }
 
-        // Allow Enter key to send tokens
         giftAmount.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendTokens();
             }
         });
 
-        // ==================== VOICE MESSAGE FUNCTIONALITY ====================
+        // Voice Message Functionality
         let mediaRecorder;
         let audioChunks = [];
         let recordingStartTime;
@@ -2145,7 +2536,6 @@ if (response.ok) {
                 };
 
                 mediaRecorder.onstop = () => {
-                    // Stop all audio tracks
                     if (audioStream) {
                         audioStream.getTracks().forEach(track => track.stop());
                     }
@@ -2155,7 +2545,6 @@ if (response.ok) {
                 voiceModal.style.display = 'flex';
                 voiceBtn.classList.add('recording');
 
-                // Start timer
                 recordingStartTime = Date.now();
                 updateRecordingTimer();
                 recordingTimer = setInterval(updateRecordingTimer, 100);
@@ -2171,7 +2560,6 @@ if (response.ok) {
             const milliseconds = Math.floor((elapsed % 1000) / 100);
             document.getElementById('voiceTimer').textContent = `${seconds}:${milliseconds}`;
 
-            // Auto-stop at 60 seconds
             if (seconds >= 60) {
                 sendVoiceMessage();
             }
@@ -2197,7 +2585,6 @@ if (response.ok) {
 
             clearInterval(recordingTimer);
 
-            // Wait for the audio chunks to be ready
             await new Promise(resolve => setTimeout(resolve, 100));
 
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -2235,16 +2622,13 @@ if (response.ok) {
             reader.readAsDataURL(audioBlob);
         }
 
-        // Handle voice message playback
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('voice-play-btn')) {
                 const audioData = e.target.getAttribute('data-audio');
                 const playBtn = e.target;
 
-                // Create audio element
                 const audio = new Audio(audioData);
 
-                // Change button to pause icon
                 playBtn.textContent = '⏸';
 
                 audio.onended = () => {
@@ -2258,6 +2642,7 @@ if (response.ok) {
 // ==================== ROCK PAPER SCISSORS GAME ====================
 const rpsBtn = document.getElementById('rpsBtn');
 const rpsGameContainer = document.getElementById('rpsGameContainer');
+const rpsCloseBtn = document.getElementById('rpsCloseBtn');
 const chatWrapper = document.getElementById('chatWrapper');
 const rpsLoading = document.getElementById('rpsLoading');
 const rpsLoadingText = document.getElementById('rpsLoadingText');
@@ -2280,7 +2665,6 @@ const rpsScissorsBtn = document.getElementById('rpsScissorsBtn');
 
 let rpsGamePollInterval = null;
 
-// RPS Invite Modal
 function showRPSInviteModal() {
     const betAmount = prompt('Enter bet amount (minimum 5 tokens):', '10');
     if (!betAmount) return;
@@ -2312,8 +2696,8 @@ function showRPSInviteModal() {
 }
 
 rpsBtn.addEventListener('click', showRPSInviteModal);
+rpsCloseBtn.addEventListener('click', hideRPSGame);
 
-// Show RPS Game UI
 function showRPSGame() {
     rpsGameContainer.style.display = 'flex';
     chatWrapper.classList.add('has-game');
@@ -2322,7 +2706,6 @@ function showRPSGame() {
     }
 }
 
-// Hide RPS Game UI
 function hideRPSGame() {
     rpsGameContainer.style.display = 'none';
     chatWrapper.classList.remove('has-game');
@@ -2332,7 +2715,6 @@ function hideRPSGame() {
     }
 }
 
-// Poll RPS game status
 function pollRPSStatus() {
     if (rpsGamePollInterval) return;
 
@@ -2349,7 +2731,6 @@ function pollRPSStatus() {
             .catch(e => console.error('Error polling RPS status:', e));
     }, 2000);
 
-    // Initial poll
     fetch(`/api/rps/status/${otherUser}`)
         .then(r => r.json())
         .then(data => {
@@ -2361,14 +2742,12 @@ function pollRPSStatus() {
         .catch(e => console.error('Error getting RPS status:', e));
 }
 
-// Update RPS UI based on game state
 function updateRPSUI(game) {
     const isPlayer1 = (currentUser === game.player1);
     const pot = game.bet_amount * 2;
     rpsPotAmount.textContent = pot;
 
     if (game.status === 'pending') {
-        // Show loading if waiting for response
         rpsLoading.style.display = 'block';
         rpsScores.style.display = 'none';
         rpsRoundInfo.style.display = 'none';
@@ -2388,12 +2767,10 @@ function updateRPSUI(game) {
         rpsRoundInfo.style.display = 'block';
         rpsInviteActions.style.display = 'none';
 
-        // Show wins correctly - current user's wins on left, opponent's on right
         rpsPlayer1Wins.textContent = isPlayer1 ? game.player1_wins : game.player2_wins;
         rpsPlayer2Wins.textContent = isPlayer1 ? game.player2_wins : game.player1_wins;
         rpsRoundNumber.textContent = game.current_round;
 
-        // Show moves - swap display if current user is player2
         const player1Move = isPlayer1 ? game.player1_move : game.player2_move;
         const player2Move = isPlayer1 ? game.player2_move : game.player1_move;
 
@@ -2419,14 +2796,12 @@ function updateRPSUI(game) {
             rpsPlayer2Move.classList.remove('revealed');
         }
 
-        // Show actions if it's your turn
         const myMove = isPlayer1 ? game.player1_move : game.player2_move;
         if (!myMove || myMove === null) {
             rpsActions.style.display = 'flex';
             rpsResult.style.display = 'none';
         } else {
             rpsActions.style.display = 'none';
-            // Show result if both moved
             if (game.player1_move && game.player2_move &&
                 game.player1_move !== 'chosen' && game.player2_move !== 'chosen') {
                 const lastRound = game.rounds[game.rounds.length - 1];
@@ -2434,10 +2809,9 @@ function updateRPSUI(game) {
                     showRoundResult(lastRound, isPlayer1);
                 }
             } else {
-                // Waiting for other player
                 rpsResult.style.display = 'block';
                 rpsResult.textContent = 'Waiting for opponent...';
-                rpsResult.style.color = '#c19a6b';
+                rpsResult.style.color = 'var(--christmas-gold-dark)';
             }
         }
     } else if (game.status === 'completed') {
@@ -2447,7 +2821,6 @@ function updateRPSUI(game) {
         rpsActions.style.display = 'none';
         rpsInviteActions.style.display = 'none';
 
-        // Show final scores with correct perspective
         rpsPlayer1Wins.textContent = isPlayer1 ? game.player1_wins : game.player2_wins;
         rpsPlayer2Wins.textContent = isPlayer1 ? game.player2_wins : game.player1_wins;
 
@@ -2456,20 +2829,17 @@ function updateRPSUI(game) {
         rpsResult.style.display = 'block';
 
         if (game.timeout_win) {
-            // Timeout win
             rpsResult.textContent = isWinner
                 ? `🎉 You won ${pot} tokens! (Opponent timed out)`
                 : `⏱️ You lost - Time ran out!`;
         } else {
-            // Normal win
             rpsResult.textContent = isWinner
                 ? `🎉 You won ${pot} tokens!`
                 : `${game.winner} won ${pot} tokens!`;
         }
 
-        rpsResult.style.color = isWinner ? '#FFD700' : '#ff6b6b';
+        rpsResult.style.color = isWinner ? 'var(--christmas-gold-dark)' : '#ff6b6b';
 
-        // Hide game after 11 seconds
         setTimeout(() => {
             hideRPSGame();
         }, 11000);
@@ -2489,18 +2859,15 @@ function showRoundResult(round, isPlayer1) {
     rpsResult.style.display = 'block';
     if (round.winner === 'tie') {
         rpsResult.textContent = 'Tie! 🤝';
-        rpsResult.style.color = '#c19a6b';
+        rpsResult.style.color = 'var(--christmas-gold-dark)';
     } else {
-        // Determine if current user won based on their position
         const won = (isPlayer1 && round.winner === 'player1') || (!isPlayer1 && round.winner === 'player2');
         rpsResult.textContent = won ? 'You won this round! 🎉' : 'You lost this round 😔';
         rpsResult.style.color = won ? '#31a24c' : '#ff6b6b';
     }
 }
 
-// Make a move
 function makeMove(move) {
-    // Disable buttons to prevent double-clicking
     rpsRockBtn.disabled = true;
     rpsPaperBtn.disabled = true;
     rpsScissorsBtn.disabled = true;
@@ -2514,13 +2881,11 @@ function makeMove(move) {
     .then(data => {
         if (data.error) {
             alert(data.error);
-            // Re-enable buttons on error
             rpsRockBtn.disabled = false;
             rpsPaperBtn.disabled = false;
             rpsScissorsBtn.disabled = false;
         } else {
             updateRPSUI(data.game);
-            // Re-enable buttons after a delay (they'll be hidden anyway if move was successful)
             setTimeout(() => {
                 rpsRockBtn.disabled = false;
                 rpsPaperBtn.disabled = false;
@@ -2531,7 +2896,6 @@ function makeMove(move) {
     .catch(e => {
         console.error('Error making move:', e);
         alert('Failed to make move');
-        // Re-enable buttons on error
         rpsRockBtn.disabled = false;
         rpsPaperBtn.disabled = false;
         rpsScissorsBtn.disabled = false;
@@ -2542,7 +2906,6 @@ rpsRockBtn.addEventListener('click', () => makeMove('rock'));
 rpsPaperBtn.addEventListener('click', () => makeMove('paper'));
 rpsScissorsBtn.addEventListener('click', () => makeMove('scissors'));
 
-// Accept/Decline invite
 rpsAcceptBtn.addEventListener('click', () => {
     fetch(`/api/rps/accept/${otherUser}`, { method: 'POST' })
         .then(r => r.json())
@@ -2577,106 +2940,279 @@ rpsDeclineBtn.addEventListener('click', () => {
 
 // Check for existing game on page load
 pollRPSStatus();
+
+// Report functionality variables
+        let currentReportChatKey = null;
+        let currentReportMessageIndex = null;
+
+        // Set the chat key for reports
+        const chatKeyForReports = [currentUser, otherUser].sort().join('-');
+
+        // Report Modal Functions
+        function openReportModal(messageIndex, messageText, messageType) {
+            const reportModal = document.getElementById('reportModal');
+            const reportMessagePreview = document.getElementById('reportMessagePreview');
+            const reportReason = document.getElementById('reportReason');
+            const reportFeedback = document.getElementById('reportFeedback');
+
+            currentReportChatKey = chatKeyForReports;
+            currentReportMessageIndex = messageIndex;
+
+            // Set message preview
+            if (messageType === 'snap') {
+                reportMessagePreview.textContent = '📸 [Snap Message]';
+            } else if (messageType === 'voice') {
+                reportMessagePreview.textContent = '🎤 [Voice Message]';
+            } else if (messageType === 'token_gift') {
+                reportMessagePreview.textContent = '🎁 [Token Gift]';
+            } else {
+                reportMessagePreview.textContent = messageText || '[Message]';
+            }
+
+            // Clear previous values
+            reportReason.value = '';
+            reportFeedback.style.display = 'none';
+            reportFeedback.className = '';
+
+            // Show modal
+            reportModal.classList.add('active');
+        }
+
+        function closeReportModal() {
+            const reportModal = document.getElementById('reportModal');
+            reportModal.classList.remove('active');
+
+            currentReportChatKey = null;
+            currentReportMessageIndex = null;
+        }
+
+        async function submitReport() {
+            const reportReason = document.getElementById('reportReason');
+            const reportSendBtn = document.getElementById('reportSendBtn');
+            const reportFeedback = document.getElementById('reportFeedback');
+
+            const reason = reportReason.value.trim();
+
+            if (!reason) {
+                showReportFeedback('Please provide a reason for reporting', 'error');
+                return;
+            }
+
+            reportSendBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/report_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_key: currentReportChatKey,
+                        message_index: currentReportMessageIndex,
+                        reason: reason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showReportFeedback('✓ Report submitted successfully! Moderators will review it.', 'success');
+                    setTimeout(() => {
+                        closeReportModal();
+                    }, 2000);
+                } else {
+                    showReportFeedback(data.error || 'Failed to submit report', 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting report:', error);
+                showReportFeedback('Network error. Please try again.', 'error');
+            } finally {
+                reportSendBtn.disabled = false;
+            }
+        }
+
+        function showReportFeedback(message, type) {
+            const reportFeedback = document.getElementById('reportFeedback');
+            reportFeedback.textContent = message;
+            reportFeedback.className = 'report-' + type;
+            reportFeedback.style.display = 'block';
+        }
         </script>
 
 
-    <!-- Chat Notification System -->
-    <div id="chatNotificationContainer"></div>
+    <script>
+    // Chat Notification System
+    let shownNotifications = new Set();
+    let lastNotificationCheck = '';
 
-    <style>
-    .chat-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-        border: 5px solid #c19a6b;
-        border-radius: 20px;
-        padding: 1rem 1.5rem;
-        min-width: 300px;
-        max-width: 400px;
-        box-shadow: 0 8px 0 #2C2C2C, 0 12px 30px rgba(193, 154, 107, 0.5);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 999999;
-        animation: slideInRight 0.4s ease-out;
+    function checkChatNotifications() {
+        fetch('/api/chat_notifications')
+            .then(response => response.json())
+            .then(data => {
+                data.notifications.forEach(notif => {
+                    const notifKey = notif.from + '-' + notif.timestamp;
+                    // Don't show notifications from current chat partner
+                    if (!shownNotifications.has(notifKey) &&
+                        notif.timestamp > lastNotificationCheck &&
+                        notif.from !== otherUser) {
+                        showChatNotification(notif.from, notif.type || 'message');
+                        shownNotifications.add(notifKey);
+                    }
+                });
+                if (data.notifications.length > 0) {
+                    lastNotificationCheck = data.notifications[0].timestamp;
+                }
+            })
+            .catch(error => console.error('Error checking notifications:', error));
     }
-    .chat-notification:hover {
-        transform: translateY(-3px) translateX(-5px);
-        box-shadow: 0 12px 0 #2C2C2C, 0 16px 40px rgba(193, 154, 107, 0.6);
+
+    function checkGroupNotifications() {
+        fetch('/api/group_notifications')
+            .then(response => response.json())
+            .then(data => {
+                data.notifications.forEach(notif => {
+                    const notifKey = 'group-' + notif.group_id + '-' + notif.timestamp;
+                    if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
+                        showGroupNotification(notif.from, notif.group_name, notif.group_id, notif.message_type || 'message');
+                        shownNotifications.add(notifKey);
+                    }
+                });
+            })
+            .catch(error => console.error('Error checking group notifications:', error));
     }
-    .chat-notification:active {
-        transform: translateY(1px);
-        box-shadow: 0 4px 0 #2C2C2C;
+
+    function showChatNotification(fromUser, type = 'message') {
+        const container = document.getElementById('chatNotificationContainer');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = 'chat-notification';
+
+        let title, icon, action;
+        if (type === 'rps_invite') {
+            title = 'RPS Challenge!';
+            icon = '✂️';
+            action = 'challenged you to Rock Paper Scissors';
+        } else if (type === 'snap') {
+            title = 'New Snap!';
+            icon = '📸';
+            action = 'sent you a snap';
+        } else if (type === 'voice') {
+            title = 'Voice Message';
+            icon = '🎤';
+            action = 'sent you a voice message';
+        } else if (type === 'token_gift') {
+            title = 'Token Gift!';
+            icon = '🎁';
+            action = 'sent you tokens';
+        } else {
+            title = 'New Message';
+            icon = '💬';
+            action = 'sent you a message';
+        }
+
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-icon">${icon}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-user">${fromUser}</div>
+                    <div class="notification-action">${action}</div>
+                </div>
+                <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
+            </div>
+        `;
+
+        notification.addEventListener('click', () => {
+            window.location.href = '/chat/' + fromUser;
+        });
+
+        container.appendChild(notification);
+        setTimeout(() => closeNotification(notification), 8000);
     }
-    @keyframes slideInRight {
-        from { transform: translateX(450px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+
+    function showGroupNotification(fromUser, groupName, groupId, type = 'message') {
+        const container = document.getElementById('chatNotificationContainer');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = 'chat-notification';
+
+        let title, icon, action;
+        if (type === 'snap') {
+            title = 'Group Snap!';
+            icon = '📸';
+            action = `sent a snap in ${groupName}`;
+        } else if (type === 'voice') {
+            title = 'Group Voice';
+            icon = '🎤';
+            action = `sent a voice message in ${groupName}`;
+        } else {
+            title = 'Group Message';
+            icon = '💬';
+            action = `sent a message in ${groupName}`;
+        }
+
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-icon">${icon}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-user">${fromUser}</div>
+                    <div class="notification-action">${action}</div>
+                </div>
+                <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
+            </div>
+        `;
+
+        notification.addEventListener('click', () => {
+            window.location.href = '/group/' + groupId;
+        });
+
+        container.appendChild(notification);
+        setTimeout(() => closeNotification(notification), 8000);
     }
-    @keyframes slideOutRight {
-        to { transform: translateX(450px); opacity: 0; }
+
+    function closeNotification(notification) {
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
     }
-    .chat-notification.hiding {
-        animation: slideOutRight 0.3s ease-in forwards;
-    }
-    .notification-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-    .notification-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: #c19a6b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        border: 4px solid #2C2C2C;
-        box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
-    }
-    .notification-content { flex: 1; }
-    .notification-title {
-        font-weight: 900;
-        font-size: 0.9rem;
-        color: #c19a6b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .notification-user {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #ffffff;
-        margin-top: 0.25rem;
-    }
-    .notification-action {
-        font-size: 0.75rem;
-        color: #888;
-        margin-top: 0.25rem;
-        font-weight: 600;
-    }
-    .notification-close {
-        background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-        border: 3px solid #2C2C2C;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 3px 0 #2C2C2C;
-        font-weight: 900;
-    }
-    .notification-close:hover {
-        transform: rotate(90deg) scale(1.1);
-    }
-    </style>
+
+    setInterval(checkChatNotifications, 2000);
+    setInterval(checkGroupNotifications, 2000);
+    checkChatNotifications();
+    checkGroupNotifications();
+    </script>
+        <!-- Report Message Modal -->
+    <div class="report-modal" id="reportModal">
+        <div class="report-modal-content">
+            <div class="report-icon">⚠️</div>
+            <div class="report-title">Report Message</div>
+            <div class="report-subtitle">Help us maintain a safe community</div>
+
+            <div id="reportFeedback" style="display: none;"></div>
+
+            <div class="report-message-preview" id="reportMessagePreview">
+                Message will appear here
+            </div>
+
+            <div class="report-input-group">
+                <label class="report-input-label">Reason for Reporting</label>
+                <textarea
+                    id="reportReason"
+                    class="report-textarea"
+                    placeholder="Please describe why you're reporting this message..."
+                    required
+                ></textarea>
+            </div>
+
+            <div class="report-actions">
+                <button class="report-cancel-btn" onclick="closeReportModal()">Cancel</button>
+                <button class="report-send-btn" id="reportSendBtn" onclick="submitReport()">Report</button>
+            </div>
+        </div>
     </div>
-    <!-- End chat-wrapper -->
 </body>
 </html>

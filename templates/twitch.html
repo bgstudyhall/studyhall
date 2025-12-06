@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Proxy - StudyHall</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(145, 70, 255, 0.3);
+            position: relative;
+        }
+
+        h2 {
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -1px;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .live-text {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        iframe {
+            width: 100%;
+            height: calc(100vh - 60px);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h2>
+            Twitch
+            <span class="live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-text">BG StudyHall</span>
+            </span>
+        </h2>
+    </div>
+    <div id="player"></div>
+
+    <script>
+        // Base64 encoded proxy URL for Twitch
+        const proxyUrl = 'aHR0cHM6Ly9zdHVkeWhhbGwuaS1jcmVhdGl2ZWxlYXJuZXIuY29tL2VtYmVkLmh0bWwjaHR0cHM6Ly90d2l0Y2gudHY=';
+
+        const iframe = document.createElement('iframe');
+        iframe.src = atob(proxyUrl);
+        iframe.allowFullscreen = true;
+        iframe.style.cssText = 'width:100%;height:calc(100vh - 60px);border:none;';
+        document.getElementById('player').appendChild(iframe);
+    </script>
+</body>
+</html>

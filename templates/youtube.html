@@ -4,12 +4,15 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #1a1a1a;
+            background:
+#1a1a1a;
             color: white;
             overflow: hidden;
         }
         #header {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: linear-gradient(135deg,
+#1a1a1a 0%,
+#2d2d2d 100%);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
@@ -32,12 +35,14 @@
             background: rgba(255, 0, 0, 0.15);
             padding: 6px 12px;
             border-radius: 20px;
-            border: 1.5px solid #ff0000;
+            border: 1.5px solid
+#ff0000;
         }
         .live-dot {
             width: 8px;
             height: 8px;
-            background: #ff0000;
+            background:
+#ff0000;
             border-radius: 50%;
             animation: blink 1.5s ease-in-out infinite;
         }
@@ -60,7 +65,7 @@
 </head><body>
 <div id="header">
     <h2>
-        YouTube 
+        YouTube
         <span class="live-indicator">
             <span class="live-dot"></span>
             <span class="live-text">BG StudyHall</span>
@@ -68,9 +73,8 @@
     </h2>
 </div>
 <div id="player"></div>
-
 <script>
-const wdwf = 'aHR0cHM6Ly9wcml2YXRlLmJvc3RvbmNhcmVlcmNvdW5zZWxvci5jb20vZW1iZWQuaHRtbCNodHRwczovL3lvdXR1YmUuY29t';
+const wdwf = 'aHR0cHM6Ly9zdHVkeWhhbGwuaS1jcmVhdGl2ZWxlYXJuZXIuY29tL2VtYmVkLmh0bWwjaHR0cHM6Ly95b3V0dWJlLmNvbQ==';
 const iframe = document.createElement('iframe');
 iframe.src = atob(wdwf);
 iframe.allowFullscreen = true;

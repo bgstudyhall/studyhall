@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} - Group Info</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --gold: #ffd700;
+            --gold-dark: #d4af37;
+            --text-dark: #1a1a1a;
+            --text-medium: #4a4a4a;
+            --text-light: #6b7280;
+            --border-main: #2c2c2c;
+            --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
+            --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #1a1f2e 0%, #252d3d 50%, #1a1f2e 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .group-info-card {
+            background: #fffaf5;
+            border: 6px solid var(--border-main);
+            border-radius: 32px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-cartoon), 0 20px 60px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        .group-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border: 6px solid var(--border-main);
+            margin: 0 auto 1.5rem;
+            box-shadow: var(--shadow-cartoon);
+            overflow: hidden;
+        }
+
+        .group-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .group-name {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .group-stats {
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-weight: 900;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-medium);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #eee;
+        }
+
+        .leader-card {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            border: 5px solid var(--border-main);
+            border-radius: 20px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-cartoon-sm);
+        }
+
+        .leader-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--gold-dark);
+            border: 4px solid var(--border-main);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .leader-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .leader-info {
+            text-align: left;
+        }
+
+        .leader-name {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+        }
+
+        .leader-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--text-dark);
+            background: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 2px solid var(--border-main);
+            margin-top: 0.25rem;
+        }
+
+        .members-list {
+            margin-bottom: 2rem;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
+            transition: all 0.2s;
+        }
+
+        .member-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(44, 44, 44, 0.5);
+        }
+
+        .member-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: white;
+            margin-right: 0.75rem;
+            border: 3px solid var(--border-main);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .member-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .member-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+
+        .not-member-notice {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 4px solid var(--border-main);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .notice-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .notice-text {
+            font-weight: 700;
+            color: var(--text-medium);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-cartoon);
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 1rem;
+            }
+
+            .group-info-card {
+                padding: 1.5rem;
+            }
+
+            .group-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 3rem;
+            }
+
+            .group-name {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="group-info-card">
+        <a href="{{ url_for('chat') }}" class="back-link">← Back to Messages</a>
+
+        <div class="group-avatar">
+            {% if group.image %}
+            <img src="{{ group.image }}" alt="{{ group.name }}">
+            {% else %}
+            👥
+            {% endif %}
+        </div>
+
+        <h1 class="group-name">{{ group.name }}</h1>
+        <p class="group-stats">{{ group.members|length + 1 }} members • Created {{ group.created_at.split(' ')[0] if group.created_at else 'recently' }}</p>
+
+        <div class="section-title">👑 Group Leader</div>
+        <div class="leader-card">
+            <div class="leader-avatar">
+                {% if group.leader in profiles and profiles[group.leader].get('setup_complete', False) and profiles[group.leader].get('profile_picture') %}
+                <img src="{{ profiles[group.leader]['profile_picture'] }}" alt="{{ group.leader }}">
+                {% else %}
+                {{ group.leader[0].upper() }}
+                {% endif %}
+            </div>
+            <div class="leader-info">
+                <div class="leader-name">
+                    {% if group.leader in profiles and profiles[group.leader].get('instagram_full_name') %}
+                    {{ profiles[group.leader]['instagram_full_name'] }}
+                    {% else %}
+                    {{ group.leader }}
+                    {% endif %}
+                </div>
+                <span class="leader-badge">👑 Leader</span>
+            </div>
+        </div>
+
+        {% if group.members %}
+        <div class="section-title">👥 Members</div>
+        <div class="members-list">
+            {% for member in group.members %}
+            <div class="member-item">
+                <div class="member-avatar">
+                    {% if member in profiles and profiles[member].get('setup_complete', False) and profiles[member].get('profile_picture') %}
+                    <img src="{{ profiles[member]['profile_picture'] }}" alt="{{ member }}">
+                    {% else %}
+                    {{ member[0].upper() }}
+                    {% endif %}
+                </div>
+                <span class="member-name">
+                    {% if member in profiles and profiles[member].get('instagram_full_name') %}
+                    {{ profiles[member]['instagram_full_name'] }}
+                    {% else %}
+                    {{ member }}
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="not-member-notice">
+            <div class="notice-icon">🔒</div>
+            <p class="notice-text">You're not a member of this group. Only the group leader can add new members.</p>
+        </div>
+
+        <a href="{{ url_for('chat') }}" class="back-btn">← Back to Messages</a>
+    </div>
+</body>
+</html>
