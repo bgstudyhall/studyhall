@@ -1648,10 +1648,8 @@ body::after {
                 {% endif %}
             </a>
             <a href="{{ url_for('chat') }}" class="btn" style="position: relative;">
-                💬 Chat
-                {% if unread_count > 0 %}
-                <span class="unread-badge">{{ unread_count }}</span>
-                {% endif %}
+                💬Chat
+                <span class="unread-badge" id="chatUnreadBadge" {% if unread_count <= 0 %}style="display:none;"{% endif %}>{{ unread_count }}</span>
             </a>
             <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
         </div>
@@ -2651,19 +2649,47 @@ function checkChatNotifications() {
         .catch(error => console.error('Error checking notifications:', error));
 }
 
+function checkGroupNotifications() {
+    fetch(window.location.origin + '/api/group_notifications')
+        .then(response => response.json())
+        .then(data => {
+            data.notifications.forEach(notif => {
+                const notifKey = `group-${notif.group_id}-${notif.timestamp}`;
+                if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
+                    showGroupNotification(notif.from, notif.group_name, notif.group_id, notif.message_type || 'message');
+                    shownNotifications.add(notifKey);
+                }
+            });
+            if (data.notifications.length > 0) {
+                lastNotificationCheck = data.notifications[0].timestamp;
+            }
+        })
+        .catch(error => console.error('Error checking group notifications:', error));
+}
+
 function showChatNotification(fromUser, type = 'message') {
     const container = document.getElementById('chatNotificationContainer');
     if (!container) return;
 
-    let title, icon, action;
+    let title = 'New Message';
+    let icon = 'MSG';
+    let action = 'sent you a message';
     if (type === 'rps_invite') {
         title = 'RPS Challenge!';
-        icon = '✂️';
+        icon = 'RPS';
         action = 'challenged you to Rock Paper Scissors';
-    } else {
-        title = 'New Message';
-        icon = '💬';
-        action = 'sent you a message';
+    } else if (type === 'snap') {
+        title = 'New Snap!';
+        icon = 'SNAP';
+        action = 'sent you a snap';
+    } else if (type === 'voice') {
+        title = 'Voice Message';
+        icon = 'VOICE';
+        action = 'sent you a voice message';
+    } else if (type === 'token_gift') {
+        title = 'Token Gift!';
+        icon = 'TOK';
+        action = 'sent you tokens';
     }
 
     const notification = document.createElement('div');
@@ -2676,7 +2702,7 @@ function showChatNotification(fromUser, type = 'message') {
                 <div class="notification-user">${fromUser}</div>
                 <div class="notification-action">${action}</div>
             </div>
-            <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement.parentElement)">✕</button>
+            <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement.parentElement)">�o</button>
         </div>
     `;
 
@@ -2688,14 +2714,69 @@ function showChatNotification(fromUser, type = 'message') {
     setTimeout(() => closeNotification(notification), 5000);
 }
 
+function showGroupNotification(fromUser, groupName, groupId, type = 'message') {
+    const container = document.getElementById('chatNotificationContainer');
+    if (!container) return;
+
+    let title = 'Group Message';
+    let icon = 'GRP';
+    let action = `sent a message in ${groupName}`;
+    if (type === 'snap') {
+        title = 'Group Snap!';
+        icon = 'SNAP';
+        action = `sent a snap in ${groupName}`;
+    } else if (type === 'voice') {
+        title = 'Group Voice';
+        icon = 'VOICE';
+        action = `sent a voice message in ${groupName}`;
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'chat-notification';
+    notification.innerHTML = `
+        <div class="notification-header">
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-user">${fromUser}</div>
+                <div class="notification-action">${action}</div>
+            </div>
+            <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement.parentElement)">�o</button>
+        </div>
+    `;
+
+    notification.addEventListener('click', () => {
+        window.location.href = `/group/${groupId}`;
+    });
+
+    container.appendChild(notification);
+    setTimeout(() => closeNotification(notification), 5000);
+}
+
+function refreshChatBadge() {
+    const badge = document.getElementById('chatUnreadBadge');
+    if (!badge) return;
+    fetch('/api/chat/unread_count')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) return;
+            const total = data.total || 0;
+            if (total > 0) {
+                badge.textContent = total;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+}
+
 function closeNotification(notification) {
     notification.classList.add('hiding');
     setTimeout(() => notification.remove(), 300);
 }
 
-setInterval(checkChatNotifications, 2000);
-checkChatNotifications();
-
 </script>
+<script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
 </body>
 </html>

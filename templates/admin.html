@@ -467,6 +467,29 @@
             justify-content: space-between;
             margin-bottom: 0.75rem;
         }
+        .report-tabs {
+            display: inline-flex;
+            gap: 0.5rem;
+            background: var(--bg-tertiary);
+            padding: 0.35rem;
+            border-radius: var(--radius-md);
+        }
+        .report-tab {
+            border: none;
+            background: transparent;
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .report-tab.active {
+            background: white;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+        .report-pane { display: none; }
+        .report-pane.active { display: block; }
         .report-content {
             background: var(--bg-secondary);
             padding: 0.75rem;
@@ -483,6 +506,26 @@
             flex-wrap: wrap;
         }
         .report-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+        .warn-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.6rem;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .info-note {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
         .paycheck-card {
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -578,11 +621,48 @@
                 </div>
             </div>
         </div>
-        <nav class="sidebar-nav">
+                <nav class="sidebar-nav">
+            {% if user_role == 'master_moderator' %}
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" onclick="showSection('dashboard', this)">
-                    <span class="nav-item-icon">→</span> Dashboard
+                    <span class="nav-item-icon">?</span> Dashboard
+                </button>
+                {% if user_permissions.create_users %}
+                <button class="nav-item" onclick="showSection('create-user', this)">
+                    <span class="nav-item-icon">?</span> Create User
+                </button>
+                {% endif %}
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Moderation</div>
+                <button class="nav-item" onclick="showSection('manage-users', this)">
+                    <span class="nav-item-icon">?</span> Manage Users
+                </button>
+                <button class="nav-item" onclick="showSection('reports', this)">
+                    <span class="nav-item-icon">?</span> Reports
+                    {% if pending_reports > 0 %}<span class="nav-item-badge">{{ pending_reports }}</span>{% endif %}
+                </button>
+                {% if user_permissions.change_passwords %}
+                <button class="nav-item" onclick="showSection('password-resets', this)">
+                    <span class="nav-item-icon">?</span> Password Reset Requests
+                </button>
+                {% endif %}
+            </div>
+            {% if user_permissions.view_paycheck_status %}
+            <div class="nav-section">
+                <div class="nav-section-title">Payroll</div>
+                <button class="nav-item" onclick="showSection('paychecks', this)">
+                    <span class="nav-item-icon"></span> Paychecks
+                    {% if pending_paychecks > 0 and user_permissions.approve_paychecks %}<span class="nav-item-badge">{{ pending_paychecks }}</span>{% endif %}
+                </button>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <button class="nav-item active" onclick="showSection('dashboard', this)">
+                    <span class="nav-item-icon">?</span> Dashboard
                 </button>
             </div>
             {% if user_permissions.create_users or user_permissions.ban_users %}
@@ -590,17 +670,17 @@
                 <div class="nav-section-title">User Management</div>
                 {% if user_permissions.create_users %}
                 <button class="nav-item" onclick="showSection('create-user', this)">
-                    <span class="nav-item-icon">➕</span> Create User
+                    <span class="nav-item-icon">?</span> Create User
                 </button>
                 {% endif %}
                 {% if user_permissions.ban_users or user_permissions.change_passwords %}
                 <button class="nav-item" onclick="showSection('manage-users', this)">
-                    <span class="nav-item-icon">→</span> Manage Users
+                    <span class="nav-item-icon">?</span> Manage Users
                 </button>
                 {% endif %}
                 {% if user_permissions.assign_roles %}
                 <button class="nav-item" onclick="showSection('assign-roles', this)">
-                    <span class="nav-item-icon">→️</span> Assign Roles
+                    <span class="nav-item-icon">??</span> Assign Roles
                 </button>
                 {% endif %}
             </div>
@@ -610,17 +690,17 @@
                 <div class="nav-section-title">Content</div>
                 {% if user_permissions.manage_games %}
                 <button class="nav-item" onclick="showSection('games', this)">
-                    <span class="nav-item-icon">→</span> Games
+                    <span class="nav-item-icon">?</span> Games
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_announcements %}
                 <button class="nav-item" onclick="showSection('announcements', this)">
-                    <span class="nav-item-icon">→</span> Announcements
+                    <span class="nav-item-icon">?</span> Announcements
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_groups %}
                 <button class="nav-item" onclick="showSection('groups', this)">
-                    <span class="nav-item-icon">→</span> Groups
+                    <span class="nav-item-icon">?</span> Groups
                 </button>
                 {% endif %}
             </div>
@@ -630,20 +710,20 @@
                 <div class="nav-section-title">Economy</div>
                 {% if user_permissions.view_token_stats %}
                 <button class="nav-item" onclick="showSection('token-stats', this)">
-                    <span class="nav-item-icon">→</span> Token Stats
+                    <span class="nav-item-icon">?</span> Token Stats
                 </button>
                 <button class="nav-item" onclick="showSection('casino-stats', this)">
-                    <span class="nav-item-icon">→</span> Casino Stats
+                    <span class="nav-item-icon">?</span> Casino Stats
                 </button>
                 {% endif %}
                 {% if user_permissions.create_promo_codes %}
                 <button class="nav-item" onclick="showSection('promo-codes', this)">
-                    <span class="nav-item-icon">→</span> Promo Codes
+                    <span class="nav-item-icon">?</span> Promo Codes
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_lottery %}
                 <button class="nav-item" onclick="showSection('lottery', this)">
-                    <span class="nav-item-icon">→️</span> Lottery
+                    <span class="nav-item-icon">??</span> Lottery
                 </button>
                 {% endif %}
             </div>
@@ -652,16 +732,21 @@
             <div class="nav-section">
                 <div class="nav-section-title">Moderation</div>
                 <button class="nav-item" onclick="showSection('reports', this)">
-                    <span class="nav-item-icon">→</span> Reports
+                    <span class="nav-item-icon">?</span> Reports
                     {% if pending_reports > 0 %}<span class="nav-item-badge">{{ pending_reports }}</span>{% endif %}
                 </button>
+                {% if user_permissions.change_passwords %}
+                <button class="nav-item" onclick="showSection('password-resets', this)">
+                    <span class="nav-item-icon">?</span> Password Reset Requests
+                </button>
+                {% endif %}
             </div>
             {% endif %}
             {% if user_permissions.manage_feedback %}
             <div class="nav-section">
                 <div class="nav-section-title">Public Relations</div>
                 <button class="nav-item" onclick="showSection('feedback', this)">
-                    <span class="nav-item-icon">→</span> Feedback
+                    <span class="nav-item-icon">?</span> Feedback
                     {% if feedback|length > 0 %}<span class="nav-item-badge">{{ feedback|length }}</span>{% endif %}
                 </button>
             </div>
@@ -689,6 +774,7 @@
                 </button>
                 {% endif %}
             </div>
+            {% endif %}
             {% endif %}
         </nav>
         <div class="sidebar-footer">
@@ -1161,51 +1247,134 @@
         </section>
         {% endif %}
 
-        <!-- Reported Messages -->
+                <!-- Reported Messages -->
         {% if user_permissions.view_reported_messages %}
         <section id="reports-section" class="section">
             <div class="page-header">
                 <h1 class="page-title">Reported Messages</h1>
-                <p class="page-description">Review and moderate reported content</p>
+                <p class="page-description">StudyHall Chat Messages</p>
             </div>
+            {% set pending_list = reported_messages|selectattr('status', 'equalto', 'pending')|list %}
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Pending Reports</h3>
-                    <select class="form-select" style="width: auto;" id="reportStatusFilter" onchange="filterReports()">
-                        <option value="pending">Pending</option>
-                        <option value="all">All</option>
-                        <option value="dismissed">Dismissed</option>
-                        <option value="warned">Warned</option>
-                        <option value="banned">Banned</option>
-                    </select>
+                <div class="card-header" style="gap: 0.75rem; flex-wrap: wrap;">
+                    <div>
+                        <h3 class="card-title">Moderation Queue</h3>
+                        <div class="text-muted" style="font-size: 0.85rem;">Focus on pending, review history, and track warnings.</div>
+                    </div>
+                    <div class="report-tabs">
+                        <button class="report-tab active" onclick="switchReportTab('reportsPending', this)">Pending ({{ pending_list|length }})</button>
+                        <button class="report-tab" onclick="switchReportTab('reportsHistory', this)">History</button>
+                        <button class="report-tab" onclick="switchReportTab('reportsWarnings', this)">Warnings</button>
+                    </div>
                 </div>
-                <div class="card-body" id="reportsContainer">
-                    {% set pending_list = reported_messages|selectattr('status', 'equalto', 'pending')|list %}
-                    {% if pending_list %}
-                        {% for report in pending_list %}
-                        <div class="report-item" data-status="{{ report.status }}">
-                            <div class="report-header">
-                                <div><strong>From:</strong> {{ report.sender }} <span class="badge badge-warning">{{ report.status }}</span></div>
-                                <div class="text-muted" style="font-size: 0.75rem;">#{{ report.id }}</div>
+                <div class="card-body">
+                    <div id="reportsPending" class="report-pane active">
+                        {% if pending_list %}
+                            {% for report in pending_list %}
+                            {% set warn_count = (reported_messages|selectattr('sender','equalto',report.sender)|selectattr('status','equalto','warned')|list|length) %}
+                            <div class="report-item" data-status="{{ report.status }}">
+                                <div class="report-header">
+                                    <div class="flex items-center gap-2">
+                                        <div><strong>{{ report.sender }}</strong> <span class="badge badge-warning">Pending</span></div>
+                                        <div class="warn-count">Warnings: {{ warn_count }}</div>
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Case #{{ report.id }} · {{ report.timestamp }}</div>
+                                </div>
+                                <div class="report-content">"{{ report.message_content }}"</div>
+                                <div class="report-meta">
+                                    <span>Reporter: {{ report.reporter }}</span>
+                                    {% if report.reason %}<span>Reason: {{ report.reason }}</span>{% endif %}
+                                </div>
+                                <div class="report-actions">
+                                    <button class="btn btn-sm btn-secondary" onclick="openResolveModal('{{ report.id }}', 'dismiss')">Dismiss</button>
+                                    <button class="btn btn-sm btn-warning" onclick="openResolveModal('{{ report.id }}', 'warn')">Warn</button>
+                                    <button class="btn btn-sm btn-danger" onclick="openResolveModal('{{ report.id }}', 'ban')">Ban User</button>
+                                </div>
                             </div>
-                            <div class="report-content">{{ report.message_content }}</div>
-                            <div class="report-meta">
-                                <span>Reported by: {{ report.reporter }}</span>
-                                <span>Time: {{ report.timestamp }}</span>
-                                {% if report.reason %}<span>Reason: {{ report.reason }}</span>{% endif %}
-                            </div>
-                            {% if report.status == 'pending' %}
-                            <div class="report-actions">
-                                <button class="btn btn-sm btn-secondary" onclick="openResolveModal('{{ report.id }}', 'dismiss')">Dismiss</button>
-                                <button class="btn btn-sm btn-warning" onclick="openResolveModal('{{ report.id }}', 'warn')">Warn</button>
-                                <button class="btn btn-sm btn-danger" onclick="openResolveModal('{{ report.id }}', 'ban')">Ban User</button>
-                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state"><div class="empty-state-icon">!</div><div class="empty-state-title">No pending reports</div></div>
+                        {% endif %}
+                    </div>
+                    <div id="reportsHistory" class="report-pane">
+                        <div class="form-group" style="max-width: 260px;">
+                            <label class="form-label">Filter by status</label>
+                            <select class="form-select" id="reportStatusFilter" onchange="filterReportHistory()">
+                                <option value="all">All</option>
+                                <option value="dismissed">Dismissed</option>
+                                <option value="warned">Warned</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+                        <div id="reportsHistoryContainer">
+                            {% if reported_messages %}
+                                {% for report in reported_messages %}
+                                {% set status_class = 'badge-warning' %}
+                                {% if report.status == 'banned' %}{% set status_class = 'badge-danger' %}{% elif report.status == 'dismissed' %}{% set status_class = 'badge-gray' %}{% elif report.status == 'warned' %}{% set status_class = 'badge-warning' %}{% endif %}
+                                <div class="report-item" data-status="{{ report.status }}">
+                                    <div class="report-header">
+                                        <div class="flex items-center gap-2">
+                                            <strong>{{ report.sender }}</strong>
+                                            <span class="badge {{ status_class }}">{{ report.status|capitalize }}</span>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">Case #{{ report.id }} · {{ report.timestamp }}</div>
+                                    </div>
+                                    <div class="report-content">{{ report.message_content }}</div>
+                                    <div class="report-meta">
+                                        <span>Reporter: {{ report.reporter }}</span>
+                                        {% if report.reason %}<span>Reason: {{ report.reason }}</span>{% endif %}
+                                        {% if report.resolved_by %}<span>Reviewed by {{ report.resolved_by }} at {{ report.resolved_at }}</span>{% endif %}
+                                        {% if report.resolution_note %}<span>Note: {{ report.resolution_note }}</span>{% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state"><div class="empty-state-icon">dY'�</div><div class="empty-state-title">No reports yet</div></div>
                             {% endif %}
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No pending reports</div></div>
-                    {% endif %}
+                    </div>
+                    <div id="reportsWarnings" class="report-pane">
+                        <div class="info-note">Check warning history before escalating to a ban.</div>
+                        {% set warn_reports = reported_messages|selectattr('status', 'equalto', 'warned')|list %}
+                        {% if warn_reports %}
+                        <table class="data-table">
+                            <thead><tr><th>User</th><th>Total Warnings</th><th>Last Warning</th><th>Moderator</th></tr></thead>
+                            <tbody>
+                                {% for group in warn_reports|groupby('sender') %}
+                                {% set last = group.list[0] %}
+                                <tr>
+                                    <td>{{ group.grouper }}</td>
+                                    <td>{{ group.list|length }}</td>
+                                    <td>{{ last.resolution_note or last.reason }} ({{ last.resolved_at or last.timestamp }})</td>
+                                    <td>{{ last.resolved_by or 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="empty-state"><div class="empty-state-icon">!</div><div class="empty-state-title">No warnings yet</div></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if user_permissions.change_passwords %}
+        <section id="password-resets-section" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Password Reset Requests</h1>
+                <p class="page-description">Direct moderators to the pending reset queue</p>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="info-note">
+                        Always confirm the requester email matches their StudyHall username before approving a reset.
+                    </div>
+                    <p style="margin-bottom: 0.75rem;">All moderator password reset requests are managed through the Google Form workspace.</p>
+                    <a class="btn btn-primary" href="https://docs.google.com/forms/d/1F7aB1uoBgICqax_Zq5kSbVbcQzPDb2JYoYfq40eFTA0/edit?pli=1#responses" target="_blank" rel="noopener">
+                        Open Reset Requests
+                    </a>
                 </div>
             </div>
         </section>
@@ -1592,6 +1761,25 @@
                 card.style.display = name.includes(search) ? '' : 'none';
             });
         }
+        function switchReportTab(paneId, tabButton) {
+            document.querySelectorAll('.report-pane').forEach(p => p.classList.remove('active'));
+            const pane = document.getElementById(paneId);
+            if (pane) pane.classList.add('active');
+            document.querySelectorAll('.report-tab').forEach(btn => btn.classList.remove('active'));
+            if (tabButton) tabButton.classList.add('active');
+            if (paneId === 'reportsHistory') {
+                filterReportHistory();
+            }
+        }
+        function filterReportHistory() {
+            const status = document.getElementById('reportStatusFilter')?.value || 'all';
+            const container = document.getElementById('reportsHistoryContainer');
+            if (!container) return;
+            container.querySelectorAll('.report-item').forEach(item => {
+                const itemStatus = item.getAttribute('data-status');
+                item.style.display = (status === 'all' || status === itemStatus) ? '' : 'none';
+            });
+        }
 
         // Edit Tokens
         let editTokensTarget = '';
@@ -1624,6 +1812,10 @@
             pwInput.name = 'new_password';
             pwInput.value = password;
             form.appendChild(pwInput);
+            const reasonInput = document.createElement('input');
+            reasonInput.name = 'reason';
+            reasonInput.value = reason;
+            form.appendChild(reasonInput);
             document.body.appendChild(form);
             form.submit();
         }

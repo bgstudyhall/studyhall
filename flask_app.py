@@ -87,7 +87,7 @@ STAFF_ROLES = {
 
 # Permission definitions
 PERMISSIONS = {
-    'create_users': ['admin', 'president', 'ambassador'],
+    'create_users': ['admin', 'president', 'ambassador', 'master_moderator'],
     'ban_users': ['admin', 'president', 'master_moderator'],
     'change_passwords': ['admin', 'president', 'master_moderator'],
     'edit_tokens': ['admin'],
@@ -816,15 +816,17 @@ def force_password_change():
 @login_required
 @password_change_required
 def index():
-    unread_count = get_unread_count(session['username'])
-    lounge_unread_count = get_lounge_unread_count(session['username'])
+    username = session['username']
+    unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
+    lounge_unread_count = get_lounge_unread_count(username)
     sorted_games = sorted(games.items(), key=lambda x: (
         not x[1].get('free_for_all', True),
         x[1].get('price', 0),
         x[1]['name'].lower()
     ))
     sorted_games = dict(sorted_games)
-    username = session['username']
     current_rank = users[username].get('rank')
     current_rank_index = -1
     if current_rank:
@@ -839,6 +841,7 @@ def index():
     purchases=purchases,
     user_role=users[username]['role'],
     unread_count=unread_count,
+    group_unread_count=group_unread_count,
     lounge_unread_count=lounge_unread_count,
     RANKS=RANKS,
     current_rank_index=current_rank_index,
@@ -979,11 +982,14 @@ def casino():
     username = session['username']
 
     unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
     lounge_unread_count = get_lounge_unread_count(username)
     return render_template('casino.html',
         user_tokens=users[username].get('tokens', 0),
         username=username,
         unread_count=unread_count,
+        group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role']
     )
@@ -994,6 +1000,8 @@ def casino():
 def profile():
     username = session['username']
     unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
     lounge_unread_count = get_lounge_unread_count(username)
 
     if username not in profiles:
@@ -1020,6 +1028,7 @@ def profile():
                     user_tokens=user_tokens,
                     username=username,
                     unread_count=unread_count,
+                    group_unread_count=group_unread_count,
                     lounge_unread_count=lounge_unread_count,
                     user_role=users[username]['role'],
                     error="Insufficient tokens. You need 100 tokens to set up your profile."
@@ -1088,6 +1097,7 @@ def profile():
                         user_tokens=users[username].get('tokens', 0),
                         username=username,
                         unread_count=unread_count,
+                        group_unread_count=group_unread_count,
                         lounge_unread_count=lounge_unread_count,
                         user_role=users[username]['role'],
                         error=f"Instagram username '@{instagram_username}' not found."
@@ -1106,6 +1116,7 @@ def profile():
                         user_tokens=users[username].get('tokens', 0),
                         username=username,
                         unread_count=unread_count,
+                        group_unread_count=group_unread_count,
                         lounge_unread_count=lounge_unread_count,
                         user_role=users[username]['role'],
                         error=f"Failed to fetch Instagram data. Please try again."
@@ -1125,6 +1136,7 @@ def profile():
                 user_tokens=users[username].get('tokens', 0),
                 username=username,
                 unread_count=unread_count,
+                group_unread_count=group_unread_count,
                 lounge_unread_count=lounge_unread_count,
                 user_role=users[username]['role'],
                 success="Profile updated successfully!"
@@ -1135,6 +1147,7 @@ def profile():
         user_tokens=users[username].get('tokens', 0),
         username=username,
         unread_count=unread_count,
+        group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role']
     )
@@ -1223,6 +1236,8 @@ def view_profile(username):
 
     current_user = session['username']
     unread_count = get_unread_count(current_user)
+    group_unread_count = get_total_group_unread_count(current_user)
+    unread_count += group_unread_count
     lounge_unread_count = get_lounge_unread_count(current_user)
 
     # Check if user has a profile set up
@@ -1253,6 +1268,7 @@ def view_profile(username):
         most_played=most_played,
         RANKS=RANKS,
         unread_count=unread_count,
+        group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[current_user]['role']
     )
@@ -2116,11 +2132,14 @@ def clear_login_notifications():
 def proxy():
     username = session['username']
     unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
     lounge_unread_count = get_lounge_unread_count(username)
     return render_template('proxy.html',
         user_tokens=users[username].get('tokens', 0),
         username=username,
         unread_count=unread_count,
+        group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role'],
         site_access=site_access
@@ -2401,258 +2420,20 @@ def play_game(game_id):
     plays[username][game_id] += 1
     save_json(PLAYS_FILE, plays)
 
-    # Inject notification system into game HTML
-    notification_html = '''
-    <!-- Chat Notification Container -->
-    <div id="chatNotificationContainer"></div>
-    <style>
-    .chat-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-        border: 5px solid #c19a6b;
-        border-radius: 20px;
-        padding: 1rem 1.5rem;
-        min-width: 300px;
-        max-width: 400px;
-        box-shadow: 0 8px 0 #2C2C2C, 0 12px 30px rgba(193, 154, 107, 0.5);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 999999;
-        animation: slideInRight 0.4s ease-out;
-    }
-    .chat-notification:hover {
-        transform: translateY(-3px) translateX(-5px);
-        box-shadow: 0 12px 0 #2C2C2C, 0 16px 40px rgba(193, 154, 107, 0.6);
-    }
-    .chat-notification:active {
-        transform: translateY(1px);
-        box-shadow: 0 4px 0 #2C2C2C;
-    }
-    @keyframes slideInRight {
-        from { transform: translateX(450px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-        to { transform: translateX(450px); opacity: 0; }
-    }
-    .chat-notification.hiding {
-        animation: slideOutRight 0.3s ease-in forwards;
-    }
-    .notification-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-    .notification-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: #c19a6b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        border: 4px solid #2C2C2C;
-        box-shadow: 0 3px 0 rgba(44, 44, 44, 0.5);
-    }
-    .notification-content { flex: 1; }
-    .notification-title {
-        font-weight: 900;
-        font-size: 0.9rem;
-        color: #c19a6b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .notification-user {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #ffffff;
-        margin-top: 0.25rem;
-    }
-    .notification-action {
-        font-size: 0.75rem;
-        color: #888;
-        margin-top: 0.25rem;
-        font-weight: 600;
-    }
-    .notification-close {
-        background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-        border: 3px solid #2C2C2C;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 3px 0 #2C2C2C;
-        font-weight: 900;
-    }
-    .notification-close:hover {
-        transform: rotate(90deg) scale(1.1);
-    }
-    </style>
-    <script>
-    // Chat Notification System for Games
-    let shownNotifications = new Set();
-    let lastNotificationCheck = '';
+    # Inject notification system into game HTML once (before closing body when present)
+    notification_html = (
+        '<div id="chatNotificationContainer"></div>'
+        '<script src="/static/notifications.js?v=2"></script>'
+    )
 
-    function checkChatNotifications() {
-        fetch('/api/chat_notifications')
-            .then(response => response.json())
-            .then(data => {
-                data.notifications.forEach(notif => {
-                    const notifKey = notif.from + '-' + notif.timestamp;
-                    if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
-                        showChatNotification(notif.from, notif.type || 'message', notif.chat_key);
-                        shownNotifications.add(notifKey);
-                    }
-                });
-                if (data.notifications.length > 0) {
-                    lastNotificationCheck = data.notifications[0].timestamp;
-                }
-            })
-            .catch(error => console.error('Error checking notifications:', error));
-    }
-
-    function checkGroupNotifications() {
-        fetch('/api/group_notifications')
-            .then(response => response.json())
-            .then(data => {
-                data.notifications.forEach(notif => {
-                    const notifKey = 'group-' + notif.group_id + '-' + notif.timestamp;
-                    if (!shownNotifications.has(notifKey) && notif.timestamp > lastNotificationCheck) {
-                        showGroupNotification(notif.from, notif.group_name, notif.group_id, notif.message_type || 'message');
-                        shownNotifications.add(notifKey);
-                    }
-                });
-            })
-            .catch(error => console.error('Error checking group notifications:', error));
-    }
-
-    function showChatNotification(fromUser, type = 'message', chatKey) {
-        const container = document.getElementById('chatNotificationContainer');
-        if (!container) return;
-
-        const notification = document.createElement('div');
-        notification.className = 'chat-notification';
-
-        let title, icon, action;
-        if (type === 'rps_invite') {
-            title = 'RPS Challenge!';
-            icon = '✂️';
-            action = 'challenged you to Rock Paper Scissors';
-        } else if (type === 'snap') {
-            title = 'New Snap!';
-            icon = '📸';
-            action = 'sent you a snap';
-        } else if (type === 'voice') {
-            title = 'Voice Message';
-            icon = '🎤';
-            action = 'sent you a voice message';
-        } else if (type === 'token_gift') {
-            title = 'Token Gift!';
-            icon = '🎁';
-            action = 'sent you tokens';
-        } else {
-            title = 'New Message';
-            icon = '💬';
-            action = 'sent you a message';
-        }
-
-        notification.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-icon">${icon}</div>
-                <div class="notification-content">
-                    <div class="notification-title">${title}</div>
-                    <div class="notification-user">${fromUser}</div>
-                    <div class="notification-action">${action}</div>
-                </div>
-                <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
-            </div>
-        `;
-
-        notification.addEventListener('click', () => {
-            window.location.href = '/chat/' + fromUser;
-        });
-
-        container.appendChild(notification);
-        setTimeout(() => closeNotification(notification), 8000);
-    }
-
-    function showGroupNotification(fromUser, groupName, groupId, type = 'message') {
-        const container = document.getElementById('chatNotificationContainer');
-        if (!container) return;
-
-        const notification = document.createElement('div');
-        notification.className = 'chat-notification';
-
-        let title, icon, action;
-        if (type === 'snap') {
-            title = 'Group Snap!';
-            icon = '📸';
-            action = `sent a snap in ${groupName}`;
-        } else if (type === 'voice') {
-            title = 'Group Voice';
-            icon = '🎤';
-            action = `sent a voice message in ${groupName}`;
-        } else {
-            title = 'Group Message';
-            icon = '💬';
-            action = `sent a message in ${groupName}`;
-        }
-
-        notification.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-icon">${icon}</div>
-                <div class="notification-content">
-                    <div class="notification-title">${title}</div>
-                    <div class="notification-user">${fromUser}</div>
-                    <div class="notification-action">${action}</div>
-                </div>
-                <button class="notification-close" onclick="event.stopPropagation(); closeNotification(this.parentElement)">✕</button>
-            </div>
-        `;
-
-        notification.addEventListener('click', () => {
-            window.location.href = '/group/' + groupId;
-        });
-
-        container.appendChild(notification);
-        setTimeout(() => closeNotification(notification), 8000);
-    }
-
-    function closeNotification(notification) {
-        notification.classList.add('hiding');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }
-
-    setInterval(checkChatNotifications, 2000);
-    setInterval(checkGroupNotifications, 2000);
-    checkChatNotifications();
-    checkGroupNotifications();
-    </script>
-    '''
-
-    # Inject the notification HTML
     game_html = game['html_content']
-
-    # Insert before closing </body> tag if it exists
     if '</body>' in game_html:
         game_html = game_html.replace('</body>', notification_html + '</body>')
     else:
-        # Otherwise append to end
         game_html = game_html + notification_html
 
     return game_html
+
 
 @app.route('/purchase_game/<game_id>', methods=['POST'])
 @login_required
@@ -3020,16 +2801,33 @@ def edit_token(username, amount):
     if username in users:
         users[username]['tokens'] = amount
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='edit_tokens',
+            target=username,
+            details=f'Set tokens to {amount}'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/change_password/<username>', methods=['POST'])
 @panel_access_required
 def change_password(username):
+    if not has_permission(session['username'], 'change_passwords'):
+        return redirect(url_for('admin_panel'))
+
     if username in users and username != 'admin':
         new_password = request.form.get('new_password')
+        reason = request.form.get('reason', '').strip()
         if new_password:
             users[username]['password'] = new_password
             save_json(USERS_FILE, users)
+            log_action(
+                actor=session['username'],
+                action_type='change_password',
+                target=username,
+                details='Password updated via admin panel',
+                reason=reason or 'No reason provided'
+            )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/toggle_game_price/<game_id>', methods=['POST'])
@@ -3110,6 +2908,9 @@ def delete_feedback(index):
 @app.route('/panel/create_user', methods=['POST'])
 @panel_access_required
 def create_user():
+    if not has_permission(session['username'], 'create_users'):
+        return redirect(url_for('admin_panel'))
+
     username = request.form.get('username')
     password = request.form.get('password')
     if username and password and username not in users:
@@ -3121,6 +2922,13 @@ def create_user():
             'ban_reason': ''
         }
         save_json(USERS_FILE, users)
+
+        log_action(
+            actor=session['username'],
+            action_type='create_user',
+            target=username,
+            details='Created user from admin panel'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/promote_ambassador/<username>')
@@ -3129,6 +2937,12 @@ def promote_ambassador(username):
     if username in users and username != 'admin':
         users[username]['role'] = 'ambassador'
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='promote_ambassador',
+            target=username,
+            details='Promoted to ambassador'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/demote_ambassador/<username>')
@@ -3137,26 +2951,51 @@ def demote_ambassador(username):
     if username in users and username != 'admin':
         users[username]['role'] = 'user'
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='demote_ambassador',
+            target=username,
+            details='Demoted to user'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/ban_user', methods=['POST'])
 @panel_access_required
 def ban_user():
+    if not has_permission(session['username'], 'ban_users'):
+        return redirect(url_for('admin_panel'))
+
     username = request.form.get('username')
     reason = request.form.get('reason', 'No reason provided')
     if username in users and username != 'admin':
         users[username]['banned'] = True
         users[username]['ban_reason'] = reason
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='ban_user',
+            target=username,
+            details='Manual ban from admin panel',
+            reason=reason
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/unban_user/<username>', methods=['GET', 'POST'])
 @panel_access_required
 def unban_user(username):
+    if not has_permission(session['username'], 'ban_users'):
+        return redirect(url_for('admin_panel'))
+
     if username in users:
         users[username]['banned'] = False
         users[username]['ban_reason'] = ''
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='unban_user',
+            target=username,
+            details='User unbanned from admin panel'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/delete_user/<username>')
@@ -3165,6 +3004,12 @@ def delete_user(username):
     if username in users and username != 'admin':
         del users[username]
         save_json(USERS_FILE, users)
+        log_action(
+            actor=session['username'],
+            action_type='delete_user',
+            target=username,
+            details='Deleted user from admin panel'
+        )
     return redirect(url_for('admin_panel'))
 
 @app.route('/panel/add_game', methods=['POST'])
@@ -4491,6 +4336,8 @@ def groups_list():
     """Display list of all groups"""
     username = session['username']
     unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
     lounge_unread_count = get_lounge_unread_count(username)
 
     # Get groups with unread counts
@@ -4537,6 +4384,7 @@ def groups_list():
         groups=groups_data,
         user_has_group=user_has_group,
         unread_count=unread_count,
+        group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role'],
         user_tokens=users[username].get('tokens', 0),
@@ -5115,6 +4963,20 @@ def get_groups_unread_count():
     """Get total unread count for groups"""
     username = session['username']
     return jsonify({'count': get_total_group_unread_count(username)})
+
+@app.route('/api/chat/unread_count')
+@login_required
+def get_chat_unread_count():
+    """Get combined unread counts for chats and groups"""
+    username = session['username']
+    chat_unread = get_unread_count(username)
+    group_unread = get_total_group_unread_count(username)
+    return jsonify({
+        'success': True,
+        'chat_unread': chat_unread,
+        'group_unread': group_unread,
+        'total': chat_unread + group_unread
+    })
 
 # ===============================================================
 # Admin Group Management Routes
@@ -5850,13 +5712,6 @@ def assign_role(username):
     if new_role not in STAFF_ROLES:
         return jsonify({'success': False, 'error': 'Invalid role'}), 400
 
-    # Check if role is already taken (for unique roles)
-    unique_roles = ['president', 'economy_director', 'pr_director', 'master_moderator']
-    if new_role in unique_roles:
-        for u, udata in users.items():
-            if udata.get('role') == new_role and u != username:
-                return jsonify({'success': False, 'error': f'{new_role} role is already assigned to {u}'}), 400
-
     old_role = users[username].get('role', 'user')
     users[username]['role'] = new_role
     save_json(USERS_FILE, users)
@@ -5874,3 +5729,4 @@ def assign_role(username):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
