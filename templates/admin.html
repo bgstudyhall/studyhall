@@ -626,26 +626,26 @@
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" onclick="showSection('dashboard', this)">
-                    <span class="nav-item-icon">?</span> Dashboard
+                    <span class="nav-item-icon">➜</span> Dashboard
                 </button>
                 {% if user_permissions.create_users %}
                 <button class="nav-item" onclick="showSection('create-user', this)">
-                    <span class="nav-item-icon">?</span> Create User
+                    <span class="nav-item-icon">➜</span> Create User
                 </button>
                 {% endif %}
             </div>
             <div class="nav-section">
                 <div class="nav-section-title">Moderation</div>
                 <button class="nav-item" onclick="showSection('manage-users', this)">
-                    <span class="nav-item-icon">?</span> Manage Users
+                    <span class="nav-item-icon">➜</span> Manage Users
                 </button>
                 <button class="nav-item" onclick="showSection('reports', this)">
-                    <span class="nav-item-icon">?</span> Reports
+                    <span class="nav-item-icon">➜</span> Reports
                     {% if pending_reports > 0 %}<span class="nav-item-badge">{{ pending_reports }}</span>{% endif %}
                 </button>
                 {% if user_permissions.change_passwords %}
                 <button class="nav-item" onclick="showSection('password-resets', this)">
-                    <span class="nav-item-icon">?</span> Password Reset Requests
+                    <span class="nav-item-icon">➜</span> Password Reset Requests
                 </button>
                 {% endif %}
             </div>
@@ -653,7 +653,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Payroll</div>
                 <button class="nav-item" onclick="showSection('paychecks', this)">
-                    <span class="nav-item-icon"></span> Paychecks
+                    <span class="nav-item-icon">➜</span> Paychecks
                     {% if pending_paychecks > 0 and user_permissions.approve_paychecks %}<span class="nav-item-badge">{{ pending_paychecks }}</span>{% endif %}
                 </button>
             </div>
@@ -662,7 +662,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" onclick="showSection('dashboard', this)">
-                    <span class="nav-item-icon">?</span> Dashboard
+                    <span class="nav-item-icon">➜</span> Dashboard
                 </button>
             </div>
             {% if user_permissions.create_users or user_permissions.ban_users %}
@@ -670,17 +670,17 @@
                 <div class="nav-section-title">User Management</div>
                 {% if user_permissions.create_users %}
                 <button class="nav-item" onclick="showSection('create-user', this)">
-                    <span class="nav-item-icon">?</span> Create User
+                    <span class="nav-item-icon">➜</span> Create User
                 </button>
                 {% endif %}
                 {% if user_permissions.ban_users or user_permissions.change_passwords %}
                 <button class="nav-item" onclick="showSection('manage-users', this)">
-                    <span class="nav-item-icon">?</span> Manage Users
+                    <span class="nav-item-icon">➜</span> Manage Users
                 </button>
                 {% endif %}
                 {% if user_permissions.assign_roles %}
                 <button class="nav-item" onclick="showSection('assign-roles', this)">
-                    <span class="nav-item-icon">??</span> Assign Roles
+                    <span class="nav-item-icon">➜</span> Assign Roles
                 </button>
                 {% endif %}
             </div>
@@ -690,17 +690,17 @@
                 <div class="nav-section-title">Content</div>
                 {% if user_permissions.manage_games %}
                 <button class="nav-item" onclick="showSection('games', this)">
-                    <span class="nav-item-icon">?</span> Games
+                    <span class="nav-item-icon">➜</span> Games
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_announcements %}
                 <button class="nav-item" onclick="showSection('announcements', this)">
-                    <span class="nav-item-icon">?</span> Announcements
+                    <span class="nav-item-icon">➜</span> Announcements
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_groups %}
                 <button class="nav-item" onclick="showSection('groups', this)">
-                    <span class="nav-item-icon">?</span> Groups
+                    <span class="nav-item-icon">➜</span> Groups
                 </button>
                 {% endif %}
             </div>
@@ -710,20 +710,20 @@
                 <div class="nav-section-title">Economy</div>
                 {% if user_permissions.view_token_stats %}
                 <button class="nav-item" onclick="showSection('token-stats', this)">
-                    <span class="nav-item-icon">?</span> Token Stats
+                    <span class="nav-item-icon">➜</span> Token Stats
                 </button>
                 <button class="nav-item" onclick="showSection('casino-stats', this)">
-                    <span class="nav-item-icon">?</span> Casino Stats
+                    <span class="nav-item-icon">➜</span> Casino Stats
                 </button>
                 {% endif %}
                 {% if user_permissions.create_promo_codes %}
                 <button class="nav-item" onclick="showSection('promo-codes', this)">
-                    <span class="nav-item-icon">?</span> Promo Codes
+                    <span class="nav-item-icon">➜</span> Promo Codes
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_lottery %}
                 <button class="nav-item" onclick="showSection('lottery', this)">
-                    <span class="nav-item-icon">??</span> Lottery
+                    <span class="nav-item-icon">➜</span> Lottery
                 </button>
                 {% endif %}
             </div>
@@ -732,12 +732,12 @@
             <div class="nav-section">
                 <div class="nav-section-title">Moderation</div>
                 <button class="nav-item" onclick="showSection('reports', this)">
-                    <span class="nav-item-icon">?</span> Reports
+                    <span class="nav-item-icon">➜</span> Reports
                     {% if pending_reports > 0 %}<span class="nav-item-badge">{{ pending_reports }}</span>{% endif %}
                 </button>
                 {% if user_permissions.change_passwords %}
                 <button class="nav-item" onclick="showSection('password-resets', this)">
-                    <span class="nav-item-icon">?</span> Password Reset Requests
+                    <span class="nav-item-icon">➜</span> Password Reset Requests
                 </button>
                 {% endif %}
             </div>
@@ -746,7 +746,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Public Relations</div>
                 <button class="nav-item" onclick="showSection('feedback', this)">
-                    <span class="nav-item-icon">?</span> Feedback
+                    <span class="nav-item-icon">➜</span> Feedback
                     {% if feedback|length > 0 %}<span class="nav-item-badge">{{ feedback|length }}</span>{% endif %}
                 </button>
             </div>
@@ -755,7 +755,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Payroll</div>
                 <button class="nav-item" onclick="showSection('paychecks', this)">
-                    <span class="nav-item-icon"></span> Paychecks
+                    <span class="nav-item-icon">➜</span> Paychecks
                     {% if pending_paychecks > 0 and user_permissions.approve_paychecks %}<span class="nav-item-badge">{{ pending_paychecks }}</span>{% endif %}
                 </button>
             </div>
@@ -765,12 +765,12 @@
                 <div class="nav-section-title">System</div>
                 {% if user_permissions.view_action_logs %}
                 <button class="nav-item" onclick="showSection('action-logs', this)">
-                    <span class="nav-item-icon"></span> Action Logs
+                    <span class="nav-item-icon">➜</span> Action Logs
                 </button>
                 {% endif %}
                 {% if user_permissions.maintenance_mode %}
                 <button class="nav-item" onclick="showSection('maintenance', this)">
-                    <span class="nav-item-icon"></span> Maintenance
+                    <span class="nav-item-icon">➜</span> Maintenance
                 </button>
                 {% endif %}
             </div>
@@ -1420,7 +1420,7 @@
                 <p class="page-description">Weekly compensation for staff roles</p>
             </div>
             <div class="alert alert-info mb-4">
-                <strong>Pay Schedule:</strong> Paychecks processed every Monday. President: 100🎟️ | Directors: 50🎟️
+                <strong>Pay Schedule:</strong> Paychecks processed every Monday and vary.
             </div>
             {% if user_permissions.approve_paychecks %}
             <div class="flex gap-3 mb-4">

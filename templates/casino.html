@@ -1099,6 +1099,58 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #ffed4e 0%, var(--christmas-gold) 100%);
         }
+
+        /* ========================================
+   BLACKJACK CARD STYLES
+======================================== */
+.bj-card {
+    background: var(--christmas-white);
+    border: 4px solid var(--border-main);
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+    box-shadow: var(--shadow-cartoon-sm);
+    transition: transform 0.3s ease;
+}
+
+.bj-card:hover {
+    transform: translateY(-4px);
+}
+
+.bj-card.red {
+    color: var(--christmas-red);
+}
+
+.bj-card.black {
+    color: var(--text-dark);
+}
+
+.bj-card-back {
+    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+    border: 4px solid var(--border-main);
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+    box-shadow: var(--shadow-cartoon-sm);
+    color: white;
+}
+
+.bj-card-rank {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.bj-card-suit {
+    font-size: 1.1rem;
+    line-height: 1;
+}
     </style>
 </head>
 <body>
@@ -1161,6 +1213,7 @@
             <button class="tab-btn active" onclick="switchTab('home', this)">Casino Home</button>
             <button class="tab-btn" onclick="switchTab('coinflip', this)">Bobcatflip</button>
             <button class="tab-btn" onclick="switchTab('tower', this)">Tower</button>
+            <button class="tab-btn" onclick="return false;" style="opacity: 0.5; cursor: not-allowed;" disabled>Blackjack (Coming Soon)</button>
         </div>
 
         <!-- ========================================
@@ -1255,6 +1308,19 @@
                         <button class="play-btn">Play Now</button>
                     </div>
                 </div>
+
+ <!-- blackjack card-->
+               <div class="game-card" style="opacity: 0.6; cursor: not-allowed;" onclick="return false;">
+    <div class="game-image">
+        🃏
+    </div>
+    <div class="game-info">
+        <h3 class="game-name">Blackjack</h3>
+        <p class="game-description">Since so many student wanted it... probably next Monday/Tuesday</p>
+        <button class="play-btn" style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); cursor: not-allowed;" disabled>Coming Soon</button>
+    </div>
+</div>
+
             </div>
         </div>
 
@@ -1392,6 +1458,95 @@
         </div>
     </div>
 
+    <!-- ========================================
+     BLACKJACK TAB
+======================================== -->
+<div id="blackjackTab" class="tab-content">
+    <div class="game-container" style="max-width: 900px; margin: 0 auto;">
+        <div class="game-title-header">
+            <h1>🃏 Blackjack</h1>
+            <p>Beat the dealer! Get as close to 21 as possible without going over.</p>
+        </div>
+
+        <!-- Start Game Controls -->
+        <div id="blackjackControls" class="game-controls">
+            <div class="control-group">
+                <label class="control-label">Bet Amount (minimum 20 tokens)</label>
+                <input type="number" id="blackjackBetAmount" class="bet-input" min="20" placeholder="Enter your bet" oninput="updateBlackjackStartButton()">
+            </div>
+
+            <button id="startBlackjackBtn" class="flip-btn" onclick="startBlackjack()" disabled>
+                Enter Bet to Start
+            </button>
+        </div>
+
+        <!-- Game Area -->
+        <div id="blackjackGameArea" style="display: none;">
+            <!-- Dealer Section -->
+            <div class="coin-display-area" style="padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <img src="https://i.ibb.co/nNxQMGb1/IMG-1954.png" alt="Dealer" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--christmas-snow); padding: 0.5rem;">
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">DEALER</div>
+                        <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-dark);" id="dealerValue">?</div>
+                    </div>
+                </div>
+                <div id="dealerCards" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; min-height: 80px;">
+                    <!-- Dealer cards appear here -->
+                </div>
+            </div>
+
+            <!-- Player Section -->
+            <div class="coin-display-area" style="padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="https://i.ibb.co/FkwcDYxs/IMG-1951.png" alt="Player" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--christmas-snow); padding: 0.5rem;">
+                        <div>
+                            <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">YOUR HAND</div>
+                            <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-dark);" id="playerValue">0</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">BET</div>
+                        <div style="font-size: 1.2rem; font-weight: 900; color: var(--christmas-gold-dark);" id="currentBlackjackBet">0</div>
+                    </div>
+                </div>
+                <div id="playerCards" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; min-height: 80px;">
+                    <!-- Player cards appear here -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="blackjackActions" class="game-controls" style="display: none;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                    <button class="btn btn-gold" onclick="blackjackHit()" id="hitBtn" style="padding: 1rem; font-size: 1rem;">
+                        🎴 HIT
+                    </button>
+                    <button class="btn btn-primary" onclick="blackjackStand()" id="standBtn" style="padding: 1rem; font-size: 1rem;">
+                        ✋ STAND
+                    </button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <button class="btn" onclick="blackjackDouble()" id="doubleBtn" style="padding: 1rem; font-size: 1rem;" disabled>
+                        💰 DOUBLE
+                    </button>
+                    <button class="btn" onclick="blackjackSplit()" id="splitBtn" style="padding: 1rem; font-size: 1rem;" disabled>
+                        ✂️ SPLIT
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Message -->
+            <div id="blackjackResultMessage" class="result-message"></div>
+
+            <!-- Play Again Button -->
+            <button id="playAgainBtn" class="flip-btn" onclick="resetBlackjack()" style="display: none; margin-top: 1rem;">
+                🎲 Play Again
+            </button>
+        </div>
+    </div>
+</div>
+
     <script>
         let selectedSide = null;
         let currentView = 'home';
@@ -1414,22 +1569,24 @@
         // TAB SWITCHING
         // ========================================
         function switchTab(tabName, element) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            element.classList.add('active');
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    element.classList.add('active');
 
-            if (tabName === 'coinflip') {
-                resetGame();
-                loadCoinflipTopWins();
-            } else if (tabName === 'tower') {
-                resetTower();
-                loadRecentWins();
-            }
+    if (tabName === 'coinflip') {
+        resetGame();
+        loadCoinflipTopWins();
+    } else if (tabName === 'tower') {
+        resetTower();
+        loadRecentWins();
+    } else if (tabName === 'blackjack') {
+        resetBlackjack();
+    }
 
-            currentView = tabName;
-        }
+    currentView = tabName;
+}
 
         // ========================================
         // COINFLIP FUNCTIONS
@@ -2069,6 +2226,311 @@
             loadLotteryInfo();
             setInterval(loadLotteryInfo, 30000);
         });
+        // ========================================
+// BLACKJACK FUNCTIONS
+// ========================================
+let blackjackGameId = null;
+let blackjackActive = false;
+
+function updateBlackjackStartButton() {
+    const betAmount = parseInt(document.getElementById('blackjackBetAmount').value);
+    const startBtn = document.getElementById('startBlackjackBtn');
+
+    if (betAmount >= 20) {
+        startBtn.disabled = false;
+        startBtn.textContent = `🃏 Deal Cards (${betAmount} Tokens)`;
+    } else {
+        startBtn.disabled = true;
+        startBtn.textContent = 'Enter Bet to Start';
+    }
+}
+
+async function startBlackjack() {
+    const betAmount = parseInt(document.getElementById('blackjackBetAmount').value);
+
+    if (betAmount < 20) {
+        showBlackjackResult('Minimum bet is 20 tokens!', false);
+        return;
+    }
+
+    const currentBalance = parseInt(document.getElementById('userBalance').textContent);
+    if (currentBalance < betAmount) {
+        showBlackjackResult('Insufficient balance!', false);
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/blackjack/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                amount: betAmount
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            blackjackGameId = data.game_id;
+            blackjackActive = true;
+
+            document.getElementById('userBalance').textContent = data.new_balance;
+            document.getElementById('blackjackControls').style.display = 'none';
+            document.getElementById('blackjackGameArea').style.display = 'block';
+            document.getElementById('currentBlackjackBet').textContent = betAmount;
+
+            renderBlackjackCards(data);
+
+            // Check for instant win/loss
+            if (data.status === 'player_blackjack') {
+                showBlackjackResult(data.message, true);
+                blackjackActive = false;
+                document.getElementById('playAgainBtn').style.display = 'block';
+            } else if (data.status === 'dealer_blackjack') {
+                showBlackjackResult(data.message, false);
+                blackjackActive = false;
+                document.getElementById('playAgainBtn').style.display = 'block';
+            } else if (data.status === 'push') {
+                showBlackjackResult(data.message, true);
+                blackjackActive = false;
+                document.getElementById('playAgainBtn').style.display = 'block';
+            } else {
+                // Show action buttons
+                document.getElementById('blackjackActions').style.display = 'block';
+                document.getElementById('doubleBtn').disabled = !data.can_double;
+                document.getElementById('splitBtn').disabled = !data.can_split;
+            }
+        } else {
+            showBlackjackResult(data.error || 'Failed to start game', false);
+        }
+    } catch (error) {
+        showBlackjackResult('Failed to connect to server', false);
+    }
+}
+
+function renderBlackjackCards(data) {
+    // Render player cards
+    const playerCardsDiv = document.getElementById('playerCards');
+    playerCardsDiv.innerHTML = '';
+    data.player_hand.forEach(card => {
+        playerCardsDiv.appendChild(createCard(card));
+    });
+    document.getElementById('playerValue').textContent = data.player_value || calculateHandValue(data.player_hand);
+
+    // Render dealer cards
+    const dealerCardsDiv = document.getElementById('dealerCards');
+    dealerCardsDiv.innerHTML = '';
+
+    if (data.dealer_hidden) {
+        // Show only first card
+        dealerCardsDiv.appendChild(createCard(data.dealer_hand[0]));
+        dealerCardsDiv.appendChild(createCardBack());
+        document.getElementById('dealerValue').textContent = '?';
+    } else {
+        // Show all cards
+        data.dealer_hand.forEach(card => {
+            dealerCardsDiv.appendChild(createCard(card));
+        });
+        document.getElementById('dealerValue').textContent = data.dealer_value || calculateHandValue(data.dealer_hand);
+    }
+}
+
+function createCard(card) {
+    const cardDiv = document.createElement('div');
+    const isRed = card.suit === '♥️' || card.suit === '♦️';
+    cardDiv.className = `bj-card ${isRed ? 'red' : 'black'}`;
+    cardDiv.innerHTML = `
+        <div class="bj-card-rank">${card.rank}</div>
+        <div class="bj-card-suit">${card.suit}</div>
+    `;
+    return cardDiv;
+}
+
+function createCardBack() {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'bj-card-back';
+    cardDiv.innerHTML = `
+        <div class="bj-card-rank">🃏</div>
+    `;
+    return cardDiv;
+}
+
+function calculateHandValue(hand) {
+    let value = 0;
+    let aces = 0;
+
+    hand.forEach(card => {
+        if (card.rank === 'A') {
+            aces++;
+            value += 11;
+        } else if (['J', 'Q', 'K'].includes(card.rank)) {
+            value += 10;
+        } else {
+            value += parseInt(card.rank);
+        }
+    });
+
+    while (value > 21 && aces > 0) {
+        value -= 10;
+        aces--;
+    }
+
+    return value;
+}
+
+async function blackjackHit() {
+    if (!blackjackActive || !blackjackGameId) return;
+
+    try {
+        const response = await fetch(`/api/blackjack/hit/${blackjackGameId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Add new card
+            const playerCardsDiv = document.getElementById('playerCards');
+            playerCardsDiv.appendChild(createCard(data.card));
+            document.getElementById('playerValue').textContent = data.player_value;
+
+            // Disable double after hit
+            document.getElementById('doubleBtn').disabled = true;
+            document.getElementById('splitBtn').disabled = true;
+
+            if (data.status === 'bust') {
+                showBlackjackResult(data.message, false);
+                document.getElementById('userBalance').textContent = data.new_balance;
+                blackjackActive = false;
+                document.getElementById('blackjackActions').style.display = 'none';
+                document.getElementById('playAgainBtn').style.display = 'block';
+            }
+        } else {
+            showBlackjackResult(data.error || 'Error occurred', false);
+        }
+    } catch (error) {
+        showBlackjackResult('Failed to connect to server', false);
+    }
+}
+
+async function blackjackStand() {
+    if (!blackjackActive || !blackjackGameId) return;
+
+    document.getElementById('blackjackActions').style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/blackjack/stand/${blackjackGameId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Reveal dealer cards
+            const dealerCardsDiv = document.getElementById('dealerCards');
+            dealerCardsDiv.innerHTML = '';
+            data.dealer_hand.forEach(card => {
+                dealerCardsDiv.appendChild(createCard(card));
+            });
+            document.getElementById('dealerValue').textContent = data.dealer_value;
+
+            document.getElementById('userBalance').textContent = data.new_balance;
+
+            const isWin = data.status === 'player_wins' || data.status === 'push';
+            showBlackjackResult(data.message, isWin);
+
+            blackjackActive = false;
+            document.getElementById('playAgainBtn').style.display = 'block';
+        } else {
+            showBlackjackResult(data.error || 'Error occurred', false);
+        }
+    } catch (error) {
+        showBlackjackResult('Failed to connect to server', false);
+    }
+}
+
+async function blackjackDouble() {
+    if (!blackjackActive || !blackjackGameId) return;
+
+    const currentBalance = parseInt(document.getElementById('userBalance').textContent);
+    const currentBet = parseInt(document.getElementById('currentBlackjackBet').textContent);
+
+    if (currentBalance < currentBet) {
+        showBlackjackResult('Insufficient tokens to double!', false);
+        return;
+    }
+
+    document.getElementById('blackjackActions').style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/blackjack/double/${blackjackGameId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update bet display
+            document.getElementById('currentBlackjackBet').textContent = currentBet * 2;
+
+            // Add new card
+            const playerCardsDiv = document.getElementById('playerCards');
+            playerCardsDiv.appendChild(createCard(data.card));
+            document.getElementById('playerValue').textContent = data.player_value;
+
+            // Reveal dealer cards
+            const dealerCardsDiv = document.getElementById('dealerCards');
+            dealerCardsDiv.innerHTML = '';
+            data.dealer_hand.forEach(card => {
+                dealerCardsDiv.appendChild(createCard(card));
+            });
+            document.getElementById('dealerValue').textContent = data.dealer_value;
+
+            document.getElementById('userBalance').textContent = data.new_balance;
+
+            const isWin = data.status === 'player_wins' || data.status === 'push';
+            showBlackjackResult(data.message, isWin);
+
+            blackjackActive = false;
+            document.getElementById('playAgainBtn').style.display = 'block';
+        } else {
+            showBlackjackResult(data.error || 'Error occurred', false);
+            document.getElementById('blackjackActions').style.display = 'block';
+        }
+    } catch (error) {
+        showBlackjackResult('Failed to connect to server', false);
+        document.getElementById('blackjackActions').style.display = 'block';
+    }
+}
+
+async function blackjackSplit() {
+    showBlackjackResult('Split feature coming soon!', false);
+    // Split is complex - you can implement later if needed
+}
+
+function showBlackjackResult(message, isWin) {
+    const resultDiv = document.getElementById('blackjackResultMessage');
+    resultDiv.textContent = message;
+    resultDiv.classList.remove('win', 'lose');
+    resultDiv.classList.add(isWin ? 'win' : 'lose');
+    resultDiv.classList.add('show');
+}
+
+function resetBlackjack() {
+    blackjackGameId = null;
+    blackjackActive = false;
+
+    document.getElementById('blackjackControls').style.display = 'block';
+    document.getElementById('blackjackGameArea').style.display = 'none';
+    document.getElementById('blackjackBetAmount').value = '';
+    document.getElementById('blackjackResultMessage').classList.remove('show');
+    document.getElementById('playAgainBtn').style.display = 'none';
+    document.getElementById('blackjackActions').style.display = 'none';
+
+    updateBlackjackStartButton();
+}
     </script>
     <script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
 </body>

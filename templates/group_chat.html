@@ -386,6 +386,17 @@
             color: var(--gold-dark);
         }
 
+        .chat-role-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .message-time {
             font-size: 0.75rem;
             color: var(--text-light);
@@ -1139,7 +1150,33 @@
                     </div>
                     <div class="message-content">
                         <div class="message-header">
-                            <span class="message-author">{% if msg.from == 'system' %}System{% else %}{{ msg.from }}{% endif %}</span>
+                            <span class="message-author">
+                                {% if msg.from == 'system' %}
+                                    System
+                                {% else %}
+                                    {{ msg.from }}
+                                    {% if msg.from in users %}
+                                        {% set user_role = users[msg.from].get('role', 'user') %}
+                                        {% set user_rank = users[msg.from].get('rank', None) %}
+
+                                        <!-- Display staff role badge (takes priority over rank) -->
+                                        {% if user_role and user_role in STAFF_ROLES and user_role != 'user' %}
+                                            <span class="chat-role-badge" style="background-color: {{ STAFF_ROLES[user_role]['color'] }}22; color: {{ STAFF_ROLES[user_role]['color'] }}; border: 1.5px solid {{ STAFF_ROLES[user_role]['color'] }};">
+                                                {{ STAFF_ROLES[user_role]['icon'] }} {{ STAFF_ROLES[user_role]['name'] }}
+                                            </span>
+                                        {% elif user_rank %}
+                                            <!-- Display rank badge only if no staff role -->
+                                            {% for rank in RANKS %}
+                                                {% if rank['id'] == user_rank %}
+                                                    <span class="chat-role-badge" style="background-color: {{ rank['color'] }}22; color: {{ rank['color'] }}; border: 1.5px solid {{ rank['color'] }};">
+                                                        {{ rank['name'] }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </span>
                             <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
                         </div>
 

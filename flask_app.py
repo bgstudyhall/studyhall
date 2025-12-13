@@ -12,6 +12,11 @@ import requests
 import re
 from flask import g
 import instaloader
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+import base64
+from email.mime.text import MIMEText
 
 # ===============================================================
 # Flask App Configuration
@@ -37,28 +42,28 @@ STAFF_ROLES = {
     'admin': {
         'name': 'Administrator',
         'color': '#ff0000',
-        'icon': '👑',
+        'icon': '',
         'level': 100,
         'weekly_pay': 0  # Admin doesn't get paid
     },
     'president': {
         'name': 'President',
         'color': '#9b59b6',
-        'icon': '🎖️',
+        'icon': '️',
         'level': 90,
         'weekly_pay': 100
     },
     'economy_director': {
         'name': 'Economy Director',
         'color': '#f1c40f',
-        'icon': '💰',
+        'icon': '',
         'level': 80,
         'weekly_pay': 50
     },
     'pr_director': {
         'name': 'Director of Public Relations',
         'color': '#3498db',
-        'icon': '📢',
+        'icon': '',
         'level': 80,
         'weekly_pay': 50
     },
@@ -72,18 +77,51 @@ STAFF_ROLES = {
     'ambassador': {
         'name': 'Ambassador',
         'color': '#2ecc71',
-        'icon': '🌟',
+        'icon': '',
         'level': 50,
         'weekly_pay': 0  # Base ambassadors don't get paid
     },
     'user': {
         'name': 'User',
         'color': '#95a5a6',
-        'icon': '👤',
+        'icon': '',
         'level': 0,
         'weekly_pay': 0
     }
 }
+
+# Birthday data - easily editable
+# Format: month: {day: [(name, on_studyhall), ...]}
+BIRTHDAYS = {
+    12: {  # December
+        8: [('Abigail Gregory', False)],
+        9: [('Lucia Hall', False), ('Micah Casey', True)],
+        10: [('Ethan Germond', True), ('Bryce Palmer', False), ('Akai Sherman', False)],
+        11: [],
+        12: [('Madison Stanton', False)],
+        13: [('Harpo Hardt', True), ('Izayah Freeman', False), ('Daisy Crisell', False)],
+        15: [('Peter Blance', False)],
+        16: [('Kaylee Dharry', False), ('Kelly Hubbard', False), ('Caydee Monroe', False)],
+        17: [('Elijah Aponte', True), ('Matthew Wombacker', True)],
+        18: [('Liam Pohli', False), ('Tabitha Doyle', False)],
+        19: [('Madison Smith', False), ('Lelaenia Baldwin', False), ('Beckett Longwell', True)],
+        20: [('Adrian Ramirez', True), ('Brayden Wehrli', True), ('Ethan Morris', True)],
+
+        # Added entries
+        21: [('Colin Dailey', False), ('Anthony Brasiel', True)],
+        22: [('Victoria Cannistra', False), ('Weston Thomas', False)],
+        23: [('Carleigh Henchy', False)],
+        24: [('Emely Lopez', False), ('Robert Tumilowicz', False)],
+        25: [],
+        26: [],
+        27: [('Janaya Walker', False)],
+        28: [('Olivia Bolster', False), ('Parker Buttice', False), ('Colden McFee', False)],
+        29: [('Declan Noxon', False)],
+        30: [],
+        31: []
+    }
+}
+
 
 # Permission definitions
 PERMISSIONS = {
@@ -116,8 +154,7 @@ FORTUNES = [
     "The peace you give will return to you.",
     "Your next step will lead to something good.",
     "Something you’ve been hoping for will show up when you least expect it.",
-    "Hope arrives quietly, like snow on rooftops.",
-    "Did you know the backround music was established December 3th by the B-G band?"
+    "Hope arrives quietly, like snow on rooftops."
 
 ]
 
@@ -187,6 +224,8 @@ REPORTED_MESSAGES_FILE = os.path.join(DATA_DIR, 'reported_messages.json')
 PAYCHECKS_FILE = os.path.join(DATA_DIR, 'paychecks.json')
 CASINO_STATS_FILE = os.path.join(DATA_DIR, 'casino_stats.json')
 LOTTERY_HISTORY_FILE = os.path.join(DATA_DIR, 'lottery_history.json')
+GMAIL_TOKENS_FILE = os.path.join(DATA_DIR, 'gmail_tokens.json')
+GMAIL_CREDENTIALS_FILE = os.path.join(DATA_DIR, 'client_secret.json')
 
 tower_games = {}
 
@@ -406,6 +445,7 @@ lounge_messages = load_json(LOUNGE_FILE, [])
 lounge_reactions = load_json(LOUNGE_REACTIONS_FILE, {})
 lounge_read_receipts = load_json(LOUNGE_READ_RECEIPTS_FILE, {})
 login_notifications = load_json(LOGIN_NOTIFICATIONS_FILE, {})
+gmail_tokens = load_json(GMAIL_TOKENS_FILE, {})
 maintenance_mode = load_json(MAINTENANCE_FILE, {
     'enabled': False,
     'title': "What's Coming",
@@ -684,6 +724,12 @@ def check_and_reset_cookie():
         cookie_state['last_reset'] = now.strftime('%Y-%m-%d %H:%M:%S')
         save_json(COOKIE_FILE, cookie_state)
 
+
+# OAuth 2.0 scopes for Gmail
+SCOPES = ['https://www.googleapis.com/auth/gmail.send',
+          'https://www.googleapis.com/auth/gmail.readonly',
+          'https://www.googleapis.com/auth/gmail.modify']
+
 # Lunch menu data
 lunch_menu = {
     '2025-12-01': {'food': 'Rodeo Cheeseburger & Sweet Potato Fries', 'fact': 'Sweet potato fries became trendy in the 2000s as a "healthier" alternative - sweet potatoes have more fiber and vitamin A than regular potatoes!'},
@@ -844,6 +890,7 @@ def index():
     group_unread_count=group_unread_count,
     lounge_unread_count=lounge_unread_count,
     RANKS=RANKS,
+    STAFF_ROLES=STAFF_ROLES,
     current_rank_index=current_rank_index,
     session=session,
     profiles=profiles
@@ -1455,6 +1502,7 @@ def chat():
         user_unread=user_unread,
         user_last_message=user_last_message,
         RANKS=RANKS,
+        STAFF_ROLES=STAFF_ROLES,
         groups=groups_data,
         user_has_group=user_has_group,
         user_tokens=users[current_user].get('tokens', 0),
@@ -1476,7 +1524,10 @@ def chat_conversation(other_user):
         current_user=current_user,
         read_receipts=read_receipts,
         users=users,
-        session=session
+        session=session,
+        STAFF_ROLES=STAFF_ROLES,
+        RANKS=RANKS,
+        profiles=profiles
     )
 
 @app.route('/chat/<other_user>/send', methods=['POST'])
@@ -1921,7 +1972,11 @@ def lounge():
         cookie_state=cookie_state,
         current_user=username,
         user_role=users[username]['role'],
-        reactions=lounge_reactions
+        reactions=lounge_reactions,
+        STAFF_ROLES=STAFF_ROLES,
+        RANKS=RANKS,
+        profiles=profiles,
+        users=users
     )
 
 @app.route('/lounge/mark_read', methods=['POST'])
@@ -2145,6 +2200,28 @@ def proxy():
         site_access=site_access
     )
 
+
+
+@app.route('/bg')
+@maintenance_check
+@login_required
+def bg():
+    username = session['username']
+    unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
+    lounge_unread_count = get_lounge_unread_count(username)
+    return render_template('bg.html',
+        user_tokens=users[username].get('tokens', 0),
+        username=username,
+        unread_count=unread_count,
+        group_unread_count=group_unread_count,
+        lounge_unread_count=lounge_unread_count,
+        user_role=users[username]['role'],
+        BIRTHDAYS=BIRTHDAYS
+    )
+
+
 @app.route('/youtube')
 @maintenance_check
 @login_required
@@ -2171,18 +2248,19 @@ def twitch():
         )
     return render_template('twitch.html')
 
-@app.route('/reddit')
+@app.route('/freemovies')
 @maintenance_check
 @login_required
-def reddit():
+def freemovies():
     username = session['username']
-    # Check if user has reddit access
-    if username not in site_access or 'reddit' not in site_access[username]:
+    # Check if user has freemovies access
+    if username not in site_access or 'freemovies' not in site_access[username]:
         return render_template('no_access.html',
-            site_name='Reddit',
+            site_name='Free Movies',
             purchase_url=url_for('proxy')
         )
-    return render_template('twitch.html')
+    return render_template('freemovies.html')
+
 
 # Serve UV config
 @app.route('/uv.config.js')
@@ -2466,9 +2544,10 @@ def purchase_access(site_id):
 
     # Define available sites and their prices
     site_prices = {
-        'youtube': 120,
+        'youtube': 50,
         'twitch': 170,
-        'reddit': 150
+        'freemovies': 100,
+        'gmail': 50
     }
 
     if site_id not in site_prices:
@@ -3469,6 +3548,22 @@ def end_lottery():
     lottery_state['total_tickets'] = total_tickets
     lottery_state['won_at'] = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     lottery_state['won_amount'] = prize
+    lottery_state['ended_at'] = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Archive to history
+    global lottery_history
+    lottery_history_entry = {
+        'prize_pool': lottery_state['prize_pool'],
+        'ticket_price': lottery_state['ticket_price'],
+        'total_tickets': total_tickets,
+        'winner': winner,
+        'winner_tickets': winner_tickets,
+        'created_at': lottery_state.get('created_at'),
+        'ended_at': lottery_state['ended_at'],
+        'won_amount': prize
+    }
+    lottery_history.insert(0, lottery_history_entry)  # Add to beginning (most recent first)
+    save_json(LOTTERY_HISTORY_FILE, lottery_history)
 
     # Clear tickets
     lottery_tickets.clear()
@@ -3557,6 +3652,24 @@ def cancel_lottery():
 
     # ✅ CHANGED: No refunds - tokens spent are gone
     # Admin can manually refund if they want via token management
+
+    # Archive cancelled lottery to history if there were participants
+    global lottery_history
+    if lottery_tickets:  # Only archive if there were participants
+        total_tickets = sum(lottery_tickets.values())
+        lottery_history_entry = {
+            'prize_pool': lottery_state['prize_pool'],
+            'ticket_price': lottery_state['ticket_price'],
+            'total_tickets': total_tickets,
+            'winner': None,
+            'winner_tickets': 0,
+            'created_at': lottery_state.get('created_at'),
+            'ended_at': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
+            'cancelled': True,
+            'won_amount': 0
+        }
+        lottery_history.insert(0, lottery_history_entry)
+        save_json(LOTTERY_HISTORY_FILE, lottery_history)
 
     # Clear lottery
     lottery_state['active'] = False
@@ -4058,6 +4171,8 @@ def rps_move(other_user):
 # Advent Calendar API Routes
 # ===============================================================
 
+
+
 # Define advent calendar rewards configuration
 ADVENT_REWARDS = {
     1: {'type': 'tokens', 'amount': 10, 'description': '10 Tokens'},
@@ -4068,11 +4183,11 @@ ADVENT_REWARDS = {
     # Doors 6-24 are placeholders for future implementation
     6: {'type': 'placeholder', 'description': 'Mystery Reward'},
     7: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    8: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    9: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    10: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    11: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    12: {'type': 'placeholder', 'description': 'Mystery Reward'},
+    8: {'type': 'tokens', 'amount': 20, 'description': '20 Tokens'},
+    9: {'type': 'tokens', 'amount': 6, 'description': '6 Tokens'},
+    10: {'type': 'tokens', 'amount': 15, 'description': '15 Tokens'},
+    11: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
+    12: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
     13: {'type': 'placeholder', 'description': 'Mystery Reward'},
     14: {'type': 'placeholder', 'description': 'Mystery Reward'},
     15: {'type': 'placeholder', 'description': 'Mystery Reward'},
@@ -4263,22 +4378,26 @@ def open_advent_door(door_number):
 @app.route('/api/advent/claim_game', methods=['POST'])
 @login_required
 def claim_advent_game():
-    """Claim the free game from door 2"""
+    """Claim the free game from any advent door"""
     username = session['username']
     data = request.json
     game_id = data.get('game_id')
+    door_number = data.get('door_number')  # ✅ NEW: Get door number from request
 
     if not game_id:
         return jsonify({'error': 'No game selected'}), 400
+
+    if not door_number:
+        return jsonify({'error': 'Invalid door number'}), 400
 
     # Check if game exists
     if game_id not in games:
         return jsonify({'error': 'Game not found'}), 404
 
-    # Check if door 2 was opened but game not yet claimed
-    door_key = 'door_2'
+    # Check if the specified door was opened but game not yet claimed
+    door_key = f'door_{door_number}'  # ✅ CHANGED: Use dynamic door number
     if username not in advent_calendar or door_key not in advent_calendar[username]:
-        return jsonify({'error': 'Door 2 not opened'}), 400
+        return jsonify({'error': f'Door {door_number} not opened'}), 400
 
     door_data = advent_calendar[username][door_key]
     if door_data.get('game_selected'):
@@ -4304,7 +4423,6 @@ def claim_advent_game():
         'success': True,
         'game_name': games[game_id]['name']
     })
-
 
 # ===============================================================
 # Groups Feature Routes
@@ -4432,7 +4550,10 @@ def group_chat(group_id):
         is_leader=username == group_data['leader'],
         user_role=users[username]['role'],
         profiles=profiles,
-        all_users=[u for u in users.keys() if u != username and u != group_data['leader'] and u not in group_data.get('members', [])]
+        all_users=[u for u in users.keys() if u != username and u != group_data['leader'] and u not in group_data.get('members', [])],
+        STAFF_ROLES=STAFF_ROLES,
+        RANKS=RANKS,
+        users=users
     )
 
 @app.route('/api/group/create', methods=['POST'])
@@ -5725,6 +5846,982 @@ def assign_role(username):
     )
 
     return jsonify({'success': True, 'old_role': old_role, 'new_role': new_role})
+
+def get_gmail_service(username):
+    """Get Gmail API service for a user"""
+    if username not in gmail_tokens:
+        return None
+
+    token_data = gmail_tokens[username]
+    creds = Credentials(
+        token=token_data['token'],
+        refresh_token=token_data.get('refresh_token'),
+        token_uri=token_data['token_uri'],
+        client_id=token_data['client_id'],
+        client_secret=token_data['client_secret'],
+        scopes=token_data['scopes']
+    )
+
+    # Refresh token if expired
+    if creds.expired and creds.refresh_token:
+        from google.auth.transport.requests import Request
+        creds.refresh(Request())
+
+        # Save refreshed token
+        gmail_tokens[username] = {
+            'token': creds.token,
+            'refresh_token': creds.refresh_token,
+            'token_uri': creds.token_uri,
+            'client_id': creds.client_id,
+            'client_secret': creds.client_secret,
+            'scopes': creds.scopes
+        }
+        save_json(GMAIL_TOKENS_FILE, gmail_tokens)
+
+    return build('gmail', 'v1', credentials=creds)
+
+@app.route('/gmail')
+@maintenance_check
+@login_required
+def gmail_page():
+    """Gmail inbox page"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    # If not admin and hasn't purchased, BLOCK access and clear any tokens
+    if not is_admin and not has_purchased:
+        # Clear any existing Gmail tokens if they haven't purchased
+        if username in gmail_tokens:
+            del gmail_tokens[username]
+            save_json(GMAIL_TOKENS_FILE, gmail_tokens)
+        return redirect(url_for('proxy'))
+
+    unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    unread_count += group_unread_count
+    lounge_unread_count = get_lounge_unread_count(username)
+
+    # Check if user has Gmail connected
+    has_gmail = username in gmail_tokens
+    gmail_email = None
+
+    if has_gmail:
+        try:
+            service = get_gmail_service(username)
+            if service:
+                profile = service.users().getProfile(userId='me').execute()
+                gmail_email = profile.get('emailAddress')
+        except Exception as e:
+            print(f"Error getting Gmail profile: {e}")
+            has_gmail = False
+
+    return render_template('gmail.html',
+        username=username,
+        has_gmail=has_gmail,
+        gmail_email=gmail_email,
+        unread_count=unread_count,
+        group_unread_count=group_unread_count,
+        lounge_unread_count=lounge_unread_count,
+        user_role=users[username]['role']
+    )
+
+@app.route('/oauth/authorize')
+@login_required
+def oauth_authorize():
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return redirect(url_for('proxy'))
+
+    # Use https on production, http on local dev if you want.
+    if os.getenv("FLASK_ENV") == "production":
+        redirect_uri = url_for('oauth_callback', _external=True, _scheme='https')
+    else:
+        redirect_uri = url_for('oauth_callback', _external=True)
+
+    flow = Flow.from_client_secrets_file(
+        GMAIL_CREDENTIALS_FILE,
+        scopes=SCOPES,
+        redirect_uri=redirect_uri
+    )
+
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'
+    )
+
+    session['oauth_state'] = state
+    session['oauth_username'] = username
+
+    return redirect(authorization_url)
+
+
+@app.route('/oauth/callback')
+def oauth_callback():
+    if 'oauth_state' not in session:
+        return "Invalid OAuth state", 400
+
+    username = session.get('oauth_username')
+    if not username:
+        return "Invalid session", 400
+
+    if os.getenv("FLASK_ENV") == "production":
+        redirect_uri = url_for('oauth_callback', _external=True, _scheme='https')
+    else:
+        redirect_uri = url_for('oauth_callback', _external=True)
+
+    flow = Flow.from_client_secrets_file(
+        GMAIL_CREDENTIALS_FILE,
+        scopes=SCOPES,
+        redirect_uri=redirect_uri,
+        state=session['oauth_state']
+    )
+
+    flow.fetch_token(authorization_response=request.url)
+    creds = flow.credentials
+
+    gmail_tokens[username] = {
+        'token': creds.token,
+        'refresh_token': creds.refresh_token,
+        'token_uri': creds.token_uri,
+        'client_id': creds.client_id,
+        'client_secret': creds.client_secret,
+        'scopes': creds.scopes
+    }
+    save_json(GMAIL_TOKENS_FILE, gmail_tokens)
+
+    session.pop('oauth_state', None)
+    session.pop('oauth_username', None)
+
+    return redirect(url_for('gmail_page'))
+
+
+@app.route('/oauth/disconnect', methods=['POST'])
+@login_required
+def oauth_disconnect():
+    """Disconnect Gmail account"""
+    username = session['username']
+
+    if username in gmail_tokens:
+        del gmail_tokens[username]
+        save_json(GMAIL_TOKENS_FILE, gmail_tokens)
+
+    return jsonify({'success': True})
+
+@app.route('/api/gmail/messages')
+@login_required
+def get_gmail_messages():
+    """Get Gmail messages"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        # Get query parameters
+        max_results = int(request.args.get('max_results', 20))
+        page_token = request.args.get('page_token')
+        query = request.args.get('q', '')  # Search query
+        label_id = request.args.get('label', 'INBOX')  # Default to INBOX
+
+        # List messages
+        list_params = {
+            'userId': 'me',
+            'maxResults': max_results,
+            'labelIds': [label_id]
+        }
+
+        if page_token:
+            list_params['pageToken'] = page_token
+        if query:
+            list_params['q'] = query
+
+        results = service.users().messages().list(**list_params).execute()
+
+        messages = results.get('messages', [])
+        next_page_token = results.get('nextPageToken')
+
+        # Get full message details
+        message_list = []
+        for msg in messages:
+            message = service.users().messages().get(
+                userId='me',
+                id=msg['id'],
+                format='metadata',
+                metadataHeaders=['From', 'To', 'Subject', 'Date']
+            ).execute()
+
+            headers = {h['name']: h['value'] for h in message['payload']['headers']}
+            labels = message.get('labelIds', [])
+
+            message_list.append({
+                'id': message['id'],
+                'thread_id': message['threadId'],
+                'from': headers.get('From', ''),
+                'to': headers.get('To', ''),
+                'subject': headers.get('Subject', '(No Subject)'),
+                'date': headers.get('Date', ''),
+                'snippet': message.get('snippet', ''),
+                'labels': labels,
+                'unread': 'UNREAD' in labels
+            })
+
+        return jsonify({
+            'success': True,
+            'messages': message_list,
+            'next_page_token': next_page_token
+        })
+
+    except Exception as e:
+        print(f"Error fetching Gmail messages: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gmail/message/<message_id>')
+@login_required
+def get_gmail_message(message_id):
+    """Get full Gmail message"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        message = service.users().messages().get(
+            userId='me',
+            id=message_id,
+            format='full'
+        ).execute()
+
+        headers = {h['name']: h['value'] for h in message['payload']['headers']}
+
+        # Extract BOTH plain text and HTML
+        def get_body(payload):
+            plain_text = ''
+            html_text = ''
+
+            if 'body' in payload and payload['body'].get('data'):
+                data = base64.urlsafe_b64decode(payload['body']['data']).decode('utf-8')
+                if payload.get('mimeType') == 'text/html':
+                    html_text = data
+                else:
+                    plain_text = data
+            elif 'parts' in payload:
+                for part in payload['parts']:
+                    if part['mimeType'] == 'text/plain' and 'data' in part['body']:
+                        plain_text = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                    elif part['mimeType'] == 'text/html' and 'data' in part['body']:
+                        html_text = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                    # Recursively search in nested parts
+                    elif 'parts' in part:
+                        nested_plain, nested_html = get_body(part)
+                        if not plain_text:
+                            plain_text = nested_plain
+                        if not html_text:
+                            html_text = nested_html
+
+            return plain_text, html_text
+
+        plain_body, html_body = get_body(message['payload'])
+
+        return jsonify({
+            'success': True,
+            'message': {
+                'id': message['id'],
+                'thread_id': message['threadId'],
+                'from': headers.get('From', ''),
+                'to': headers.get('To', ''),
+                'subject': headers.get('Subject', '(No Subject)'),
+                'date': headers.get('Date', ''),
+                'body_plain': plain_body,
+                'body_html': html_body,
+                'labels': message.get('labelIds', [])
+            }
+        })
+
+    except Exception as e:
+        print(f"Error fetching Gmail message: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gmail/send', methods=['POST'])
+@login_required
+def send_gmail_message():
+    """Send a Gmail message"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        data = request.json
+        to = data.get('to')
+        subject = data.get('subject')
+        body = data.get('body')
+
+        if not to or not subject or not body:
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Create message
+        message = MIMEText(body)
+        message['to'] = to
+        message['subject'] = subject
+
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        sent_message = service.users().messages().send(
+            userId='me',
+            body={'raw': raw}
+        ).execute()
+
+        return jsonify({
+            'success': True,
+            'message_id': sent_message['id']
+        })
+
+    except Exception as e:
+        print(f"Error sending Gmail message: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gmail/mark_read/<message_id>', methods=['POST'])
+@login_required
+def mark_gmail_read(message_id):
+    """Mark a Gmail message as read"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        # Remove UNREAD label
+        service.users().messages().modify(
+            userId='me',
+            id=message_id,
+            body={'removeLabelIds': ['UNREAD']}
+        ).execute()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error marking message as read: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gmail/mark_unread/<message_id>', methods=['POST'])
+@login_required
+def mark_gmail_unread(message_id):
+    """Mark a Gmail message as unread"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        # Add UNREAD label
+        service.users().messages().modify(
+            userId='me',
+            id=message_id,
+            body={'addLabelIds': ['UNREAD']}
+        ).execute()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error marking message as unread: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gmail/delete/<message_id>', methods=['POST'])
+@login_required
+def delete_gmail_message(message_id):
+    """Delete a Gmail message (move to trash)"""
+    username = session['username']
+
+    # FORCE: Check if user has purchased access (admins bypass)
+    is_admin = users.get(username, {}).get('role') == 'admin'
+    has_purchased = username in site_access and 'gmail' in site_access.get(username, [])
+
+    if not is_admin and not has_purchased:
+        return jsonify({'error': 'Access denied - Purchase required'}), 403
+
+    if username not in gmail_tokens:
+        return jsonify({'error': 'Gmail not connected'}), 400
+
+    try:
+        service = get_gmail_service(username)
+        if not service:
+            return jsonify({'error': 'Failed to connect to Gmail'}), 500
+
+        # Move to trash
+        service.users().messages().trash(
+            userId='me',
+            id=message_id
+        ).execute()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error deleting message: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/user_chats/<username>')
+@admin_required
+def get_user_chats(username):
+    """Get all chat histories for a specific user (admin only)"""
+    if username not in users:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+
+    user_chats = []
+
+    # Go through all message keys
+    for chat_key, chat_messages in messages.items():
+        participants = chat_key.split('-')
+
+        # Check if this user is in the chat
+        if username not in participants:
+            continue
+
+        # Get the other user
+        other_user = participants[0] if participants[1] == username else participants[1]
+
+        # Filter messages to only those involving this user
+        relevant_messages = []
+        for msg in chat_messages:
+            message_data = {
+                'from': msg.get('from'),
+                'to': msg.get('to'),
+                'text': msg.get('text', '[Media Message]'),
+                'type': msg.get('type', 'text'),
+                'timestamp': msg.get('timestamp'),
+                'read': msg.get('read', False)
+            }
+
+            # Include snap data if it's a snap
+            if msg.get('type') == 'snap':
+                message_data['photo'] = msg.get('photo')
+                message_data['opened'] = msg.get('opened', False)
+
+            # Include voice message data
+            if msg.get('type') == 'voice':
+                message_data['audio'] = msg.get('audio')
+                message_data['duration'] = msg.get('duration', 0)
+
+            relevant_messages.append(message_data)
+
+        if relevant_messages:
+            user_chats.append({
+                'chat_key': chat_key,
+                'other_user': other_user,
+                'message_count': len(relevant_messages),
+                'messages': relevant_messages,
+                'last_message': relevant_messages[-1] if relevant_messages else None
+            })
+
+    # Sort by last message timestamp
+    user_chats.sort(key=lambda x: x['last_message']['timestamp'] if x['last_message'] else '', reverse=True)
+
+    return jsonify({
+        'success': True,
+        'username': username,
+        'chats': user_chats,
+        'total_chats': len(user_chats)
+    })
+
+
+# ===============================================================
+# BLACKJACK GAME API
+# ===============================================================
+
+# Store active blackjack games in memory
+blackjack_games = {}
+
+def create_deck():
+    """Create a standard 52-card deck"""
+    suits = ['♠️', '♥️', '♦️', '♣️']
+    ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    deck = []
+    for suit in suits:
+        for rank in ranks:
+            deck.append({'rank': rank, 'suit': suit})
+    random.shuffle(deck)
+    return deck
+
+def calculate_hand_value(hand):
+    """Calculate the value of a blackjack hand"""
+    value = 0
+    aces = 0
+
+    for card in hand:
+        rank = card['rank']
+        if rank in ['J', 'Q', 'K']:
+            value += 10
+        elif rank == 'A':
+            aces += 1
+            value += 11
+        else:
+            value += int(rank)
+
+    # Adjust for aces
+    while value > 21 and aces > 0:
+        value -= 10
+        aces -= 1
+
+    return value
+
+@app.route('/api/blackjack/start', methods=['POST'])
+@login_required
+def blackjack_start():
+    """Start a new blackjack game"""
+    username = session['username']
+    data = request.json
+    bet_amount = data.get('amount')
+
+    # Validation
+    if not bet_amount:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    try:
+        bet_amount = int(bet_amount)
+    except ValueError:
+        return jsonify({'error': 'Invalid bet amount'}), 400
+
+    if bet_amount < 20:
+        return jsonify({'error': 'Minimum bet is 20 tokens'}), 400
+
+    user_tokens = users[username].get('tokens', 0)
+    if user_tokens < bet_amount:
+        return jsonify({'error': 'Insufficient tokens'}), 400
+
+    # Deduct bet
+    users[username]['tokens'] -= bet_amount
+    save_json(USERS_FILE, users)
+
+    # Create new game
+    deck = create_deck()
+    player_hand = [deck.pop(), deck.pop()]
+    dealer_hand = [deck.pop(), deck.pop()]
+
+    game_id = f"{username}_{int(get_ny_time().timestamp())}"
+
+    blackjack_games[game_id] = {
+        'username': username,
+        'bet': bet_amount,
+        'deck': deck,
+        'player_hand': player_hand,
+        'dealer_hand': dealer_hand,
+        'status': 'active',  # active, player_blackjack, dealer_blackjack, push, player_wins, dealer_wins
+        'doubled': False,
+        'split_hand': None,
+        'current_hand': 'main'  # main or split
+    }
+
+    player_value = calculate_hand_value(player_hand)
+    dealer_value = calculate_hand_value(dealer_hand)
+
+    # Check for natural blackjack
+    player_blackjack = (len(player_hand) == 2 and player_value == 21)
+    dealer_blackjack = (len(dealer_hand) == 2 and dealer_value == 21)
+
+    if player_blackjack and dealer_blackjack:
+        # Push - return bet
+        users[username]['tokens'] += bet_amount
+        save_json(USERS_FILE, users)
+        blackjack_games[game_id]['status'] = 'push'
+        return jsonify({
+            'success': True,
+            'game_id': game_id,
+            'player_hand': player_hand,
+            'dealer_hand': dealer_hand,
+            'player_value': player_value,
+            'dealer_value': dealer_value,
+            'status': 'push',
+            'message': 'Push! Both have Blackjack.',
+            'new_balance': users[username]['tokens']
+        })
+    elif player_blackjack:
+        # Player blackjack - pay 3:2
+        winnings = int(bet_amount * 2.5)  # Bet + 1.5x payout
+        users[username]['tokens'] += winnings
+        save_json(USERS_FILE, users)
+        blackjack_games[game_id]['status'] = 'player_blackjack'
+        log_casino_game('blackjack', username, bet_amount, True, winnings - bet_amount)
+        log_transaction('creation', winnings - bet_amount, username, 'casino_blackjack')
+        return jsonify({
+            'success': True,
+            'game_id': game_id,
+            'player_hand': player_hand,
+            'dealer_hand': dealer_hand,
+            'player_value': player_value,
+            'dealer_value': dealer_value,
+            'status': 'player_blackjack',
+            'message': f'Blackjack! Won {winnings - bet_amount} tokens!',
+            'payout': winnings - bet_amount,
+            'new_balance': users[username]['tokens']
+        })
+    elif dealer_blackjack:
+        # Dealer blackjack - player loses
+        blackjack_games[game_id]['status'] = 'dealer_blackjack'
+        log_casino_game('blackjack', username, bet_amount, False, -bet_amount)
+        log_transaction('destruction', bet_amount, username, 'casino_blackjack')
+        return jsonify({
+            'success': True,
+            'game_id': game_id,
+            'player_hand': player_hand,
+            'dealer_hand': dealer_hand,
+            'player_value': player_value,
+            'dealer_value': dealer_value,
+            'status': 'dealer_blackjack',
+            'message': 'Dealer has Blackjack. You lose.',
+            'new_balance': users[username]['tokens']
+        })
+
+    return jsonify({
+        'success': True,
+        'game_id': game_id,
+        'player_hand': player_hand,
+        'dealer_hand': [dealer_hand[0]],  # Only show first card
+        'dealer_hidden': True,
+        'player_value': player_value,
+        'status': 'active',
+        'can_split': (player_hand[0]['rank'] == player_hand[1]['rank']),
+        'can_double': True
+    })
+
+@app.route('/api/blackjack/hit/<game_id>', methods=['POST'])
+@login_required
+def blackjack_hit(game_id):
+    """Player hits"""
+    username = session['username']
+
+    if game_id not in blackjack_games:
+        return jsonify({'error': 'Game not found'}), 404
+
+    game = blackjack_games[game_id]
+
+    if game['username'] != username:
+        return jsonify({'error': 'Not your game'}), 403
+
+    if game['status'] != 'active':
+        return jsonify({'error': 'Game is not active'}), 400
+
+    # Draw card
+    card = game['deck'].pop()
+    game['player_hand'].append(card)
+
+    player_value = calculate_hand_value(game['player_hand'])
+
+    # Check for bust
+    if player_value > 21:
+        game['status'] = 'dealer_wins'
+        log_casino_game('blackjack', username, game['bet'], False, -game['bet'])
+        log_transaction('destruction', game['bet'], username, 'casino_blackjack')
+        return jsonify({
+            'success': True,
+            'card': card,
+            'player_hand': game['player_hand'],
+            'player_value': player_value,
+            'status': 'bust',
+            'message': 'Bust! You lose.',
+            'new_balance': users[username]['tokens']
+        })
+
+    return jsonify({
+        'success': True,
+        'card': card,
+        'player_hand': game['player_hand'],
+        'player_value': player_value,
+        'status': 'active',
+        'can_double': False  # Can't double after hit
+    })
+
+@app.route('/api/blackjack/stand/<game_id>', methods=['POST'])
+@login_required
+def blackjack_stand(game_id):
+    """Player stands - dealer plays"""
+    username = session['username']
+
+    if game_id not in blackjack_games:
+        return jsonify({'error': 'Game not found'}), 404
+
+    game = blackjack_games[game_id]
+
+    if game['username'] != username:
+        return jsonify({'error': 'Not your game'}), 403
+
+    if game['status'] != 'active':
+        return jsonify({'error': 'Game is not active'}), 400
+
+    # Dealer plays - must hit until 17
+    dealer_hand = game['dealer_hand']
+    dealer_value = calculate_hand_value(dealer_hand)
+
+    while dealer_value < 17:
+        card = game['deck'].pop()
+        dealer_hand.append(card)
+        dealer_value = calculate_hand_value(dealer_hand)
+
+    player_value = calculate_hand_value(game['player_hand'])
+
+    # Determine winner
+    if dealer_value > 21:
+        # Dealer bust - player wins
+        winnings = game['bet'] * 2
+        users[username]['tokens'] += winnings
+        save_json(USERS_FILE, users)
+        game['status'] = 'player_wins'
+        log_casino_game('blackjack', username, game['bet'], True, game['bet'])
+        log_transaction('creation', game['bet'], username, 'casino_blackjack')
+        message = f'Dealer busts! Won {game["bet"]} tokens!'
+        payout = game['bet']
+    elif player_value > dealer_value:
+        # Player wins
+        winnings = game['bet'] * 2
+        users[username]['tokens'] += winnings
+        save_json(USERS_FILE, users)
+        game['status'] = 'player_wins'
+        log_casino_game('blackjack', username, game['bet'], True, game['bet'])
+        log_transaction('creation', game['bet'], username, 'casino_blackjack')
+        message = f'You win! Won {game["bet"]} tokens!'
+        payout = game['bet']
+    elif player_value < dealer_value:
+        # Dealer wins
+        game['status'] = 'dealer_wins'
+        log_casino_game('blackjack', username, game['bet'], False, -game['bet'])
+        log_transaction('destruction', game['bet'], username, 'casino_blackjack')
+        message = 'Dealer wins. You lose.'
+        payout = 0
+    else:
+        # Push - return bet
+        users[username]['tokens'] += game['bet']
+        save_json(USERS_FILE, users)
+        game['status'] = 'push'
+        message = 'Push! Tie game.'
+        payout = 0
+
+    return jsonify({
+        'success': True,
+        'dealer_hand': dealer_hand,
+        'dealer_value': dealer_value,
+        'player_value': player_value,
+        'status': game['status'],
+        'message': message,
+        'payout': payout,
+        'new_balance': users[username]['tokens']
+    })
+
+@app.route('/api/blackjack/double/<game_id>', methods=['POST'])
+@login_required
+def blackjack_double(game_id):
+    """Player doubles down"""
+    username = session['username']
+
+    if game_id not in blackjack_games:
+        return jsonify({'error': 'Game not found'}), 404
+
+    game = blackjack_games[game_id]
+
+    if game['username'] != username:
+        return jsonify({'error': 'Not your game'}), 403
+
+    if game['status'] != 'active':
+        return jsonify({'error': 'Game is not active'}), 400
+
+    if game['doubled']:
+        return jsonify({'error': 'Already doubled'}), 400
+
+    # Check if player has enough tokens
+    if users[username].get('tokens', 0) < game['bet']:
+        return jsonify({'error': 'Insufficient tokens to double'}), 400
+
+    # Deduct additional bet
+    users[username]['tokens'] -= game['bet']
+    save_json(USERS_FILE, users)
+    game['bet'] *= 2
+    game['doubled'] = True
+
+    # Draw one card
+    card = game['deck'].pop()
+    game['player_hand'].append(card)
+
+    player_value = calculate_hand_value(game['player_hand'])
+
+    # Check for bust
+    if player_value > 21:
+        game['status'] = 'dealer_wins'
+        log_casino_game('blackjack', username, game['bet'], False, -game['bet'])
+        log_transaction('destruction', game['bet'], username, 'casino_blackjack')
+        return jsonify({
+            'success': True,
+            'card': card,
+            'player_hand': game['player_hand'],
+            'player_value': player_value,
+            'status': 'bust',
+            'message': 'Bust! You lose.',
+            'new_balance': users[username]['tokens']
+        })
+
+    # Dealer plays automatically after double
+    dealer_hand = game['dealer_hand']
+    dealer_value = calculate_hand_value(dealer_hand)
+
+    while dealer_value < 17:
+        dealer_card = game['deck'].pop()
+        dealer_hand.append(dealer_card)
+        dealer_value = calculate_hand_value(dealer_hand)
+
+    # Determine winner
+    if dealer_value > 21:
+        winnings = game['bet'] * 2
+        users[username]['tokens'] += winnings
+        save_json(USERS_FILE, users)
+        game['status'] = 'player_wins'
+        log_casino_game('blackjack', username, game['bet'], True, game['bet'])
+        log_transaction('creation', game['bet'], username, 'casino_blackjack')
+        message = f'Dealer busts! Won {game["bet"]} tokens!'
+        payout = game['bet']
+    elif player_value > dealer_value:
+        winnings = game['bet'] * 2
+        users[username]['tokens'] += winnings
+        save_json(USERS_FILE, users)
+        game['status'] = 'player_wins'
+        log_casino_game('blackjack', username, game['bet'], True, game['bet'])
+        log_transaction('creation', game['bet'], username, 'casino_blackjack')
+        message = f'You win! Won {game["bet"]} tokens!'
+        payout = game['bet']
+    elif player_value < dealer_value:
+        game['status'] = 'dealer_wins'
+        log_casino_game('blackjack', username, game['bet'], False, -game['bet'])
+        log_transaction('destruction', game['bet'], username, 'casino_blackjack')
+        message = 'Dealer wins. You lose.'
+        payout = 0
+    else:
+        users[username]['tokens'] += game['bet']
+        save_json(USERS_FILE, users)
+        game['status'] = 'push'
+        message = 'Push! Tie game.'
+        payout = 0
+
+    return jsonify({
+        'success': True,
+        'card': card,
+        'player_hand': game['player_hand'],
+        'player_value': player_value,
+        'dealer_hand': dealer_hand,
+        'dealer_value': dealer_value,
+        'status': game['status'],
+        'message': message,
+        'payout': payout,
+        'new_balance': users[username]['tokens']
+    })
+
+@app.route('/api/blackjack/split/<game_id>', methods=['POST'])
+@login_required
+def blackjack_split(game_id):
+    """Player splits pair"""
+    username = session['username']
+
+    if game_id not in blackjack_games:
+        return jsonify({'error': 'Game not found'}), 404
+
+    game = blackjack_games[game_id]
+
+    if game['username'] != username:
+        return jsonify({'error': 'Not your game'}), 403
+
+    if game['status'] != 'active':
+        return jsonify({'error': 'Game is not active'}), 400
+
+    player_hand = game['player_hand']
+
+    if len(player_hand) != 2 or player_hand[0]['rank'] != player_hand[1]['rank']:
+        return jsonify({'error': 'Cannot split this hand'}), 400
+
+    # Check if player has enough tokens
+    if users[username].get('tokens', 0) < game['bet']:
+        return jsonify({'error': 'Insufficient tokens to split'}), 400
+
+    # Deduct additional bet
+    users[username]['tokens'] -= game['bet']
+    save_json(USERS_FILE, users)
+
+    # Split the hand
+    split_hand = [player_hand.pop()]
+    split_hand.append(game['deck'].pop())
+    player_hand.append(game['deck'].pop())
+
+    game['split_hand'] = split_hand
+    game['current_hand'] = 'main'
+
+    return jsonify({
+        'success': True,
+        'player_hand': player_hand,
+        'split_hand': split_hand,
+        'player_value': calculate_hand_value(player_hand),
+        'split_value': calculate_hand_value(split_hand),
+        'status': 'split',
+        'current_hand': 'main',
+        'message': 'Hand split! Play your first hand.',
+        'new_balance': users[username]['tokens']
+    })
 
 
 if __name__ == '__main__':

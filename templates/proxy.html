@@ -110,6 +110,7 @@
             box-shadow: var(--shadow-cartoon-sm);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            position: relative;
         }
 
         .btn:hover {
@@ -164,20 +165,19 @@
         }
 
         .youtube-wrapper {
-    width: 100%;
-    height: 180px;
-    border-bottom: 5px solid var(--border-main);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-}
+            width: 100%;
+            height: 180px;
+            border-bottom: 5px solid var(--border-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
 
-.youtube-logo-img {
-    width: 50%;   /* shrink image here */
-    height: auto;
-}
-
+        .youtube-logo-img {
+            width: 50%;
+            height: auto;
+        }
 
         .site-card:hover {
             transform: translateY(-6px) scale(1.02);
@@ -189,14 +189,6 @@
             height: 180px;
             object-fit: cover;
             border-bottom: 5px solid var(--border-main);
-        }
-
-        .site-image.youtube-logo {
-            object-fit: contain;
-            background: white;
-            padding: 30px;
-            transform: scale(0.5);
-            transform-origin: center;
         }
 
         .site-content {
@@ -313,7 +305,7 @@
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <div class="icon">🗄️</div>
+                <div class="icon">🔓</div>
                 <h1>Unblock Sites</h1>
             </div>
             <div class="header-buttons">
@@ -321,13 +313,13 @@
                     <span>🎟️</span>
                     <span class="token-amount" id="tokenBalance">{{ user_tokens }}</span>
                 </div>
-                <a href="{{ url_for('lounge') }}" class="btn" style="position: relative;">
+                <a href="{{ url_for('lounge') }}" class="btn">
                     🏠 Lounge
                     {% if lounge_unread_count > 0 %}
                     <span class="unread-badge">{{ lounge_unread_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{{ url_for('chat') }}" class="btn" style="position: relative;">
+                <a href="{{ url_for('chat') }}" class="btn">
                     💬 Chat
                     {% if unread_count > 0 %}
                     <span class="unread-badge">{{ unread_count }}</span>
@@ -341,13 +333,11 @@
             <!-- YouTube Card -->
             <div class="site-card">
                 <div class="youtube-wrapper">
-    <img src="https://i.ibb.co/MyKN0GV2/You-Tube-full-color-icon-2017-svg.webp" class="youtube-logo-img">
-</div>
-
+                    <img src="https://i.ibb.co/MyKN0GV2/You-Tube-full-color-icon-2017-svg.webp" class="youtube-logo-img" alt="YouTube">
+                </div>
                 <div class="site-content">
                     <h3 class="site-title">YouTube</h3>
                     <div class="site-price">🎟 120 Tokens</div>
-
                     {% if username in site_access and 'youtube' in site_access[username] %}
                         <span class="site-status status-owned">✓ Owned</span>
                         <a href="{{ url_for('youtube') }}" class="site-btn">Open YouTube</a>
@@ -364,7 +354,6 @@
                 <div class="site-content">
                     <h3 class="site-title">Twitch</h3>
                     <div class="site-price">🎟️ 170 Tokens</div>
-
                     {% if username in site_access and 'twitch' in site_access[username] %}
                         <span class="site-status status-owned">✓ Owned</span>
                         <a href="{{ url_for('twitch') }}" class="site-btn">Open Twitch</a>
@@ -374,10 +363,40 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Free Movies Card -->
+            <div class="site-card">
+                <img src="https://cdn-icons-png.freepik.com/512/2798/2798007.png" alt="Free Movies" class="site-image">
+                <div class="site-content">
+                    <h3 class="site-title">Free Movies</h3>
+                    <div class="site-price">🎟️ 100 Tokens</div>
+                    {% if username in site_access and 'freemovies' in site_access[username] %}
+                        <span class="site-status status-owned">✓ Owned</span>
+                        <a href="{{ url_for('freemovies') }}" class="site-btn">Open Free Movies</a>
+                    {% else %}
+                        <span class="site-status status-locked">🔒 Locked</span>
+                        <button class="site-btn purchase" onclick="purchaseSite('freemovies', 100)">Purchase Access</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Gmail Card -->
+            <div class="site-card">
+                <img src="https://cdn4.iconfinder.com/data/icons/free-colorful-icons/360/gmail.png" alt="Gmail" class="site-image">
+                <div class="site-content">
+                    <h3 class="site-title">Gmail</h3>
+                    <div class="site-price">🎟️50 Tokens</div>
+                    {% if username in site_access and 'gmail' in site_access[username] %}
+                        <span class="site-status status-owned">✓ Owned</span>
+                        <a href="{{ url_for('gmail_page') }}" class="site-btn">Open Gmail</a>
+                    {% else %}
+                        <span class="site-status status-locked">🔒 Locked</span>
+                        <button class="site-btn purchase" onclick="purchaseSite('gmail', 50)">Purchase Access</button>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-
-
 
     <script>
         function purchaseSite(siteId, price) {

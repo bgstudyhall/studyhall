@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #f6f8fc;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .gmail-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+
+        .gmail-loader::before,
+        .gmail-loader::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            animation: rotate 1.5s ease-in-out infinite;
+        }
+
+        .gmail-loader::before {
+            width: 80px;
+            height: 80px;
+            border-top-color: #4285f4;
+            border-right-color: #ea4335;
+            border-bottom-color: #fbbc04;
+            border-left-color: #34a853;
+        }
+
+        .gmail-loader::after {
+            width: 60px;
+            height: 60px;
+            top: 10px;
+            left: 10px;
+            border-top-color: #34a853;
+            border-right-color: #4285f4;
+            border-bottom-color: #ea4335;
+            border-left-color: #fbbc04;
+            animation-direction: reverse;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #5f6368;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Gmail Header */
+        .gmail-header {
+            height: 64px;
+            background: #c3302b;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        .gmail-logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 22px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            margin-right: 40px;
+            text-decoration: none;
+        }
+
+        .gmail-logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 8px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 720px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            transition: background 0.2s;
+        }
+
+        .search-bar:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .search-bar input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 16px;
+            margin-left: 12px;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .search-bar .material-icons {
+            color: white;
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            gap: 8px;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        .header-icon:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #c3302b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+
+        /* Main Container */
+        .gmail-main {
+            display: flex;
+            height: calc(100vh - 64px);
+        }
+
+        /* Sidebar */
+        .gmail-sidebar {
+            width: 256px;
+            background: white;
+            padding: 8px 0;
+            overflow-y: auto;
+        }
+
+        .compose-button {
+            margin: 8px 16px 16px;
+            height: 56px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+            transition: box-shadow 0.2s;
+        }
+
+        .compose-button:hover {
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        }
+
+        .compose-button .material-icons {
+            margin-right: 12px;
+            font-size: 24px;
+            color: #ea4335;
+        }
+
+        .nav-item {
+            height: 32px;
+            margin: 0 8px 4px 8px;
+            padding: 0 20px 0 12px;
+            display: flex;
+            align-items: center;
+            border-radius: 0 16px 16px 0;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+            color: #202124;
+        }
+
+        .nav-item:hover {
+            background: #f1f3f4;
+        }
+
+        .nav-item.active {
+            background: #fce8e6;
+            color: #d93025;
+        }
+
+        .nav-item .material-icons {
+            margin-right: 20px;
+            font-size: 20px;
+            color: #5f6368;
+        }
+
+        .nav-item.active .material-icons {
+            color: #d93025;
+        }
+
+        /* Main Content */
+        .gmail-content {
+            flex: 1;
+            background: white;
+            margin: 8px 16px 8px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        .content-toolbar {
+            height: 48px;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+
+        .toolbar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #5f6368;
+        }
+
+        .toolbar-icon:hover {
+            background: #f1f3f4;
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 24px;
+            background: #e8eaed;
+            margin: 0 8px;
+        }
+
+        /* Email List */
+        .email-list {
+            overflow-y: auto;
+            height: calc(100% - 48px);
+        }
+
+        .email-row {
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            height: 48px;
+            border-bottom: 1px solid #e8eaed;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .email-row:hover {
+            box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            z-index: 1;
+        }
+
+        .email-row.unread {
+            background: white;
+        }
+
+        .email-row.unread .email-sender,
+        .email-row.unread .email-subject {
+            font-weight: 700;
+        }
+
+        .email-checkbox {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .email-star {
+            margin-right: 8px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+
+        .email-star:hover {
+            color: #fbbc04;
+        }
+
+        .email-sender {
+            width: 200px;
+            font-size: 14px;
+            color: #202124;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            margin: 0 16px;
+            font-size: 14px;
+            color: #5f6368;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .email-subject {
+            color: #202124;
+            margin-right: 8px;
+        }
+
+        .email-snippet {
+            color: #5f6368;
+        }
+
+        .email-date {
+            width: 80px;
+            text-align: right;
+            font-size: 12px;
+            color: #5f6368;
+            white-space: nowrap;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: #5f6368;
+        }
+
+        .empty-state .material-icons {
+            font-size: 120px;
+            color: #dadce0;
+            margin-bottom: 20px;
+        }
+
+        /* Connect Section */
+        .connect-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 64px);
+            background: white;
+        }
+
+        .connect-card {
+            max-width: 400px;
+            padding: 48px;
+            text-align: center;
+        }
+
+        .connect-card h2 {
+            font-size: 24px;
+            color: #202124;
+            margin-bottom: 16px;
+            font-weight: 400;
+        }
+
+        .connect-card p {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .connect-btn {
+            background: #1a73e8;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        .connect-btn:hover {
+            background: #1765cc;
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        }
+
+        /* Message View Modal */
+        .message-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .message-viewer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+        }
+
+        .message-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #e8eaed;
+        }
+
+        .message-subject {
+            font-size: 22px;
+            color: #202124;
+            margin-bottom: 16px;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .message-from-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ea4335;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            margin-right: 12px;
+        }
+
+        .message-from-details {
+            flex: 1;
+        }
+
+        .message-from-name {
+            color: #202124;
+            font-size: 14px;
+        }
+
+        .message-from-email {
+            color: #5f6368;
+            font-size: 12px;
+        }
+
+        .message-body-container {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .message-body-container iframe {
+            width: 100%;
+            border: none;
+        }
+
+        .message-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+            background: none;
+            color: #5f6368;
+        }
+
+        .message-close:hover {
+            background: #f1f3f4;
+        }
+
+        /* Compose Popup */
+        .compose-popup {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            right: 48px;
+            width: 540px;
+            height: 568px;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+            z-index: 900;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .compose-header {
+            height: 48px;
+            background: #404040;
+            border-radius: 8px 8px 0 0;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-size: 14px;
+        }
+
+        .compose-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .compose-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+            background: none;
+            color: white;
+        }
+
+        .compose-action:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .compose-body {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 48px);
+        }
+
+        .compose-field {
+            border-bottom: 1px solid #e8eaed;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .compose-field label {
+            color: #5f6368;
+            width: 40px;
+        }
+
+        .compose-field input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #202124;
+        }
+
+        .compose-editor {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .compose-editor textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Roboto', Arial, sans-serif;
+            resize: none;
+            color: #202124;
+        }
+
+        .compose-footer {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .compose-send {
+            background: #1a73e8;
+            color: white;
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .compose-send:hover {
+            background: #1765cc;
+        }
+
+        .compose-footer-icon {
+            color: #5f6368;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .compose-footer-icon:hover {
+            color: #202124;
+        }
+
+        /* Disconnect Button */
+        .disconnect-btn {
+            background: #ea4335;
+            color: white;
+            padding: 6px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .disconnect-btn:hover {
+            background: #d33828;
+        }
+    </style>
+</head>
+<body>
+    {% if not has_gmail %}
+    <!-- Connect Section -->
+    <div class="gmail-header">
+        <a href="#" class="gmail-logo">
+            <svg viewBox="0 0 40 40" style="width: 40px; height: 40px;">
+                <path fill="#4285f4" d="M6.3,5L20,16.3l13.7-11.3c-1.2-1.1-2.8-1.8-4.6-1.8H10.9C9.1,3.2,7.5,3.9,6.3,5z"/>
+                <path fill="#34a853" d="M34.7,12.5L20,24.7L5.3,12.5V30c0,2.2,1.8,4,4,4h21.4c2.2,0,4-1.8,4-4V12.5z"/>
+                <path fill="#fbbc04" d="M34.7,12.5V10c0-1.8-0.7-3.4-1.8-4.6L20,16.3"/>
+                <path fill="#ea4335" d="M5.3,12.5V10c0-1.8,0.7-3.4,1.8-4.6L20,16.3"/>
+            </svg>
+            <span>Gmail</span>
+        </a>
+    </div>
+    <div class="connect-section">
+        <div class="connect-card">
+            <h2>Connect to Gmail</h2>
+            <p>Access your Gmail inbox, read messages, and send emails securely through your Google account.</p>
+            <button class="connect-btn" onclick="location.href='/oauth/authorize'">
+                Connect Gmail Account
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="gmail-loader"></div>
+        <div class="loading-text">Loading Gmail...</div>
+    </div>
+
+    <!-- Gmail Interface -->
+    <div class="gmail-header">
+        <a href="#" class="gmail-logo">
+            <svg viewBox="0 0 40 40" style="width: 40px; height: 40px;">
+                <path fill="white" d="M6.3,5L20,16.3l13.7-11.3c-1.2-1.1-2.8-1.8-4.6-1.8H10.9C9.1,3.2,7.5,3.9,6.3,5z" opacity="0.9"/>
+                <path fill="white" d="M34.7,12.5L20,24.7L5.3,12.5V30c0,2.2,1.8,4,4,4h21.4c2.2,0,4-1.8,4-4V12.5z" opacity="0.9"/>
+                <path fill="white" d="M34.7,12.5V10c0-1.8-0.7-3.4-1.8-4.6L20,16.3" opacity="0.7"/>
+                <path fill="white" d="M5.3,12.5V10c0-1.8,0.7-3.4,1.8-4.6L20,16.3" opacity="0.7"/>
+            </svg>
+            <span>Gmail</span>
+        </a>
+        <div class="search-bar">
+            <span class="material-icons">search</span>
+            <input type="text" placeholder="Search mail">
+        </div>
+        <div class="header-right">
+            <div class="header-icon" onclick="disconnectGmail()" title="Disconnect">
+                <span class="material-icons">logout</span>
+            </div>
+            <div class="user-avatar">{{ gmail_email[0].upper() if gmail_email else 'U' }}</div>
+        </div>
+    </div>
+
+    <div class="gmail-main">
+        <div class="gmail-sidebar">
+            <button class="compose-button" onclick="showCompose()">
+                <span class="material-icons">add</span>
+                Compose
+            </button>
+            <div class="nav-item active" id="nav-inbox" onclick="switchFolder('INBOX')">
+                <span class="material-icons">inbox</span>
+                Inbox
+            </div>
+            <div class="nav-item" id="nav-starred" onclick="switchFolder('STARRED')">
+                <span class="material-icons">star</span>
+                Starred
+            </div>
+            <div class="nav-item" id="nav-snoozed" onclick="switchFolder('SNOOZED')">
+                <span class="material-icons">schedule</span>
+                Snoozed
+            </div>
+            <div class="nav-item" id="nav-sent" onclick="switchFolder('SENT')">
+                <span class="material-icons">send</span>
+                Sent
+            </div>
+            <div class="nav-item" id="nav-draft" onclick="switchFolder('DRAFT')">
+                <span class="material-icons">drafts</span>
+                Drafts
+            </div>
+        </div>
+
+        <div class="gmail-content">
+            <div class="content-toolbar">
+                <div class="toolbar-icon" title="Refresh" onclick="loadMessages()">
+                    <span class="material-icons">refresh</span>
+                </div>
+                <div class="toolbar-separator"></div>
+                <div class="toolbar-icon">
+                    <span class="material-icons">label</span>
+                </div>
+            </div>
+            <div class="email-list" id="emailList">
+                <div class="empty-state">
+                    <span class="material-icons">inbox</span>
+                    <p>Loading messages...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Viewer -->
+    <div class="message-modal" id="messageModal" onclick="closeMessage(event)">
+        <div class="message-viewer" onclick="event.stopPropagation()">
+            <button class="message-close" onclick="closeMessage()">
+                <span class="material-icons">close</span>
+            </button>
+            <div id="messageViewerContent"></div>
+        </div>
+    </div>
+
+    <!-- Compose Popup -->
+    <div class="compose-popup" id="composePopup">
+        <div class="compose-header">
+            <span>New Message</span>
+            <div class="compose-actions">
+                <button class="compose-action" onclick="closeCompose()">
+                    <span class="material-icons" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+        </div>
+        <form id="composeForm" class="compose-body">
+            <div class="compose-field">
+                <label>To</label>
+                <input type="email" id="composeTo" placeholder="Recipients" required>
+            </div>
+            <div class="compose-field">
+                <label>Subject</label>
+                <input type="text" id="composeSubject" placeholder="" required>
+            </div>
+            <div class="compose-editor">
+                <textarea id="composeBody" placeholder="Write your message..." required></textarea>
+            </div>
+            <div class="compose-footer">
+                <button type="submit" class="compose-send">Send</button>
+                <span class="material-icons compose-footer-icon">format_bold</span>
+                <span class="material-icons compose-footer-icon">attach_file</span>
+                <span class="material-icons compose-footer-icon">insert_link</span>
+                <span class="material-icons compose-footer-icon">insert_emoticon</span>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    // Hide loading screen after page loads
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 800);
+    });
+
+    function resizeIframe(iframe) {
+        try {
+            setTimeout(() => {
+                const height = iframe.contentWindow.document.body.scrollHeight;
+                iframe.style.height = height + 50 + 'px';
+            }, 100);
+        } catch (e) {
+            // Cross-origin error - use default height
+            iframe.style.height = '600px';
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    {% if has_gmail %}
+    let currentLabel = 'INBOX';
+    loadMessages();
+
+    function switchFolder(label) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const labelMap = {
+            'INBOX': 'nav-inbox',
+            'STARRED': 'nav-starred',
+            'SNOOZED': 'nav-snoozed',
+            'SENT': 'nav-sent',
+            'DRAFT': 'nav-draft'
+        };
+        const activeItem = document.getElementById(labelMap[label]);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+        loadMessages(label);
+    }
+
+    function loadMessages(label = currentLabel) {
+        currentLabel = label;
+        const list = document.getElementById('emailList');
+        list.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span><p>Loading messages...</p></div>';
+
+        fetch(`/api/gmail/messages?label=${label}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    displayMessages(data.messages);
+                } else {
+                    list.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Error loading messages</p></div>';
+                }
+            })
+            .catch(err => {
+                list.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Error loading messages</p></div>';
+            });
+    }
+
+    function displayMessages(messages) {
+        const list = document.getElementById('emailList');
+        if (messages.length === 0) {
+            list.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span><p>No messages in your inbox</p></div>';
+            return;
+        }
+
+        list.innerHTML = messages.map(msg => {
+            const senderName = extractName(msg.from);
+            const date = formatDate(msg.date);
+            const unreadClass = msg.unread ? 'unread' : '';
+            return `
+                <div class="email-row ${unreadClass}" data-message-id="${msg.id}" onclick="viewMessage('${msg.id}')">
+                    <input type="checkbox" class="email-checkbox" onclick="event.stopPropagation()">
+                    <span class="material-icons email-star" onclick="event.stopPropagation()">star_border</span>
+                    <div class="email-sender">${escapeHtml(senderName)}</div>
+                    <div class="email-content">
+                        <span class="email-subject">${escapeHtml(msg.subject)}</span>
+                        <span class="email-snippet"> - ${escapeHtml(msg.snippet)}</span>
+                    </div>
+                    <div class="email-date">${date}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function extractName(email) {
+        const match = email.match(/^(.+?)\s*</);
+        return match ? match[1].replace(/"/g, '') : email.split('@')[0];
+    }
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now - date;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (days === 0) {
+            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        } else if (days < 7) {
+            return date.toLocaleDateString('en-US', { weekday: 'short' });
+        } else {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    }
+
+    function viewMessage(messageId) {
+        // Mark as read
+        fetch(`/api/gmail/mark_read/${messageId}`, {
+            method: 'POST'
+        }).then(() => {
+            const emailRows = document.querySelectorAll('.email-row');
+            emailRows.forEach(row => {
+                if (row.getAttribute('data-message-id') === messageId) {
+                    row.classList.remove('unread');
+                }
+            });
+        });
+
+        fetch(`/api/gmail/message/${messageId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const msg = data.message;
+                    const senderName = extractName(msg.from);
+                    const senderEmail = msg.from.match(/<(.+)>/)?.[1] || msg.from;
+                    const senderInitial = senderName[0].toUpperCase();
+
+                    // Prepare body HTML
+                    let bodyHtml = '';
+                    if (msg.body_html) {
+                        // Don't double-escape - the API already returns proper HTML
+                        bodyHtml = `<iframe srcdoc="${msg.body_html.replace(/"/g, '&quot;')}" style="width: 100%; min-height: 500px; border: none;" onload="resizeIframe(this)"></iframe>`;
+                    } else if (msg.body_plain) {
+                        bodyHtml = `<pre style="white-space: pre-wrap; font-family: 'Roboto', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #202124;">${escapeHtml(msg.body_plain)}</pre>`;
+                    } else {
+                        bodyHtml = '<p style="color: #5f6368; font-style: italic;">No message content</p>';
+                    }
+
+                    document.getElementById('messageViewerContent').innerHTML = `
+                        <div class="message-header">
+                            <div class="message-subject">${escapeHtml(msg.subject)}</div>
+                            <div class="message-meta">
+                                <div class="message-from-avatar">${senderInitial}</div>
+                                <div class="message-from-details">
+                                    <div class="message-from-name">${escapeHtml(senderName)}</div>
+                                    <div class="message-from-email">&lt;${escapeHtml(senderEmail)}&gt;</div>
+                                </div>
+                                <div style="margin-left: auto; font-size: 12px; color: #5f6368;">
+                                    ${new Date(msg.date).toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                        hour: 'numeric',
+                                        minute: '2-digit'
+                                    })}
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8eaed;">
+                                <button onclick="deleteMessage('${msg.id}')" style="background: #ea4335; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s;">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">delete</span>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="message-body-container">
+                            ${bodyHtml}
+                        </div>
+                    `;
+                    document.getElementById('messageModal').style.display = 'block';
+                }
+            });
+    }
+
+    function closeMessage(event) {
+        if (!event || event.target.id === 'messageModal') {
+            document.getElementById('messageModal').style.display = 'none';
+        }
+    }
+
+    function deleteMessage(messageId) {
+        if (!confirm('Are you sure you want to delete this message?')) {
+            return;
+        }
+
+        fetch(`/api/gmail/delete/${messageId}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('messageModal').style.display = 'none';
+                loadMessages();
+                alert('Message deleted successfully!');
+            } else {
+                alert('Error deleting message: ' + data.error);
+            }
+        })
+        .catch(err => {
+            alert('Error deleting message');
+        });
+    }
+
+    function showCompose() {
+        document.getElementById('composePopup').style.display = 'block';
+        document.getElementById('composeTo').focus();
+    }
+
+    function closeCompose() {
+        document.getElementById('composePopup').style.display = 'none';
+        document.getElementById('composeForm').reset();
+    }
+
+    document.getElementById('composeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const sendBtn = this.querySelector('.compose-send');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        const data = {
+            to: document.getElementById('composeTo').value,
+            subject: document.getElementById('composeSubject').value,
+            body: document.getElementById('composeBody').value
+        };
+
+        fetch('/api/gmail/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                closeCompose();
+                loadMessages();
+                alert('Message sent successfully!');
+            } else {
+                alert('Error: ' + result.error);
+            }
+        })
+        .catch(err => {
+            alert('Error sending message');
+        })
+        .finally(() => {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send';
+        });
+    });
+
+function disconnectGmail() {
+    if (confirm('Are you sure you want to disconnect your Gmail account?')) {
+        fetch('/oauth/disconnect', {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+    }
+}
+    {% endif %}
+</script>
+{% endif %}  <!-- ADD THIS LINE - closes the first if block -->
+</body>
+</html>

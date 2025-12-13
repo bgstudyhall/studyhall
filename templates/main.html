@@ -121,8 +121,7 @@ body::after {
         }
 
         /* Christmas header decoration */
-        .container::before {
-            content: '🎄 StudyHall';
+        .christmas-countdown-header {
             position: absolute;
             top: -3px;
             left: 0;
@@ -135,6 +134,7 @@ body::after {
             border-bottom: 5px solid var(--border-main);
             letter-spacing: 3px;
             color: white;
+            z-index: 10;
         }
 
         /* ========================================
@@ -1618,8 +1618,42 @@ body::after {
             });
         }
     });
+
+    // Christmas Countdown Timer
+    function updateChristmasCountdown() {
+        const countdownEl = document.getElementById('christmasCountdown');
+        if (!countdownEl) return;
+
+        const now = new Date();
+        const christmasYear = now.getMonth() === 11 && now.getDate() > 25 ? now.getFullYear() + 1 : 2025;
+        const christmas = new Date(christmasYear, 11, 25, 0, 0, 0);
+        const diff = christmas - now;
+
+        if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            const countdownText = `🎄 Christmas in ${days} Days, ${hours} Hours, ${minutes} Minutes, ${seconds} Seconds`;
+            countdownEl.textContent = countdownText;
+        } else {
+            countdownEl.textContent = '🎄 Merry Christmas! 🎅';
+        }
+    }
+
+    // Initialize countdown when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        updateChristmasCountdown();
+        setInterval(updateChristmasCountdown, 1000);
+    });
 </script>
 <div class="container">
+    <!-- Christmas Countdown Header -->
+    <div class="christmas-countdown-header" id="christmasCountdown">
+        🎄 Christmas in ...
+    </div>
+
     <!-- Header Section -->
     <div class="header">
         <div class="header-left">
@@ -1675,7 +1709,8 @@ body::after {
 <button class="tab-btn" onclick="switchTab('tokens', this)">Tokens</button>
 <button class="tab-btn" onclick="switchTab('shop', this)">Shop</button>
     <a href="{{ url_for('casino') }}" class="tab-btn">Casino</a>
-    <a href="{{ url_for('proxy') }}" class="tab-btn">More</a>
+    <a href="{{ url_for('proxy') }}" class="tab-btn">Unblock</a>
+    <a href="{{ url_for('bg') }}" class="tab-btn">BG</a>
 </div>
 
 <!-- ========================================
@@ -2224,6 +2259,7 @@ body::after {
     // ========================================
     let adventCalendarData = null;
     let pendingGameSelection = false;
+    let pendingDoorNumber = null; // ✅ ADD THIS LINE
 
     // Christmas tree layout - number of doors per row
     const treeLayout = [
@@ -2298,41 +2334,42 @@ body::after {
     }
 
     async function openAdventDoor(doorNumber) {
-        if (pendingGameSelection) {
-            showAdventMessage('Please finish selecting your game first!', true);
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/advent/open/${doorNumber}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                if (data.reward_type === 'tokens') {
-                    // Token reward
-                    showAdventMessage(`🎉 You received ${data.amount} tokens!`, false);
-                    document.getElementById('balance').textContent = data.new_balance;
-                    await loadAdventCalendar(); // Reload calendar
-                } else if (data.reward_type === 'free_game') {
-                    // Free game - show selection modal
-                    pendingGameSelection = true;
-                    showGameSelectModal(data.available_games);
-                } else if (data.reward_type === 'youtube_access') {
-                    // YouTube access
-                    showAdventMessage(`🎉 ${data.message}`, false);
-                    await loadAdventCalendar(); // Reload calendar
-                }
-            } else {
-                showAdventMessage(data.error || 'Could not open door', true);
-            }
-        } catch (error) {
-            console.error('Error opening door:', error);
-            showAdventMessage('Error opening door', true);
-        }
+    if (pendingGameSelection) {
+        showAdventMessage('Please finish selecting your game first!', true);
+        return;
     }
+
+    try {
+        const response = await fetch(`/api/advent/open/${doorNumber}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            if (data.reward_type === 'tokens') {
+                // Token reward
+                showAdventMessage(`🎉 You received ${data.amount} tokens!`, false);
+                document.getElementById('balance').textContent = data.new_balance;
+                await loadAdventCalendar(); // Reload calendar
+            } else if (data.reward_type === 'free_game') {
+                // Free game - show selection modal
+                pendingGameSelection = true;
+                pendingDoorNumber = doorNumber; // ✅ ADD THIS LINE - Store which door
+                showGameSelectModal(data.available_games);
+            } else if (data.reward_type === 'youtube_access') {
+                // YouTube access
+                showAdventMessage(`🎉 ${data.message}`, false);
+                await loadAdventCalendar(); // Reload calendar
+            }
+        } else {
+            showAdventMessage(data.error || 'Could not open door', true);
+        }
+    } catch (error) {
+        console.error('Error opening door:', error);
+        showAdventMessage('Error opening door', true);
+    }
+}
 
     function showAdventMessage(text, isError) {
         const messageDiv = document.getElementById('adventMessage');
@@ -2377,31 +2414,35 @@ body::after {
     }
 
     async function selectFreeGame(gameId, gameName) {
-        if (!confirm(`Select "${gameName}" as your free game? This cannot be undone!`)) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/advent/claim_game', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ game_id: gameId })
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                closeGameSelectModal();
-                showAdventMessage(`🎉 You claimed ${data.game_name}!`, false);
-                pendingGameSelection = false;
-                await loadAdventCalendar(); // Reload calendar
-            } else {
-                alert(data.error || 'Error claiming game');
-            }
-        } catch (error) {
-            console.error('Error claiming game:', error);
-            alert('Error claiming game');
-        }
+    if (!confirm(`Select "${gameName}" as your free game? This cannot be undone!`)) {
+        return;
     }
+
+    try {
+        const response = await fetch('/api/advent/claim_game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                game_id: gameId,
+                door_number: pendingDoorNumber // ✅ ADD THIS LINE
+            })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            closeGameSelectModal();
+            showAdventMessage(`🎉 You claimed ${data.game_name}!`, false);
+            pendingGameSelection = false;
+            pendingDoorNumber = null; // ✅ ADD THIS LINE - Clear the stored door
+            await loadAdventCalendar(); // Reload calendar
+        } else {
+            alert(data.error || 'Error claiming game');
+        }
+    } catch (error) {
+        console.error('Error claiming game:', error);
+        alert('Error claiming game');
+    }
+}
 
     function closeGameSelectModal() {
         const modal = document.getElementById('gameSelectModal');
