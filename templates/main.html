@@ -6,6 +6,11 @@
     <title>Study Hall Portal - Christmas Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
+    <!-- Performance optimization: DNS prefetch and preconnect -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://i.ibb.co">
+    <link rel="preconnect" href="{{ url_for('static', filename='', _external=True) }}">
+
 <style>
         /* ========================================
            GLOBAL RESET & BASE STYLES
@@ -1672,7 +1677,7 @@ body::after {
                 {% endif %}
             </a>
             <div class="tokens-display">
-                <span class="token-amount">{{ users[session.username]['tokens'] }}</span>
+                <span class="token-amount">{{ "{:,}".format(users[session.username]['tokens']) }}</span>
             </div>
             <button onclick="showLunchMenu()" class="btn">🍽️ Lunch</button>
             <a href="{{ url_for('lounge') }}" class="btn" style="position: relative;">
@@ -1773,7 +1778,7 @@ body::after {
 
     <!-- Roblox Games Section -->
     <div class="game-section">
-        <div class="section-header expanded" onclick="toggleSection('roblox')">
+        <div class="section-header" onclick="toggleSection('roblox')">
             <div class="section-header-left">
                 <div>
                     <div class="section-title">Roblox × StudyHall</div>
@@ -1786,7 +1791,7 @@ body::after {
                 </svg>
             </div>
         </div>
-        <div class="games-grid-wrapper show"id="roblox-games">
+        <div class="games-grid-wrapper" id="roblox-games">
 <div class="games-grid" id="robloxGamesGrid">
 {% for game_id, game in games.items() %}
 {% if game.get('is_roblox_game', False) %}
@@ -1821,7 +1826,7 @@ body::after {
 </div>
 </div><!-- Minecraft Games Section -->
     <div class="game-section">
-        <div class="section-header expanded" onclick="toggleSection('minecraft')">
+        <div class="section-header" onclick="toggleSection('minecraft')">
             <div class="section-header-left">
                 <div>
                     <div class="section-title">Minecraft</div>
@@ -1834,7 +1839,7 @@ body::after {
                 </svg>
             </div>
         </div>
-        <div class="games-grid-wrapper show" id="minecraft-games">
+        <div class="games-grid-wrapper" id="minecraft-games">
             <div class="games-grid" id="minecraftGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if game.get('is_minecraft_game', False) %}
@@ -1871,7 +1876,7 @@ body::after {
 
     <!-- Pokémon Games Section -->
     <div class="game-section">
-        <div class="section-header expanded" onclick="toggleSection('pokemon')">
+        <div class="section-header" onclick="toggleSection('pokemon')">
             <div class="section-header-left">
                 <div>
                     <div class="section-title">Pokémon Games</div>
@@ -1884,7 +1889,7 @@ body::after {
                 </svg>
             </div>
         </div>
-        <div class="games-grid-wrapper show" id="pokemon-games">
+        <div class="games-grid-wrapper" id="pokemon-games">
             <div class="games-grid" id="pokemonGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if game.get('is_pokemon_game', False) %}
@@ -1921,7 +1926,7 @@ body::after {
 
     <!-- All Games Section -->
     <div class="game-section">
-        <div class="section-header expanded" onclick="toggleSection('all')">
+        <div class="section-header" onclick="toggleSection('all')">
             <div class="section-header-left">
                 <div>
                     <div class="section-title">All Games</div>
@@ -1934,7 +1939,7 @@ body::after {
                 </svg>
             </div>
         </div>
-        <div class="games-grid-wrapper show" id="all-games">
+        <div class="games-grid-wrapper" id="all-games">
             <div class="games-grid" id="normalGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if not game.get('is_own_game', False) and not game.get('is_roblox_game', False) and not game.get('is_minecraft_game', False) and not game.get('is_pokemon_game', False) %}
@@ -1987,7 +1992,7 @@ body::after {
             </div>
         </div>
 
-        <div class="balance-display"><span id="balance">{{ users[session.username]['tokens'] }}</span> 🎟️</div>
+        <div class="balance-display"><span id="balance">{{ "{:,}".format(users[session.username]['tokens']) }}</span> 🎟️</div>
     </div>
 
     <!-- Rank Pass -->
@@ -2160,6 +2165,13 @@ body::after {
 ======================================== -->
 <script>
     // ========================================
+    // NUMBER FORMATTING
+    // ========================================
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // ========================================
     // SECTION TOGGLE
     // ========================================
     function toggleSection(sectionId) {
@@ -2228,12 +2240,62 @@ body::after {
     // GAME SEARCH
     // ========================================
     function filterGames() {
-        const searchValue = document.getElementById('gameSearch').value.toLowerCase();
+    const searchValue = document.getElementById('gameSearch').value.toLowerCase();
+    const allSections = document.querySelectorAll('.game-section');
+    const searchContainer = document.querySelector('.search-container');
+
+    if (searchValue === '') {
+        // No search - restore original state
+        allSections.forEach(section => {
+            section.style.display = 'block';
+        });
+
+        // Reset all cards to original visibility within their grids
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.style.display = 'flex';
+        });
+
+        // Clean up search results when search is empty
+        const resultsContainer = document.getElementById('search-results-container');
+        if (resultsContainer) {
+            resultsContainer.style.display = 'none';
+        }
+    } else {
+        // Search active - hide ALL sections completely
+        allSections.forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Create or get search results container
+        let resultsContainer = document.getElementById('search-results-container');
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.id = 'search-results-container';
+            resultsContainer.className = 'games-grid';
+            resultsContainer.style.marginTop = '2rem';
+            searchContainer.parentElement.insertBefore(resultsContainer, searchContainer.nextSibling);
+        }
+
+        // Clear and populate results
+        resultsContainer.innerHTML = '';
+        let matchCount = 0;
+
         document.querySelectorAll('.game-card').forEach(card => {
             const gameName = card.getAttribute('data-game-name');
-            card.style.display = gameName.includes(searchValue) ? 'flex' : 'none';
+            if (gameName.includes(searchValue)) {
+                const clonedCard = card.cloneNode(true);
+                resultsContainer.appendChild(clonedCard);
+                matchCount++;
+            }
         });
+
+        if (matchCount === 0) {
+            resultsContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No games found</p>';
+        }
+
+        resultsContainer.style.display = 'grid';
     }
+}
 
     // ========================================
     // GAME PURCHASE
@@ -2244,7 +2306,7 @@ body::after {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Purchase successful! New balance: ${data.new_balance} tokens`);
+                    alert(`Purchase successful! New balance: ${formatNumber(data.new_balance)} tokens`);
                     location.reload();
                 } else {
                     alert(`Error: ${data.error}`);
@@ -2350,7 +2412,7 @@ body::after {
             if (data.reward_type === 'tokens') {
                 // Token reward
                 showAdventMessage(`🎉 You received ${data.amount} tokens!`, false);
-                document.getElementById('balance').textContent = data.new_balance;
+                document.getElementById('balance').textContent = formatNumber(data.new_balance);
                 await loadAdventCalendar(); // Reload calendar
             } else if (data.reward_type === 'free_game') {
                 // Free game - show selection modal
@@ -2361,6 +2423,12 @@ body::after {
                 // YouTube access
                 showAdventMessage(`🎉 ${data.message}`, false);
                 await loadAdventCalendar(); // Reload calendar
+            } else if (data.reward_type === 'glow_effect') {
+                // Glow Effect
+                showAdventMessage(data.message, false);
+                await loadAdventCalendar(); // Reload calendar
+                // Reload page to apply glow effect
+                setTimeout(() => location.reload(), 2000);
             }
         } else {
             showAdventMessage(data.error || 'Could not open door', true);
@@ -2479,7 +2547,7 @@ body::after {
                 message.style.color = '#22c55e';
                 rankCards.forEach(card => card.classList.add('claimed'));
                 btn.textContent = 'Already Claimed';
-                document.getElementById('balance').textContent = data.new_balance;
+                document.getElementById('balance').textContent = formatNumber(data.new_balance);
                 updateLeaderboard();
             } else {
                 message.textContent = data.error || 'Already claimed today';
@@ -2571,9 +2639,9 @@ body::after {
         .then(data => {
             if (data.success) {
                 messageDiv.className = 'success';
-                messageDiv.textContent = `🎉 +${data.tokens} tokens! Balance: ${data.new_balance}`;
+                messageDiv.textContent = `🎉 +${data.tokens} tokens! Balance: ${formatNumber(data.new_balance)}`;
                 document.getElementById('codeInput').value = '';
-                document.getElementById('balance').textContent = data.new_balance;
+                document.getElementById('balance').textContent = formatNumber(data.new_balance);
             } else {
                 messageDiv.className = 'error';
                 messageDiv.textContent = data.error;

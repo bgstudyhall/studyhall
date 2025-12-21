@@ -299,7 +299,7 @@
         <h1 class="group-name">{{ group.name }}</h1>
         <p class="group-stats">{{ group.members|length + 1 }} members • Created {{ group.created_at.split(' ')[0] if group.created_at else 'recently' }}</p>
 
-        <div class="section-title">👑 Group Leader</div>
+        <div class="section-title">Group Leader</div>
         <div class="leader-card">
             <div class="leader-avatar">
                 {% if group.leader in profiles and profiles[group.leader].get('setup_complete', False) and profiles[group.leader].get('profile_picture') %}
@@ -316,7 +316,7 @@
                     {{ group.leader }}
                     {% endif %}
                 </div>
-                <span class="leader-badge">👑 Leader</span>
+                <span class="leader-badge">Leader</span>
             </div>
         </div>
 

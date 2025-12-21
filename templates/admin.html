@@ -987,12 +987,21 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">All Games ({{ games|length }})</h3>
-                    <div class="search-box"><input type="text" id="gameSearch" placeholder="Search games..." onkeyup="filterGames()"></div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <label style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">Sort:</label>
+                            <select id="gameSortSelect" class="form-select" style="width: auto; padding: 0.5rem; font-size: 0.875rem;" onchange="sortGames()">
+                                <option value="name">Name (A-Z)</option>
+                                <option value="plays">Most Plays</option>
+                            </select>
+                        </div>
+                        <div class="search-box"><input type="text" id="gameSearch" placeholder="Search games..." onkeyup="filterGames()"></div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="items-grid" id="gamesGrid">
                         {% for game_id, game in games.items() %}
-                        <div class="item-card" data-game-name="{{ game.name|lower }}">
+                        <div class="item-card" data-game-name="{{ game.name|lower }}" data-game-id="{{ game_id }}">
                             <div class="item-card-header">
                                 <div class="item-card-title">{{ game.name }}</div>
                                 {% if not game.available %}<span class="badge badge-warning">Maintenance</span>
@@ -1007,10 +1016,14 @@
                                 {% if game.background_image %}<span class="badge badge-gray">📷 BG</span>{% endif %}
                             </div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
-                                {% if not game.free_for_all %}Price: 🎟️ {{ game.price }}{% else %}Free Game{% endif %}
+                                <div>{% if not game.free_for_all %}Price: 🎟️ {{ game.price }}{% else %}Free Game{% endif %}</div>
+                                <div class="game-play-count" data-game-id="{{ game_id }}" style="margin-top: 0.25rem; color: var(--text-tertiary);">
+                                    <span style="opacity: 0.7;">🎮 Plays:</span> <span class="play-count-value">Loading...</span>
+                                </div>
                             </div>
                             <div class="item-card-actions">
                                 <button class="btn btn-sm btn-secondary" onclick="openEditGameModal('{{ game_id }}')">✏️ Edit</button>
+                                <button class="btn btn-sm btn-secondary" onclick="openEditGameHtmlModal('{{ game_id }}')">📝 HTML</button>
                                 <form method="POST" action="{{ url_for('toggle_game', game_id=game_id) }}" style="display: inline;">
                                     <button type="submit" class="btn btn-sm {% if game.available %}btn-secondary{% else %}btn-success{% endif %}">
                                         {% if game.available %}Disable{% else %}Enable{% endif %}
@@ -1148,6 +1161,10 @@
                 <div class="stat-card">
                     <div class="stat-label">Tower - House Profit</div>
                     <div class="stat-value" id="towerProfit">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Blackjack - House Profit</div>
+                    <div class="stat-value" id="blackjackProfit">-</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Total Casino Games</div>
@@ -1730,6 +1747,34 @@
         </div>
     </div>
 
+    <!-- Edit Game HTML Modal -->
+    <div class="modal-overlay" id="editGameHtmlModal">
+        <div class="modal" style="max-width: 900px; width: 90%;">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Game HTML</h3>
+                <button class="modal-close" onclick="closeModal('editGameHtmlModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editHtmlGameId">
+                <div class="form-group">
+                    <label class="form-label">Game Name</label>
+                    <input type="text" id="editHtmlGameName" class="form-input" readonly style="background: var(--bg-secondary);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">HTML Content</label>
+                    <textarea id="editHtmlContent" class="form-textarea" style="min-height: 400px; font-family: 'Courier New', monospace; font-size: 0.875rem;"></textarea>
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-tertiary); margin-top: -0.5rem;">
+                    Press Ctrl+F to search within the HTML
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editGameHtmlModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEditGameHtml()">Save HTML</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Section Navigation
         function showSection(sectionId, navElement) {
@@ -2163,11 +2208,14 @@
                 if (data.success) {
                     const coinflipProfit = data.coinflip?.house_profit || 0;
                     const towerProfit = data.tower?.house_profit || 0;
+                    const blackjackProfit = data.blackjack?.house_profit || 0;
                     document.getElementById('coinflipProfit').textContent = (coinflipProfit >= 0 ? '+' : '') + coinflipProfit.toLocaleString() + ' 🎟️';
                     document.getElementById('coinflipProfit').className = 'stat-value ' + (coinflipProfit >= 0 ? 'text-success' : 'text-danger');
                     document.getElementById('towerProfit').textContent = (towerProfit >= 0 ? '+' : '') + towerProfit.toLocaleString() + ' 🎟️';
                     document.getElementById('towerProfit').className = 'stat-value ' + (towerProfit >= 0 ? 'text-success' : 'text-danger');
-                    document.getElementById('totalCasinoGames').textContent = ((data.coinflip?.total_games || 0) + (data.tower?.total_games || 0)).toLocaleString();
+                    document.getElementById('blackjackProfit').textContent = (blackjackProfit >= 0 ? '+' : '') + blackjackProfit.toLocaleString() + ' 🎟️';
+                    document.getElementById('blackjackProfit').className = 'stat-value ' + (blackjackProfit >= 0 ? 'text-success' : 'text-danger');
+                    document.getElementById('totalCasinoGames').textContent = ((data.coinflip?.total_games || 0) + (data.tower?.total_games || 0) + (data.blackjack?.total_games || 0)).toLocaleString();
                     document.getElementById('rpsGamesPlayed').textContent = (data.rps?.total_games || 0).toLocaleString();
                     renderLotteryStats(data.lottery_history || []);
                 }
@@ -2283,6 +2331,125 @@
             }).catch(err => {
                 alert('Error: ' + err.message);
             });
+        }
+
+        // Game play counts management
+        let gamePlayCounts = {};
+
+        function loadGamePlayCounts() {
+            fetch('/api/get_game_play_counts')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        gamePlayCounts = data.play_counts;
+
+                        // Update all play count displays
+                        document.querySelectorAll('.game-play-count').forEach(element => {
+                            const gameId = element.getAttribute('data-game-id');
+                            const playCount = gamePlayCounts[gameId] || 0;
+                            element.querySelector('.play-count-value').textContent = playCount.toLocaleString();
+                        });
+
+                        // Sort if currently sorted by plays
+                        if (document.getElementById('gameSortSelect').value === 'plays') {
+                            sortGames();
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading play counts:', err);
+                    document.querySelectorAll('.play-count-value').forEach(el => {
+                        el.textContent = 'Error';
+                    });
+                });
+        }
+
+        // Load play counts when page loads
+        document.addEventListener('DOMContentLoaded', loadGamePlayCounts);
+
+        // HTML Editor functions
+        function openEditGameHtmlModal(gameId) {
+            const gamesData = {{ games|tojson }};
+            const gameData = gamesData[gameId];
+
+            if (!gameData) {
+                alert('Game not found');
+                return;
+            }
+
+            document.getElementById('editHtmlGameId').value = gameId;
+            document.getElementById('editHtmlGameName').value = gameData.name;
+
+            // Fetch HTML content from backend
+            document.getElementById('editHtmlContent').value = 'Loading...';
+            openModal('editGameHtmlModal');
+
+            fetch(`/api/get_game_html/${gameId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('editHtmlContent').value = data.html_content;
+                    } else {
+                        alert('Error loading HTML: ' + (data.error || 'Unknown error'));
+                        closeModal('editGameHtmlModal');
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                    closeModal('editGameHtmlModal');
+                });
+        }
+
+        function submitEditGameHtml() {
+            const gameId = document.getElementById('editHtmlGameId').value;
+            const htmlContent = document.getElementById('editHtmlContent').value;
+
+            if (!htmlContent || htmlContent.trim() === '') {
+                alert('HTML content cannot be empty');
+                return;
+            }
+
+            fetch(`/panel/update_game/${gameId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    html_content: htmlContent
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    closeModal('editGameHtmlModal');
+                    alert('Game HTML updated successfully!');
+                } else {
+                    alert(data.error || 'Error updating game HTML');
+                }
+            }).catch(err => {
+                alert('Error: ' + err.message);
+            });
+        }
+
+        // Sort games function
+        function sortGames() {
+            const sortBy = document.getElementById('gameSortSelect').value;
+            const grid = document.getElementById('gamesGrid');
+            const cards = Array.from(grid.querySelectorAll('.item-card'));
+
+            cards.sort((a, b) => {
+                if (sortBy === 'name') {
+                    const nameA = a.getAttribute('data-game-name') || '';
+                    const nameB = b.getAttribute('data-game-name') || '';
+                    return nameA.localeCompare(nameB);
+                } else if (sortBy === 'plays') {
+                    const gameIdA = a.getAttribute('data-game-id');
+                    const gameIdB = b.getAttribute('data-game-id');
+                    const playsA = gamePlayCounts[gameIdA] || 0;
+                    const playsB = gamePlayCounts[gameIdB] || 0;
+                    return playsB - playsA; // Descending order (most plays first)
+                }
+                return 0;
+            });
+
+            // Re-append in sorted order
+            cards.forEach(card => grid.appendChild(card));
         }
 
         // Initialize

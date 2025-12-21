@@ -764,100 +764,6 @@
             object-fit: cover;
             border-radius: 50%;
         }
-
-        /* Glow Effect Animation */
-        @keyframes christmasGlow {
-            0%, 100% {
-                text-shadow:
-                    0 0 5px rgba(255, 215, 0, 0.8),
-                    0 0 10px rgba(255, 215, 0, 0.6),
-                    0 0 15px rgba(255, 215, 0, 0.4),
-                    0 0 20px rgba(255, 255, 255, 0.3);
-                filter: brightness(1.1);
-            }
-            50% {
-                text-shadow:
-                    0 0 10px rgba(255, 215, 0, 1),
-                    0 0 20px rgba(255, 215, 0, 0.8),
-                    0 0 30px rgba(255, 215, 0, 0.6),
-                    0 0 40px rgba(255, 255, 255, 0.4),
-                    0 0 50px rgba(211, 47, 47, 0.2);
-                filter: brightness(1.3);
-            }
-        }
-
-        .user-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
-            font-weight: 800;
-        }
-
-        .member-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
-            font-weight: 800;
-        }
-
-        .message-author.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
-        }
-
-        .message-sender-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
-        }
-
-        /* Toggle Switch for Glow Effect */
-        .glow-toggle-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            border: 2px solid #ffd700;
-        }
-
-        .glow-toggle-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #2c2c2c;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-            background: #ccc;
-            border-radius: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .toggle-switch.active {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-        }
-
-        .toggle-slider {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .toggle-switch.active .toggle-slider {
-            transform: translateX(24px);
-        }
     </style>
 </head>
 <body>
@@ -1019,7 +925,7 @@
                 const displayName = adminUser.instagramName || 'admin';
 
                 html += `<div class="rank-section"><div class="rank-header" style="color: ${adminColor};"><span style="font-size: 1.2rem;">📁️</span> Admin</div>`;
-                html += `<a href="/chat/admin" class="user-item"><div class="user-avatar ${adminUser.isOnline ? 'online' : ''}" style="background: ${adminColor};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('admin')">${adminAvatar}</div><div class="user-content"><div class="user-name ${adminUser.has_glow ? 'has-glow' : ''}" style="color: ${adminColor};">${displayName}</div><div class="user-preview ${adminUser.unread > 0 ? 'unread' : ''}">${adminUser.lastMessage ? (adminUser.lastMessageFromMe ? 'You: ' : '') + adminUser.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${adminUser.unread > 0 ? `<div class="unread-badge">${adminUser.unread}</div>` : ''}</div></a><div class="rank-divider"></div></div>`;
+                html += `<a href="/chat/admin" class="user-item"><div class="user-avatar ${adminUser.isOnline ? 'online' : ''}" style="background: ${adminColor};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('admin')">${adminAvatar}</div><div class="user-content"><div class="user-name" style="color: ${adminColor};">${displayName}</div><div class="user-preview ${adminUser.unread > 0 ? 'unread' : ''}">${adminUser.lastMessage ? (adminUser.lastMessageFromMe ? 'You: ' : '') + adminUser.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${adminUser.unread > 0 ? `<div class="unread-badge">${adminUser.unread}</div>` : ''}</div></a><div class="rank-divider"></div></div>`;
             }
 
             const rankOrder = [...RANKS].reverse();
@@ -1049,7 +955,7 @@
                     const userAvatar = userProfilePic ? `<img src="${userProfilePic}">` : `<span>${user.username.charAt(0).toUpperCase()}</span>`;
                     const displayName = user.instagramName || user.username;
 
-                    html += `<a href="/chat/${user.username}" class="user-item"><div class="user-avatar ${user.isOnline ? 'online' : ''}" style="background: ${rank.color};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('${user.username}')">${userAvatar}</div><div class="user-content"><div class="user-name ${user.has_glow ? 'has-glow' : ''}" style="color: ${rank.color};">${displayName}</div><div class="user-preview ${user.showUnread ? 'unread' : ''}">${user.lastMessage ? (user.lastMessageFromMe ? 'You: ' : '') + user.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${user.showUnread ? `<div class="unread-badge">${user.unread}</div>` : ''}</div></a>`;
+                    html += `<a href="/chat/${user.username}" class="user-item"><div class="user-avatar ${user.isOnline ? 'online' : ''}" style="background: ${rank.color};" onclick="event.preventDefault(); event.stopPropagation(); checkAndViewProfile('${user.username}')">${userAvatar}</div><div class="user-content"><div class="user-name" style="color: ${rank.color};">${displayName}</div><div class="user-preview ${user.showUnread ? 'unread' : ''}">${user.lastMessage ? (user.lastMessageFromMe ? 'You: ' : '') + user.lastMessage : 'No messages yet'}</div></div><div class="user-meta">${timeStr ? `<div class="user-time">${timeStr}</div>` : ''}${user.showUnread ? `<div class="unread-badge">${user.unread}</div>` : ''}</div></a>`;
                 }
                 html += `<div class="rank-divider"></div></div>`;
             }
@@ -1079,7 +985,7 @@
                 for (const group of memberGroups) {
                     const timeStr = group.last_message ? getTimeString(group.last_message.timestamp) : '';
                     const isLeader = group.leader === currentUsername;
-                    const badge = isLeader ? '<span class="group-member-badge group-leader-badge">👑 Leader</span>' : '<span class="group-member-badge">Member</span>';
+                    const badge = isLeader ? '<span class="group-member-badge group-leader-badge">Leader</span>' : '<span class="group-member-badge">Member</span>';
 
                     html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
                         <div class="group-avatar">${group.image ? `<img src="${group.image}">` : '👥'}</div>
@@ -1349,8 +1255,7 @@
         updateChatList();
         updateGroupList();
         sendHeartbeat();
-        // Performance optimization: Reduced polling frequency
-        setInterval(updateChatList, 5000);      // 2s → 5s
+        setInterval(updateChatList, 2000);
         setInterval(updateGroupList, 5000);
         setInterval(sendHeartbeat, 15000);
 
@@ -1359,66 +1264,7 @@
             document.getElementById('createGroupBtn').disabled = true;
             document.getElementById('createGroupBtn').innerHTML = '✓ You Already Have a Group';
         }
-
-        // Glow Effect Toggle Functionality
-        const currentUserData = {{ session.username|tojson }};
-        let userHasGlowUnlocked = false;
-        let userHasGlowEnabled = false;
-
-        // Check if current user has glow effect unlocked
-        for (const [rankId, users] of Object.entries(allUsers)) {
-            const user = users.find(u => u.username === currentUserData);
-            if (user) {
-                if (user.has_glow !== undefined) {
-                    userHasGlowUnlocked = true;
-                    userHasGlowEnabled = user.has_glow;
-                }
-                break;
-            }
-        }
-
-        // Show toggle if glow is unlocked
-        if (userHasGlowUnlocked) {
-            document.getElementById('glowToggleContainer').style.display = 'flex';
-            const toggle = document.getElementById('glowToggle');
-            if (userHasGlowEnabled) {
-                toggle.classList.add('active');
-            }
-
-            // Add click handler for toggle
-            toggle.addEventListener('click', async () => {
-                try {
-                    const response = await fetch('/api/toggle_glow_effect', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (result.enabled) {
-                            toggle.classList.add('active');
-                        } else {
-                            toggle.classList.remove('active');
-                        }
-                        // Reload to apply change
-                        location.reload();
-                    }
-                } catch (error) {
-                    console.error('Error toggling glow effect:', error);
-                }
-            });
-        }
     </script>
-
-    <!-- Glow Effect Toggle -->
-    <div class="glow-toggle-container" id="glowToggleContainer" style="display: none;">
-        <span class="glow-toggle-label">
-            Glow Effect
-        </span>
-        <div class="toggle-switch" id="glowToggle">
-            <div class="toggle-slider"></div>
-        </div>
-    </div>
-
     <script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
 </body>
 </html>

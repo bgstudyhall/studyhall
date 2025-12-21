@@ -17,6 +17,9 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 import base64
 from email.mime.text import MIMEText
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from flask_compress import Compress
 
 # ===============================================================
 # Flask App Configuration
@@ -26,6 +29,9 @@ app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
+
+# Enable Gzip compression for all responses
+Compress(app)
 
 # Rank system hierarchy
 RANKS = [
@@ -88,6 +94,16 @@ STAFF_ROLES = {
         'level': 0,
         'weekly_pay': 0
     }
+}
+
+# Group Rank System
+GROUP_RANKS = {
+    0: {'name': 'No Rank', 'cost': 0, 'interest': 0, 'member_cap': 4, 'display': ''},
+    1: {'name': 'Rank I', 'cost': 50, 'interest': 5, 'member_cap': 5, 'display': 'I'},
+    2: {'name': 'Rank II', 'cost': 500, 'interest': 10, 'member_cap': 6, 'display': 'II'},
+    3: {'name': 'Rank III', 'cost': 1000, 'interest': 15, 'member_cap': 7, 'display': 'III'},
+    4: {'name': 'Rank IV', 'cost': 2500, 'interest': 20, 'member_cap': 8, 'display': 'IV'},
+    5: {'name': 'Rank V', 'cost': 8000, 'interest': 25, 'member_cap': 9, 'display': 'V'}
 }
 
 # Birthday data - easily editable
@@ -389,6 +405,7 @@ def get_casino_statistics():
     stats = {
         'coinflip': {'total_games': 0, 'house_profit': 0, 'player_wins': 0, 'player_losses': 0},
         'tower': {'total_games': 0, 'house_profit': 0, 'player_wins': 0, 'player_losses': 0},
+        'blackjack': {'total_games': 0, 'house_profit': 0, 'player_wins': 0, 'player_losses': 0},
         'rps': {'total_games': 0, 'total_pot': 0}
     }
 
@@ -411,6 +428,16 @@ def get_casino_statistics():
         else:
             stats['tower']['player_losses'] += abs(game['profit_loss'])
             stats['tower']['house_profit'] += abs(game['profit_loss'])
+
+    # Blackjack stats
+    for game in casino_stats.get('blackjack', []):
+        stats['blackjack']['total_games'] += 1
+        if game['won']:
+            stats['blackjack']['player_wins'] += game['profit_loss']
+            stats['blackjack']['house_profit'] -= game['profit_loss']
+        else:
+            stats['blackjack']['player_losses'] += abs(game['profit_loss'])
+            stats['blackjack']['house_profit'] += abs(game['profit_loss'])
 
     # RPS is player vs player, no house profit
     for game in casino_stats.get('rps', []):
@@ -491,6 +518,7 @@ advent_calendar = load_json(ADVENT_CALENDAR_FILE, {})
 
 # Groups data
 groups = load_json(GROUPS_FILE, {})
+
 group_messages = load_json(GROUP_MESSAGES_FILE, {})
 group_reactions = load_json(GROUP_REACTIONS_FILE, {})
 group_read_receipts = load_json(GROUP_READ_RECEIPTS_FILE, {})
@@ -508,6 +536,10 @@ casino_stats = load_json(CASINO_STATS_FILE, {
     'rps': []
 })
 lottery_history = load_json(LOTTERY_HISTORY_FILE, [])
+
+# Performance optimization: Cache for expensive API calls
+user_list_cache = {}
+user_list_cache_time = 0
 
 # ===============================================================
 # One-time data migration / normalization
@@ -543,6 +575,14 @@ for username in users:
 save_json(USERS_FILE, users)
 save_json(GAMES_FILE, games)
 
+# Initialize groups with rank and bank if they don't have them
+for group_id in groups:
+    if 'rank' not in groups[group_id]:
+        groups[group_id]['rank'] = 0
+    if 'bank' not in groups[group_id]:
+        groups[group_id]['bank'] = 0
+save_json(GROUPS_FILE, groups)
+
 # In-memory typing status for chat
 typing_status = {}
 
@@ -569,6 +609,51 @@ def periodic_rps_check():
 
 rps_check_thread = threading.Thread(target=periodic_rps_check, daemon=True)
 rps_check_thread.start()
+
+# ===============================================================
+# Group Interest Scheduler
+# ===============================================================
+def apply_group_interest():
+    """Apply interest to all group banks based on their rank - runs every Monday at 0 AM"""
+    try:
+        for group_id, group_data in groups.items():
+            rank = group_data.get('rank', 0)
+            bank = group_data.get('bank', 0)
+
+            if rank > 0 and bank > 0:
+                interest_rate = GROUP_RANKS[rank]['interest']
+                interest_amount = int(bank * (interest_rate / 100))
+                new_balance = bank + interest_amount
+
+                groups[group_id]['bank'] = new_balance
+
+                # Add system message to group chat
+                if group_id not in group_messages:
+                    group_messages[group_id] = []
+
+                group_messages[group_id].append({
+                    'from': 'system',
+                    'text': f'💰 Weekly interest applied! Bank received {interest_amount} tokens ({interest_rate}% interest). New balance: {new_balance} tokens',
+                    'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+                })
+
+        save_json(GROUPS_FILE, groups)
+        save_json(GROUP_MESSAGES_FILE, group_messages)
+        print(f"Group interest applied at {get_ny_time()}")
+    except Exception as e:
+        print(f"Error applying group interest: {e}")
+
+# Initialize scheduler
+scheduler = BackgroundScheduler(timezone='America/New_York')
+# Run every Monday at 0:00 AM
+scheduler.add_job(
+    func=apply_group_interest,
+    trigger=CronTrigger(day_of_week='mon', hour=0, minute=0),
+    id='group_interest',
+    name='Apply group interest',
+    replace_existing=True
+)
+scheduler.start()
 
 # ===============================================================
 # Access control decorators
@@ -756,6 +841,7 @@ lunch_menu = {
     '2025-12-30': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: The period between Christmas and New Year\'s is sometimes called "Twixmas" in the UK!'},
     '2025-12-31': {'food': 'New Year\'s Eve 🎉', 'fact': 'Happy New Year\'s Eve! Did you know that eating 12 grapes at midnight is a Spanish tradition for good luck in each month of the new year?'}
 }
+
 
 # Routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -1038,7 +1124,10 @@ def casino():
         unread_count=unread_count,
         group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
-        user_role=users[username]['role']
+        user_role=users[username]['role'],
+        user_rank=users[username].get('rank'),
+        RANKS=RANKS,
+        STAFF_ROLES=STAFF_ROLES
     )
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -1488,7 +1577,9 @@ def chat():
             'is_member': is_member,
             'unread': unread,
             'last_message': last_message,
-            'member_count': len(group_data.get('members', [])) + 1
+            'member_count': len(group_data.get('members', [])) + 1,
+            'rank': group_data.get('rank', 0),
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display']
         })
 
     # Sort by last message timestamp
@@ -1582,7 +1673,21 @@ def get_messages(other_user):
     chat_key = get_chat_key(current_user, other_user)
     if chat_key not in messages:
         messages[chat_key] = []
-    return jsonify({'messages': messages[chat_key]})
+
+    # Performance optimization: Add pagination support
+    limit = request.args.get('limit', 100, type=int)  # Default 100 messages
+    since = request.args.get('since', '', type=str)  # Timestamp filter
+
+    chat_messages = messages[chat_key]
+
+    # Filter messages newer than 'since' timestamp if provided
+    if since:
+        chat_messages = [m for m in chat_messages if m.get('timestamp', '') > since]
+
+    # Limit to last N messages
+    chat_messages = chat_messages[-limit:]
+
+    return jsonify({'messages': chat_messages})
 
 @app.route('/chat/<other_user>/read_status')
 @login_required
@@ -1809,8 +1914,14 @@ def get_online_users():
 @app.route('/api/users_with_ranks')
 @login_required
 def get_users_with_ranks():
+    global user_list_cache, user_list_cache_time
     current_user = session['username']
     current_time = get_ny_time().timestamp()
+
+    # Performance optimization: Cache for 5 seconds to reduce load
+    if current_time - user_list_cache_time < 5 and user_list_cache:
+        return jsonify(user_list_cache)
+
     online_threshold = 30
     users_by_rank = {}
 
@@ -1883,10 +1994,15 @@ def get_users_with_ranks():
             'last_seen': last_seen_text,
             'unread': unread,
             'last_message': last_message,
-            'last_message_timestamp': last_message_timestamp
+            'last_message_timestamp': last_message_timestamp,
+            'has_glow': users[username].get('glow_effect', {}).get('enabled', False)
         })
 
-    return jsonify({'users_by_rank': users_by_rank})
+    # Update cache
+    user_list_cache = {'users_by_rank': users_by_rank}
+    user_list_cache_time = current_time
+
+    return jsonify(user_list_cache)
 
 @app.route('/api/chat_list_data')
 @login_required
@@ -2355,22 +2471,26 @@ def serve_sw_core():
 @app.route('/uv.handler.js')
 def serve_handler():
     try:
-        return send_from_directory(
+        response = send_from_directory(
             os.path.join(app.root_path, 'static', 'service'),
             'uv.handler.js',
             mimetype='application/javascript'
         )
+        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
+        return response
     except Exception as e:
         return str(e), 500
 
 @app.route('/uv.client.js')
 def serve_client():
     try:
-        return send_from_directory(
+        response = send_from_directory(
             os.path.join(app.root_path, 'static', 'service'),
             'uv.client.js',
             mimetype='application/javascript'
         )
+        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
+        return response
     except Exception as e:
         return str(e), 500
 
@@ -2510,7 +2630,11 @@ def play_game(game_id):
     else:
         game_html = game_html + notification_html
 
-    return game_html
+    # Return with proper headers for caching and compression
+    response = make_response(game_html)
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    response.headers['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+    return response
 
 
 @app.route('/purchase_game/<game_id>', methods=['POST'])
@@ -2834,7 +2958,10 @@ def admin_panel():
             'member_count': len(all_members),
             'image': group_data.get('image'),
             'created_at': group_data.get('created_at'),
-            'message_count': message_count
+            'message_count': message_count,
+            'rank': group_data.get('rank', 0),
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display'],
+            'bank': group_data.get('bank', 0)
         })
     groups_data.sort(key=lambda x: x.get('created_at', ''), reverse=True)
 
@@ -2872,6 +2999,24 @@ def get_game_html(game_id):
     return jsonify({
         'success': True,
         'html_content': games[game_id]['html_content']
+    })
+
+@app.route('/api/get_game_play_counts')
+@panel_access_required
+def get_game_play_counts():
+    """Calculate total plays per game across all users"""
+    game_play_counts = {}
+
+    for username, user_plays in plays.items():
+        for game_id, play_count in user_plays.items():
+            if game_id in games:
+                if game_id not in game_play_counts:
+                    game_play_counts[game_id] = 0
+                game_play_counts[game_id] += play_count
+
+    return jsonify({
+        'success': True,
+        'play_counts': game_play_counts
     })
 
 @app.route('/panel/edit_token/<username>/<int:amount>', methods=['GET', 'POST'])
@@ -3173,12 +3318,32 @@ def toggle_game_own(game_id):
 @app.route('/panel/update_game/<game_id>', methods=['POST'])
 @admin_required
 def update_game(game_id):
-    if game_id in games:
+    if game_id not in games:
+        if request.is_json:
+            return jsonify({'error': 'Game not found'}), 404
+        else:
+            return redirect(url_for('admin_panel'))
+
+    # Support both form and JSON data
+    if request.is_json:
+        data = request.json
+        html_content = data.get('html_content')
+    else:
         html_content = request.form.get('html_content')
-        if html_content:
-            games[game_id]['html_content'] = html_content
-            save_json(GAMES_FILE, games)
-    return redirect(url_for('admin_panel'))
+
+    if html_content:
+        games[game_id]['html_content'] = html_content
+        save_json(GAMES_FILE, games)
+
+        if request.is_json:
+            return jsonify({'success': True})
+        else:
+            return redirect(url_for('admin_panel'))
+
+    if request.is_json:
+        return jsonify({'error': 'No HTML content provided'}), 400
+    else:
+        return redirect(url_for('admin_panel'))
 
 @app.route('/panel/toggle_game/<game_id>', methods=['GET', 'POST'])
 @admin_required
@@ -4190,11 +4355,11 @@ ADVENT_REWARDS = {
     12: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
     13: {'type': 'placeholder', 'description': 'Mystery Reward'},
     14: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    15: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    16: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    17: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    18: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    19: {'type': 'placeholder', 'description': 'Mystery Reward'},
+    15: {'type': 'tokens', 'amount': 20, 'description': '20 Tokens'},
+    16: {'type': 'tokens', 'amount': 6, 'description': '6 Tokens'},
+    17: {'type': 'tokens', 'amount': 10, 'description': '10 Tokens'},
+    18: {'type': 'glow_effect', 'description': 'Username Glow Effect'},
+    19: {'type': 'tokens', 'amount': 15, 'description': '15 Tokens'},
     20: {'type': 'placeholder', 'description': 'Mystery Reward'},
     21: {'type': 'placeholder', 'description': 'Mystery Reward'},
     22: {'type': 'placeholder', 'description': 'Mystery Reward'},
@@ -4370,6 +4535,34 @@ def open_advent_door(door_number):
             'message': reward_text
         })
 
+    elif reward_config['type'] == 'glow_effect':
+        # Grant glow effect to user
+        if 'glow_effect' not in users[username]:
+            users[username]['glow_effect'] = {
+                'unlocked': True,
+                'enabled': True  # Enabled by default
+            }
+        else:
+            users[username]['glow_effect']['unlocked'] = True
+            users[username]['glow_effect']['enabled'] = True
+
+        save_json(USERS_FILE, users)
+
+        # Mark door as opened
+        advent_calendar[username][door_key] = {
+            'opened': True,
+            'claimed_reward': 'Username Glow Effect',
+            'opened_date': now.strftime('%Y-%m-%d %H:%M:%S'),
+            'game_selected': None
+        }
+        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
+
+        return jsonify({
+            'success': True,
+            'reward_type': 'glow_effect',
+            'message': 'Username Glow Effect Unlocked!'
+        })
+
     elif reward_config['type'] == 'placeholder':
         return jsonify({'error': 'This reward is not available yet!'}), 400
 
@@ -4422,6 +4615,26 @@ def claim_advent_game():
     return jsonify({
         'success': True,
         'game_name': games[game_id]['name']
+    })
+
+@app.route('/api/toggle_glow_effect', methods=['POST'])
+@login_required
+def toggle_glow_effect():
+    """Toggle the glow effect on or off"""
+    username = session['username']
+
+    # Check if glow effect is unlocked
+    if 'glow_effect' not in users[username] or not users[username]['glow_effect'].get('unlocked', False):
+        return jsonify({'success': False, 'error': 'Glow effect not unlocked'}), 403
+
+    # Toggle the enabled state
+    current_state = users[username]['glow_effect'].get('enabled', True)
+    users[username]['glow_effect']['enabled'] = not current_state
+    save_json(USERS_FILE, users)
+
+    return jsonify({
+        'success': True,
+        'enabled': users[username]['glow_effect']['enabled']
     })
 
 # ===============================================================
@@ -4489,7 +4702,9 @@ def groups_list():
             'is_member': is_member,
             'unread': unread,
             'last_message': last_message,
-            'member_count': len(group_data.get('members', [])) + 1  # +1 for leader
+            'member_count': len(group_data.get('members', [])) + 1,  # +1 for leader
+            'rank': group_data.get('rank', 0),
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display']
         })
 
     # Sort by last message timestamp (most recent first)
@@ -4553,7 +4768,8 @@ def group_chat(group_id):
         all_users=[u for u in users.keys() if u != username and u != group_data['leader'] and u not in group_data.get('members', [])],
         STAFF_ROLES=STAFF_ROLES,
         RANKS=RANKS,
-        users=users
+        users=users,
+        GROUP_RANKS=GROUP_RANKS
     )
 
 @app.route('/api/group/create', methods=['POST'])
@@ -4586,8 +4802,11 @@ def create_group():
     if any(g['name'].lower() == group_name.lower() for g in groups.values()):
         return jsonify({'error': 'A group with this name already exists'}), 400
 
-    if len(members) > 5:
-        return jsonify({'error': 'Maximum 5 members allowed (6 total including you)'}), 400
+    # Check member limit (new groups start at rank 0, which has 4 total member cap)
+    # Ambassadors cannot bypass this - everyone follows same cap rules except "Ambassadors" group
+    member_cap = GROUP_RANKS[0]['member_cap']
+    if len(members) + 1 > member_cap:  # +1 for the leader
+        return jsonify({'error': f'Maximum {member_cap - 1} members allowed ({member_cap} total including you)'}), 400
 
     # Validate members exist
     for member in members:
@@ -4610,7 +4829,9 @@ def create_group():
         'leader': username,
         'members': members,
         'image': image,
-        'created_at': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        'created_at': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
+        'rank': 0,
+        'bank': 0
     }
 
     # Initialize messages
@@ -4697,8 +4918,21 @@ def get_group_messages(group_id):
     if username != group_data['leader'] and username not in group_data.get('members', []):
         return jsonify({'error': 'You are not a member of this group'}), 403
 
+    # Performance optimization: Add pagination support
+    limit = request.args.get('limit', 100, type=int)  # Default 100 messages
+    since = request.args.get('since', '', type=str)  # Timestamp filter
+
+    chat_messages = group_messages.get(group_id, [])
+
+    # Filter messages newer than 'since' timestamp if provided
+    if since:
+        chat_messages = [m for m in chat_messages if m.get('timestamp', '') > since]
+
+    # Limit to last N messages
+    chat_messages = chat_messages[-limit:]
+
     return jsonify({
-        'messages': group_messages.get(group_id, []),
+        'messages': chat_messages,
         'reactions': group_reactions.get(group_id, {}),
         'group': group_data
     })
@@ -4908,9 +5142,14 @@ def add_group_member(group_id):
     if member_username in group_data.get('members', []):
         return jsonify({'error': 'User is already a member'}), 400
 
-    # Check member limit (5 members + 1 leader = 6 total)
-    if len(group_data.get('members', [])) >= 5:
-        return jsonify({'error': 'Group is full (maximum 6 members)'}), 400
+    # Check member limit based on group rank
+    # Only "Ambassadors" group has unlimited cap
+    if group_data['name'] != 'Ambassadors':
+        current_rank = group_data.get('rank', 0)
+        member_cap = GROUP_RANKS[current_rank]['member_cap']
+        current_total = len(group_data.get('members', [])) + 1  # +1 for leader
+        if current_total >= member_cap:
+            return jsonify({'error': f'Group is full (maximum {member_cap} members including leader). Upgrade group rank to increase capacity.'}), 400
 
     # Add member
     if 'members' not in groups[group_id]:
@@ -4971,7 +5210,7 @@ def kick_group_member(group_id):
     # Add system message
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'👢 {member_username} was removed from the group',
+        'text': f'{member_username} was removed from the group',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5077,6 +5316,167 @@ def delete_group_message(group_id, message_index):
     save_json(GROUP_REACTIONS_FILE, group_reactions)
 
     return jsonify({'success': True})
+
+@app.route('/api/group/<group_id>/deposit', methods=['POST'])
+@login_required
+def deposit_to_group_bank(group_id):
+    """Deposit tokens from personal account to group bank"""
+    if group_id not in groups:
+        return jsonify({'error': 'Group not found'}), 404
+
+    username = session['username']
+    group_data = groups[group_id]
+
+    # Check if user is member
+    if username != group_data['leader'] and username not in group_data.get('members', []):
+        return jsonify({'error': 'You are not a member of this group'}), 403
+
+    data = request.json
+    amount = data.get('amount', 0)
+
+    # Validation
+    if not isinstance(amount, int) or amount <= 0:
+        return jsonify({'error': 'Invalid amount'}), 400
+
+    if users[username].get('tokens', 0) < amount:
+        return jsonify({'error': 'Insufficient tokens'}), 400
+
+    # Transfer tokens
+    users[username]['tokens'] -= amount
+    groups[group_id]['bank'] = groups[group_id].get('bank', 0) + amount
+
+    # Add system message
+    if group_id not in group_messages:
+        group_messages[group_id] = []
+
+    group_messages[group_id].append({
+        'from': 'system',
+        'text': f'💵 {username} deposited {amount} tokens to the group bank. Bank balance: {groups[group_id]["bank"]} tokens',
+        'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+    save_json(USERS_FILE, users)
+    save_json(GROUPS_FILE, groups)
+    save_json(GROUP_MESSAGES_FILE, group_messages)
+
+    return jsonify({
+        'success': True,
+        'new_balance': users[username]['tokens'],
+        'bank_balance': groups[group_id]['bank']
+    })
+
+@app.route('/api/group/<group_id>/upgrade', methods=['POST'])
+@login_required
+def upgrade_group_rank(group_id):
+    """Upgrade group to next rank (leader only)"""
+    if group_id not in groups:
+        return jsonify({'error': 'Group not found'}), 404
+
+    username = session['username']
+    group_data = groups[group_id]
+
+    # Only leader can upgrade
+    if username != group_data['leader']:
+        return jsonify({'error': 'Only the group leader can upgrade the group'}), 403
+
+    current_rank = group_data.get('rank', 0)
+
+    # Check if already at max rank
+    if current_rank >= 5:
+        return jsonify({'error': 'Group is already at maximum rank'}), 400
+
+    next_rank = current_rank + 1
+    upgrade_cost = GROUP_RANKS[next_rank]['cost']
+    bank_balance = group_data.get('bank', 0)
+
+    # Check if enough tokens in bank
+    if bank_balance < upgrade_cost:
+        return jsonify({'error': f'Insufficient tokens in bank. Need {upgrade_cost} tokens, have {bank_balance}'}), 400
+
+    # Perform upgrade
+    groups[group_id]['bank'] = bank_balance - upgrade_cost
+    groups[group_id]['rank'] = next_rank
+
+    # Add system message
+    if group_id not in group_messages:
+        group_messages[group_id] = []
+
+    group_messages[group_id].append({
+        'from': 'system',
+        'text': f'🎉 {username} upgraded the group to {GROUP_RANKS[next_rank]["name"]}! Cost: {upgrade_cost} tokens. Bank balance: {groups[group_id]["bank"]} tokens. Member cap increased to {GROUP_RANKS[next_rank]["member_cap"]}.',
+        'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+    save_json(GROUPS_FILE, groups)
+    save_json(GROUP_MESSAGES_FILE, group_messages)
+
+    return jsonify({
+        'success': True,
+        'new_rank': next_rank,
+        'rank_name': GROUP_RANKS[next_rank]['name'],
+        'bank_balance': groups[group_id]['bank'],
+        'member_cap': GROUP_RANKS[next_rank]['member_cap']
+    })
+
+@app.route('/api/group/<group_id>/send_from_bank', methods=['POST'])
+@login_required
+def send_from_group_bank(group_id):
+    """Send tokens from group bank to a member (leader only)"""
+    if group_id not in groups:
+        return jsonify({'error': 'Group not found'}), 404
+
+    username = session['username']
+    group_data = groups[group_id]
+
+    # Only leader can send from bank
+    if username != group_data['leader']:
+        return jsonify({'error': 'Only the group leader can send tokens from the bank'}), 403
+
+    data = request.json
+    recipient = data.get('recipient')
+    amount = data.get('amount', 0)
+
+    # Validation
+    if not recipient:
+        return jsonify({'error': 'Recipient is required'}), 400
+
+    if recipient not in users:
+        return jsonify({'error': 'Recipient does not exist'}), 400
+
+    if not isinstance(amount, int) or amount <= 0:
+        return jsonify({'error': 'Invalid amount'}), 400
+
+    bank_balance = group_data.get('bank', 0)
+    if bank_balance < amount:
+        return jsonify({'error': f'Insufficient tokens in bank. Bank has {bank_balance} tokens'}), 400
+
+    # Check if recipient is a member or leader
+    if recipient != group_data['leader'] and recipient not in group_data.get('members', []):
+        return jsonify({'error': 'Recipient must be a member of the group'}), 400
+
+    # Transfer tokens
+    groups[group_id]['bank'] = bank_balance - amount
+    users[recipient]['tokens'] = users[recipient].get('tokens', 0) + amount
+
+    # Add system message
+    if group_id not in group_messages:
+        group_messages[group_id] = []
+
+    group_messages[group_id].append({
+        'from': 'system',
+        'text': f'💸 {username} sent {amount} tokens from the bank to {recipient}. Bank balance: {groups[group_id]["bank"]} tokens',
+        'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+    save_json(GROUPS_FILE, groups)
+    save_json(USERS_FILE, users)
+    save_json(GROUP_MESSAGES_FILE, group_messages)
+
+    return jsonify({
+        'success': True,
+        'bank_balance': groups[group_id]['bank'],
+        'recipient_balance': users[recipient]['tokens']
+    })
 
 @app.route('/api/groups/unread_count')
 @login_required
@@ -5305,6 +5705,14 @@ def admin_add_member(group_id):
 
     if new_member in all_members:
         return jsonify({'success': False, 'error': 'User is already a member'}), 400
+
+    # Check member limit - even admin must respect cap (except for "Ambassadors" group)
+    if group_data['name'] != 'Ambassadors':
+        current_rank = group_data.get('rank', 0)
+        member_cap = GROUP_RANKS[current_rank]['member_cap']
+        current_total = len(all_members)
+        if current_total >= member_cap:
+            return jsonify({'success': False, 'error': f'Group is full (maximum {member_cap} members including leader)'}), 400
 
     if 'members' not in groups[group_id]:
         groups[group_id]['members'] = []
@@ -5742,7 +6150,7 @@ def get_casino_stats_api():
 
     # Add daily breakdown for graphs
     daily_stats = {}
-    for game_type in ['coinflip', 'tower']:
+    for game_type in ['coinflip', 'tower', 'blackjack']:
         daily_stats[game_type] = {}
         for game in casino_stats.get(game_type, []):
             date = game['timestamp'].split(' ')[0]
@@ -5772,6 +6180,7 @@ def get_casino_stats_api():
         'success': True,
         'coinflip': stats.get('coinflip', {'total_games': 0, 'house_profit': 0}),
         'tower': stats.get('tower', {'total_games': 0, 'house_profit': 0}),
+        'blackjack': stats.get('blackjack', {'total_games': 0, 'house_profit': 0}),
         'rps': stats.get('rps', {'total_games': 0, 'total_pot': 0}),
         'daily_breakdown': daily_stats,
         'lottery_history': lottery_hist
@@ -6538,12 +6947,13 @@ def blackjack_start():
         'success': True,
         'game_id': game_id,
         'player_hand': player_hand,
-        'dealer_hand': [dealer_hand[0]],  # Only show first card
+        'dealer_hand': dealer_hand,  # Send full hand
         'dealer_hidden': True,
         'player_value': player_value,
         'status': 'active',
         'can_split': (player_hand[0]['rank'] == player_hand[1]['rank']),
-        'can_double': True
+        'can_double': True,
+        'new_balance': users[username]['tokens']
     })
 
 @app.route('/api/blackjack/hit/<game_id>', methods=['POST'])

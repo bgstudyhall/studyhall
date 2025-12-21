@@ -915,71 +915,60 @@
                     <div class="sport-btn" onclick="showSport('basketball')">
                         <div class="sport-btn-name">Boys Basketball</div>
                     </div>
+                    <div class="sport-btn" onclick="showSport('bowling')">
+                        <div class="sport-btn-name">Bowling</div>
+                    </div>
                     <!-- Add more sports here in the future -->
                 </div>
 
                 <!-- Basketball Schedule (Initially Visible) -->
                 <div id="basketball-schedule">
                     <div class="weekly-schedule">
-                        <!-- Monday, December 9 -->
-                        <div class="day-section" id="day-monday">
+                        <!-- Monday, December 15 -->
+                        <div class="day-section" id="basketball-day-monday">
                             <div class="day-header">
                                 <div class="day-header-left">
                                     <div class="day-name">Monday</div>
-                                    <div class="day-date">December 9, 2024</div>
+                                    <div class="day-date">December 15, 2025</div>
                                 </div>
                             </div>
                             <div class="game-content">
-                                <div class="game-card">
-                                    <div class="game-header">
-                                        <div class="matchup-section">
-                                            <div class="matchup">
-                                                Bainbridge-Guilford <span class="vs">@</span> Whitney Point
-                                            </div>
-                                            <span class="location-tag away">Away Game</span>
-                                        </div>
-                                        <div class="time-section">
-                                            <div class="game-times">
-                                                <div class="time-item">
-                                                    <span class="time-label">JV:</span>
-                                                    <span class="time-value">5:30 PM</span>
-                                                </div>
-                                                <div class="time-item">
-                                                    <span class="time-label">Varsity:</span>
-                                                    <span class="time-value">7:15 PM</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="game-details">
-                                        <div class="detail-item">
-                                            <div class="detail-icon">📍</div>
-                                            <div class="detail-content">
-                                                <div class="detail-label">Location</div>
-                                                <div class="detail-value">Whitney Point High School<br>10 Keibel Road, Whitney Point, NY 13862</div>
-                                            </div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-icon">👤</div>
-                                            <div class="detail-content">
-                                                <div class="detail-label">Coaches</div>
-                                                <div class="detail-value">
-                                                    Varsity: <span class="coach-name">T. Palmatier</span><br>
-                                                    JV: <span class="coach-name">J. Smith</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div class="no-games-message">No games scheduled</div>
                             </div>
                         </div>
 
-                        <!-- Tuesday, December 10 -->
-                        <div class="day-section" id="day-tuesday">
+                        <!-- Tuesday, December 16 -->
+                        <div class="day-section" id="basketball-day-tuesday">
                             <div class="day-header">
                                 <div class="day-header-left">
                                     <div class="day-name">Tuesday</div>
-                                    <div class="day-date">December 10, 2024</div>
+                                    <div class="day-date">December 16, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Wednesday, December 17 -->
+                        <div class="day-section" id="basketball-day-wednesday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Wednesday</div>
+                                    <div class="day-date">December 17, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Thursday, December 18 -->
+                        <div class="day-section" id="basketball-day-thursday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Thursday</div>
+                                    <div class="day-date">December 18, 2025</div>
                                 </div>
                             </div>
                             <div class="game-content">
@@ -987,7 +976,7 @@
                                     <div class="game-header">
                                         <div class="matchup-section">
                                             <div class="matchup">
-                                                Bainbridge-Guilford <span class="vs">@</span> Harpursville
+                                                Bainbridge-Guilford <span class="vs">@</span> Walton/Downsville
                                             </div>
                                             <span class="location-tag away">Away Game</span>
                                         </div>
@@ -1009,7 +998,7 @@
                                             <div class="detail-icon">📍</div>
                                             <div class="detail-content">
                                                 <div class="detail-label">Location</div>
-                                                <div class="detail-value">Harpursville JR/SR High Gym<br>54 Main Street, Harpursville, NY 13787</div>
+                                                <div class="detail-value">Downsville High School Gym</div>
                                             </div>
                                         </div>
                                         <div class="detail-item">
@@ -1027,38 +1016,69 @@
                             </div>
                         </div>
 
-                        <!-- Wednesday, December 11 -->
-                        <div class="day-section" id="day-wednesday">
-                            <div class="day-header">
-                                <div class="day-header-left">
-                                    <div class="day-name">Wednesday</div>
-                                    <div class="day-date">December 11, 2024</div>
-                                </div>
-                            </div>
-                            <div class="game-content">
-                                <div class="no-games-message">No games scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Thursday, December 12 -->
-                        <div class="day-section" id="day-thursday">
-                            <div class="day-header">
-                                <div class="day-header-left">
-                                    <div class="day-name">Thursday</div>
-                                    <div class="day-date">December 12, 2024</div>
-                                </div>
-                            </div>
-                            <div class="game-content">
-                                <div class="no-games-message">No games scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Friday, December 13 -->
-                        <div class="day-section" id="day-friday">
+                        <!-- Friday, December 19 -->
+                        <div class="day-section" id="basketball-day-friday">
                             <div class="day-header">
                                 <div class="day-header-left">
                                     <div class="day-name">Friday</div>
-                                    <div class="day-date">December 13, 2024</div>
+                                    <div class="day-date">December 19, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Saturday, December 20 -->
+                        <div class="day-section" id="basketball-day-saturday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Saturday</div>
+                                    <div class="day-date">December 20, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Sunday, December 21 -->
+                        <div class="day-section" id="basketball-day-sunday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Sunday</div>
+                                    <div class="day-date">December 21, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bowling Schedule (Initially Hidden) -->
+                <div id="bowling-schedule" style="display: none;">
+                    <div class="weekly-schedule">
+                        <!-- Monday, December 15 -->
+                        <div class="day-section" id="bowling-day-monday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Monday</div>
+                                    <div class="day-date">December 15, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Tuesday, December 16 -->
+                        <div class="day-section" id="bowling-day-tuesday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Tuesday</div>
+                                    <div class="day-date">December 16, 2025</div>
                                 </div>
                             </div>
                             <div class="game-content">
@@ -1066,19 +1086,14 @@
                                     <div class="game-header">
                                         <div class="matchup-section">
                                             <div class="matchup">
-                                                Bainbridge-Guilford <span class="vs">vs</span> Deposit-Hancock
+                                                Bainbridge-Guilford <span class="vs">vs</span> Afton
                                             </div>
                                             <span class="location-tag">Home Game</span>
                                         </div>
                                         <div class="time-section">
                                             <div class="game-times">
                                                 <div class="time-item">
-                                                    <span class="time-label">JV:</span>
-                                                    <span class="time-value">5:30 PM</span>
-                                                </div>
-                                                <div class="time-item">
-                                                    <span class="time-label">Varsity:</span>
-                                                    <span class="time-value">7:15 PM</span>
+                                                    <span class="time-value">3:45 PM</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1088,7 +1103,7 @@
                                             <div class="detail-icon">📍</div>
                                             <div class="detail-content">
                                                 <div class="detail-label">Location</div>
-                                                <div class="detail-value">MPR<br>Bainbridge-Guilford High School</div>
+                                                <div class="detail-value">Galaxy Bowl</div>
                                             </div>
                                         </div>
                                         <div class="detail-item">
@@ -1096,8 +1111,7 @@
                                             <div class="detail-content">
                                                 <div class="detail-label">Coaches</div>
                                                 <div class="detail-value">
-                                                    Varsity: <span class="coach-name">T. Palmatier</span><br>
-                                                    JV: <span class="coach-name">J. Smith</span>
+                                                    <span class="coach-name">S. Ventura</span> & <span class="coach-name">T. Ventura</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1106,12 +1120,132 @@
                             </div>
                         </div>
 
-                        <!-- Saturday, December 14 -->
-                        <div class="day-section" id="day-saturday">
+                        <!-- Wednesday, December 17 -->
+                        <div class="day-section" id="bowling-day-wednesday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Wednesday</div>
+                                    <div class="day-date">December 17, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="game-card home-game">
+                                    <div class="game-header">
+                                        <div class="matchup-section">
+                                            <div class="matchup">
+                                                Bainbridge-Guilford <span class="vs">vs</span> Sidney
+                                            </div>
+                                            <span class="location-tag">Home Game</span>
+                                        </div>
+                                        <div class="time-section">
+                                            <div class="game-times">
+                                                <div class="time-item">
+                                                    <span class="time-value">3:30 PM - 5:30 PM</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="game-details">
+                                        <div class="detail-item">
+                                            <div class="detail-icon">📍</div>
+                                            <div class="detail-content">
+                                                <div class="detail-label">Location</div>
+                                                <div class="detail-value">Galaxy Bowl</div>
+                                            </div>
+                                        </div>
+                                        <div class="detail-item">
+                                            <div class="detail-icon">👤</div>
+                                            <div class="detail-content">
+                                                <div class="detail-label">Coaches</div>
+                                                <div class="detail-value">
+                                                    <span class="coach-name">S. Ventura</span> & <span class="coach-name">T. Ventura</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thursday, December 18 -->
+                        <div class="day-section" id="bowling-day-thursday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Thursday</div>
+                                    <div class="day-date">December 18, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Friday, December 19 -->
+                        <div class="day-section" id="bowling-day-friday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Friday</div>
+                                    <div class="day-date">December 19, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="game-card">
+                                    <div class="game-header">
+                                        <div class="matchup-section">
+                                            <div class="matchup">
+                                                Bainbridge-Guilford <span class="vs">@</span> Deposit
+                                            </div>
+                                            <span class="location-tag away">Away Game</span>
+                                        </div>
+                                        <div class="time-section">
+                                            <div class="game-times">
+                                                <div class="time-item">
+                                                    <span class="time-value">3:45 PM</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="game-details">
+                                        <div class="detail-item">
+                                            <div class="detail-icon">📍</div>
+                                            <div class="detail-content">
+                                                <div class="detail-label">Location</div>
+                                                <div class="detail-value">Deposit</div>
+                                            </div>
+                                        </div>
+                                        <div class="detail-item">
+                                            <div class="detail-icon">👤</div>
+                                            <div class="detail-content">
+                                                <div class="detail-label">Coaches</div>
+                                                <div class="detail-value">
+                                                    <span class="coach-name">S. Ventura</span> & <span class="coach-name">T. Ventura</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saturday, December 20 -->
+                        <div class="day-section" id="bowling-day-saturday">
                             <div class="day-header">
                                 <div class="day-header-left">
                                     <div class="day-name">Saturday</div>
-                                    <div class="day-date">December 14, 2024</div>
+                                    <div class="day-date">December 20, 2025</div>
+                                </div>
+                            </div>
+                            <div class="game-content">
+                                <div class="no-games-message">No games scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Sunday, December 21 -->
+                        <div class="day-section" id="bowling-day-sunday">
+                            <div class="day-header">
+                                <div class="day-header-left">
+                                    <div class="day-name">Sunday</div>
+                                    <div class="day-date">December 21, 2025</div>
                                 </div>
                             </div>
                             <div class="game-content">
@@ -1169,10 +1303,18 @@ setTimeout(() => {
 
     // Home games schedule
     const homeGames = {
-        friday: {
-            opponent: 'Deposit-Hancock',
-            jvTime: '5:30 PM',
-            varsityTime: '7:15 PM'
+        basketball: {},
+        bowling: {
+            tuesday: {
+                opponent: 'Afton',
+                time: '3:45 PM',
+                location: 'Galaxy Bowl'
+            },
+            wednesday: {
+                opponent: 'Sidney',
+                time: '3:30 PM - 5:30 PM',
+                location: 'Galaxy Bowl'
+            }
         }
     };
 
@@ -1202,6 +1344,16 @@ setTimeout(() => {
     // ========================================
     function showSport(sport) {
         console.log('Showing sport:', sport);
+        // Hide all schedules
+        document.getElementById('basketball-schedule').style.display = 'none';
+        document.getElementById('bowling-schedule').style.display = 'none';
+
+        // Show selected schedule
+        document.getElementById(sport + '-schedule').style.display = 'block';
+
+        // Update past games marking and home game banner
+        markPastGames();
+        updateTodaysHomeGameBanner();
     }
 
     function updateTodaysHomeGameBanner() {
@@ -1209,9 +1361,26 @@ setTimeout(() => {
         const banner = document.getElementById('todaysHomeGameBanner');
         const details = document.getElementById('homeGameDetails');
 
-        if (homeGames[todayKey]) {
-            const game = homeGames[todayKey];
-            details.textContent = `vs ${game.opponent} • JV ${game.jvTime}, Varsity ${game.varsityTime}`;
+        // Check for home games in any sport
+        let hasHomeGame = false;
+        let gameDetails = [];
+
+        // Check basketball
+        if (homeGames.basketball[todayKey]) {
+            const game = homeGames.basketball[todayKey];
+            gameDetails.push(`Basketball vs ${game.opponent} • JV ${game.jvTime}, Varsity ${game.varsityTime}`);
+            hasHomeGame = true;
+        }
+
+        // Check bowling
+        if (homeGames.bowling[todayKey]) {
+            const game = homeGames.bowling[todayKey];
+            gameDetails.push(`Bowling vs ${game.opponent} • ${game.time} at ${game.location}`);
+            hasHomeGame = true;
+        }
+
+        if (hasHomeGame) {
+            details.innerHTML = gameDetails.join('<br>');
             banner.style.display = 'flex';
         } else {
             banner.style.display = 'none';
@@ -1219,21 +1388,27 @@ setTimeout(() => {
     }
 
     function markPastGames() {
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         const dayNumbers = {
-            'monday': 9,
-            'tuesday': 10,
-            'wednesday': 11,
-            'thursday': 12,
-            'friday': 13,
-            'saturday': 14
+            'monday': 15,
+            'tuesday': 16,
+            'wednesday': 17,
+            'thursday': 18,
+            'friday': 19,
+            'saturday': 20,
+            'sunday': 21
         };
 
-        days.forEach(day => {
-            const dayElement = document.getElementById(`day-${day}`);
-            if (dayElement && todayMonth === 12 && todayDay > dayNumbers[day]) {
-                dayElement.classList.add('past-game');
-            }
+        // Mark past games for both basketball and bowling
+        const sports = ['basketball', 'bowling'];
+
+        sports.forEach(sport => {
+            days.forEach(day => {
+                const dayElement = document.getElementById(`${sport}-day-${day}`);
+                if (dayElement && todayMonth === 12 && todayDay >= dayNumbers[day] + 1) {
+                    dayElement.classList.add('past-game');
+                }
+            });
         });
     }
 

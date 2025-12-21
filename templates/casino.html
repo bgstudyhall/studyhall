@@ -1156,7 +1156,7 @@
 <body>
     <!-- Background Music -->
     <audio id="bgMusic" loop>
-        <source src="{{ url_for('static', filename='chess.mp3') }}" type="audio/mpeg">
+        <source src="{{ url_for('static', filename='JazzV.mp3') }}" type="audio/mpeg">
     </audio>
 
     <script>
@@ -1213,7 +1213,7 @@
             <button class="tab-btn active" onclick="switchTab('home', this)">Casino Home</button>
             <button class="tab-btn" onclick="switchTab('coinflip', this)">Bobcatflip</button>
             <button class="tab-btn" onclick="switchTab('tower', this)">Tower</button>
-            <button class="tab-btn" onclick="return false;" style="opacity: 0.5; cursor: not-allowed;" disabled>Blackjack (Coming Soon)</button>
+            <button class="tab-btn" onclick="switchTab('blackjack', this)">Blackjack</button>
         </div>
 
         <!-- ========================================
@@ -1310,16 +1310,30 @@
                 </div>
 
  <!-- blackjack card-->
+               {% set can_access_blackjack = (user_rank in ['platinum', 'elite', 'grandmaster', 'minister']) or (user_role == 'admin') %}
+               {% if can_access_blackjack %}
+               <div class="game-card" onclick="switchTab('blackjack', document.querySelector('.tab-btn:nth-child(4)'))">
+    <div class="game-image">
+        🃏
+    </div>
+    <div class="game-info">
+        <h3 class="game-name">Blackjack</h3>
+        <p class="game-description">Accessible by Platinum+ students</p>
+        <button class="play-btn">Play Now</button>
+    </div>
+</div>
+               {% else %}
                <div class="game-card" style="opacity: 0.6; cursor: not-allowed;" onclick="return false;">
     <div class="game-image">
         🃏
     </div>
     <div class="game-info">
         <h3 class="game-name">Blackjack</h3>
-        <p class="game-description">Since so many student wanted it... probably next Monday/Tuesday</p>
-        <button class="play-btn" style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); cursor: not-allowed;" disabled>Coming Soon</button>
+        <p class="game-description">Accessible by Platinum+ users</p>
+        <button class="play-btn" style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); cursor: not-allowed;" disabled>Locked</button>
     </div>
 </div>
+               {% endif %}
 
             </div>
         </div>
@@ -1458,16 +1472,31 @@
         </div>
     </div>
 
-    <!-- ========================================
+<!-- ========================================
      BLACKJACK TAB
 ======================================== -->
 <div id="blackjackTab" class="tab-content">
-    <div class="game-container" style="max-width: 900px; margin: 0 auto;">
+    <div class="game-container">
         <div class="game-title-header">
             <h1>🃏 Blackjack</h1>
             <p>Beat the dealer! Get as close to 21 as possible without going over.</p>
         </div>
 
+        {% set can_play_blackjack = (user_rank in ['platinum', 'elite', 'grandmaster', 'minister']) or (user_role == 'admin') %}
+
+        {% if not can_play_blackjack %}
+        <!-- Access Restricted Message -->
+        <div class="coin-display-area" style="padding: 2rem; text-align: center; margin: 2rem auto; max-width: 600px;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+            <h2 style="color: var(--christmas-gold-dark); margin-bottom: 1rem; font-size: 1.5rem;">Blackjack Access Restricted</h2>
+            <p style="color: var(--text-medium); font-size: 1.1rem; line-height: 1.6;">
+                This game is available to <strong>Platinum+ users</strong> and the <strong>admin</strong>.
+            </p>
+            <p style="color: var(--text-light); font-size: 0.95rem; margin-top: 1rem;">
+                Upgrade your rank to unlock this exclusive feature!
+            </p>
+        </div>
+        {% else %}
         <!-- Start Game Controls -->
         <div id="blackjackControls" class="game-controls">
             <div class="control-group">
@@ -1481,7 +1510,11 @@
         </div>
 
         <!-- Game Area -->
+        {% if can_play_blackjack %}
         <div id="blackjackGameArea" style="display: none;">
+        {% else %}
+        <div id="blackjackGameArea" style="display: none; pointer-events: none; opacity: 0.5;">
+        {% endif %}
             <!-- Dealer Section -->
             <div class="coin-display-area" style="padding: 1.5rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
@@ -1527,10 +1560,10 @@
                     </button>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                    <button class="btn" onclick="blackjackDouble()" id="doubleBtn" style="padding: 1rem; font-size: 1rem;" disabled>
+                    <button class="btn" onclick="blackjackDouble()" id="doubleBtn" style="padding: 1rem; font-size: 1rem;">
                         💰 DOUBLE
                     </button>
-                    <button class="btn" onclick="blackjackSplit()" id="splitBtn" style="padding: 1rem; font-size: 1rem;" disabled>
+                    <button class="btn" onclick="blackjackSplit()" id="splitBtn" style="padding: 1rem; font-size: 1rem;">
                         ✂️ SPLIT
                     </button>
                 </div>
@@ -1544,6 +1577,7 @@
                 🎲 Play Again
             </button>
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -2327,7 +2361,9 @@ function renderBlackjackCards(data) {
         // Show only first card
         dealerCardsDiv.appendChild(createCard(data.dealer_hand[0]));
         dealerCardsDiv.appendChild(createCardBack());
-        document.getElementById('dealerValue').textContent = '?';
+        // Calculate and display value of the visible card
+        const visibleCardValue = calculateHandValue([data.dealer_hand[0]]);
+        document.getElementById('dealerValue').textContent = visibleCardValue;
     } else {
         // Show all cards
         data.dealer_hand.forEach(card => {
@@ -2506,8 +2542,47 @@ async function blackjackDouble() {
 }
 
 async function blackjackSplit() {
-    showBlackjackResult('Split feature coming soon!', false);
-    // Split is complex - you can implement later if needed
+    if (!blackjackActive || !blackjackGameId) return;
+
+    const currentBalance = parseInt(document.getElementById('userBalance').textContent);
+    const currentBet = parseInt(document.getElementById('currentBlackjackBet').textContent);
+
+    if (currentBalance < currentBet) {
+        showBlackjackResult('Insufficient tokens to split!', false);
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/blackjack/split/${blackjackGameId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('userBalance').textContent = data.new_balance;
+
+            // Update player cards to show first hand
+            const playerCardsDiv = document.getElementById('playerCards');
+            playerCardsDiv.innerHTML = '';
+            data.player_hand.forEach(card => {
+                playerCardsDiv.appendChild(createCard(card));
+            });
+            document.getElementById('playerValue').textContent = data.player_value;
+
+            // Show message that split happened
+            showBlackjackResult('Hand split! Playing first hand now. Second hand will be played after.', true);
+
+            // Disable split and double after splitting
+            document.getElementById('splitBtn').disabled = true;
+            // Note: Split hands typically can't be doubled in most casinos
+
+        } else {
+            showBlackjackResult(data.error || 'Error occurred', false);
+        }
+    } catch (error) {
+        showBlackjackResult('Failed to connect to server', false);
+    }
 }
 
 function showBlackjackResult(message, isWin) {
