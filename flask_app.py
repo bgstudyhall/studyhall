@@ -229,7 +229,6 @@ COINFLIP_WINS_FILE = 'coinflip_wins.json'
 RPS_GAMES_FILE = os.path.join(DATA_DIR, 'rps_games.json')
 RPS_HISTORY_FILE = os.path.join(DATA_DIR, 'rps_history.json')
 SITE_ACCESS_FILE = os.path.join(DATA_DIR, 'site_access.json')
-ADVENT_CALENDAR_FILE = os.path.join(DATA_DIR, 'advent_calendar.json')
 GROUPS_FILE = os.path.join(DATA_DIR, 'groups.json')
 GROUP_MESSAGES_FILE = os.path.join(DATA_DIR, 'group_messages.json')
 GROUP_REACTIONS_FILE = os.path.join(DATA_DIR, 'group_reactions.json')
@@ -514,7 +513,6 @@ lottery_state = load_json(LOTTERY_FILE, {
 
 lottery_tickets = load_json(LOTTERY_TICKETS_FILE, {})
 site_access = load_json(SITE_ACCESS_FILE, {})
-advent_calendar = load_json(ADVENT_CALENDAR_FILE, {})
 
 # Groups data
 groups = load_json(GROUPS_FILE, {})
@@ -710,7 +708,7 @@ def maintenance_check(f):
                     maintenance_title=maintenance_mode.get('title'),
                     maintenance_notes=maintenance_mode.get('notes', []))
             user_role = users.get(session['username'], {}).get('role', 'user')
-            if user_role not in ['admin', 'ambassador']:
+            if user_role != 'admin':  # ONLY admin can access during maintenance
                 return render_template('maintenance.html',
                     maintenance_title=maintenance_mode.get('title'),
                     maintenance_notes=maintenance_mode.get('notes', []))
@@ -834,11 +832,11 @@ lunch_menu = {
     '2025-12-19': {'food': 'Three Cheese or Pepperoni Pizza Roll & Romaine Salad w/ Tomatoes & Cucumbers', 'fact': 'Pizza rolls were invented in 1951 by a Chinese-American restaurateur who wanted to create a snack that combined pizza and egg rolls!'},
     '2025-12-22': {'food': 'Chicken Tenders, French Fries, Green Beans & WG Dinner Roll', 'fact': 'Chicken tenders are actually a specific muscle from the chicken breast called the "tenderloin" - they\'re naturally tender, hence the name!'},
     '2025-12-23': {'food': 'Deep Dish Pizza & Roasted Broccoli', 'fact': 'Deep dish pizza was invented in Chicago in 1943 at Pizzeria Uno - its thick crust can hold way more toppings than traditional thin-crust pizza!'},
-    '2025-12-24': {'food': 'Christmas Eve 🎄', 'fact': 'Merry Christmas Eve! Many cultures have special foods for tonight - from Italian Feast of the Seven Fishes to Mexican tamales and pozole!'},
-    '2025-12-25': {'food': 'Merry Christmas! 🎅🎁', 'fact': 'Merry Christmas! Did you know that eating turkey for Christmas became popular in England in the 16th century, thanks to King Henry VIII?'},
+    '2025-12-24': {'food': 'Winter Break ❄️', 'fact': 'Enjoy your winter break! Time to relax and recharge before the new year!'},
+    '2025-12-25': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: Many winter celebrations around the world feature special meals and family gatherings!'},
     '2025-12-26': {'food': 'Winter Break ❄️', 'fact': 'December 26th is Boxing Day in many countries! It originated as a day when servants received gifts in boxes from their employers!'},
     '2025-12-29': {'food': 'Winter Break ❄️', 'fact': 'Enjoy your winter break! This is the perfect time to try making your favorite lunch items at home!'},
-    '2025-12-30': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: The period between Christmas and New Year\'s is sometimes called "Twixmas" in the UK!'},
+    '2025-12-30': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: The end of December is a perfect time to reflect on the year and set goals for the next!'},
     '2025-12-31': {'food': 'New Year\'s Eve 🎉', 'fact': 'Happy New Year\'s Eve! Did you know that eating 12 grapes at midnight is a Spanish tradition for good luck in each month of the new year?'}
 }
 
@@ -1579,11 +1577,12 @@ def chat():
             'last_message': last_message,
             'member_count': len(group_data.get('members', [])) + 1,
             'rank': group_data.get('rank', 0),
-            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display']
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display'],
+            'bank': group_data.get('bank', 0)
         })
 
-    # Sort by last message timestamp
-    groups_data.sort(key=lambda x: x['last_message']['timestamp'] if x['last_message'] else '', reverse=True)
+    # Sort by bank amount (highest first)
+    groups_data.sort(key=lambda x: x['bank'], reverse=True)
 
     # Check if user already has a group they lead
     user_has_group = any(g['leader'] == current_user for g in groups.values())
@@ -3695,8 +3694,11 @@ def end_lottery():
         for _ in range(ticket_count):
             weighted_participants.append(username)
 
-    # Pick random winner
-    winner = random.choice(weighted_participants)
+    # Pick winner (check for predetermined winner first)
+    if lottery_state.get('predetermined_winner') and lottery_state.get('predetermined_winner') in lottery_tickets:
+        winner = lottery_state['predetermined_winner']
+    else:
+        winner = random.choice(weighted_participants)
 
     # Award prize
     prize = lottery_state['prize_pool']
@@ -4332,291 +4334,6 @@ def rps_move(other_user):
 
     return jsonify({'success': True, 'game': game_response})
 
-    # ===============================================================
-# Advent Calendar API Routes
-# ===============================================================
-
-
-
-# Define advent calendar rewards configuration
-ADVENT_REWARDS = {
-    1: {'type': 'tokens', 'amount': 10, 'description': '10 Tokens'},
-    2: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
-    3: {'type': 'tokens', 'amount': 12, 'description': '12 Tokens'},
-    4: {'type': 'tokens', 'amount': 5, 'description': '5 Tokens'},
-    5: {'type': 'youtube_access', 'description': 'YouTube Access'},
-    # Doors 6-24 are placeholders for future implementation
-    6: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    7: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    8: {'type': 'tokens', 'amount': 20, 'description': '20 Tokens'},
-    9: {'type': 'tokens', 'amount': 6, 'description': '6 Tokens'},
-    10: {'type': 'tokens', 'amount': 15, 'description': '15 Tokens'},
-    11: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
-    12: {'type': 'free_game', 'description': 'Free Game of Your Choice'},
-    13: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    14: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    15: {'type': 'tokens', 'amount': 20, 'description': '20 Tokens'},
-    16: {'type': 'tokens', 'amount': 6, 'description': '6 Tokens'},
-    17: {'type': 'tokens', 'amount': 10, 'description': '10 Tokens'},
-    18: {'type': 'glow_effect', 'description': 'Username Glow Effect'},
-    19: {'type': 'tokens', 'amount': 15, 'description': '15 Tokens'},
-    20: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    21: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    22: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    23: {'type': 'placeholder', 'description': 'Mystery Reward'},
-    24: {'type': 'placeholder', 'description': 'Mystery Reward'},
-}
-
-@app.route('/api/advent/status')
-@login_required
-def get_advent_status():
-    """Get user's advent calendar status"""
-    username = session['username']
-    ny_tz = pytz.timezone('America/New_York')
-    now = datetime.now(ny_tz)
-
-    print(f"DEBUG: Current NY time: {now}")
-    print(f"DEBUG: Current date: {now.date()}")
-
-    # Initialize user's advent calendar if not exists
-    if username not in advent_calendar:
-        advent_calendar[username] = {}
-        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-    # Build door status for each day
-    doors_status = {}
-    for door_num in range(1, 25):
-        door_key = f'door_{door_num}'
-        door_date = datetime(2025, 12, door_num, tzinfo=ny_tz)  # December 2025
-
-        # Check if door exists in user's data
-        door_data = advent_calendar[username].get(door_key, {
-            'opened': False,
-            'claimed_reward': None,
-            'opened_date': None,
-            'game_selected': None
-        })
-
-        # Determine door state
-        if now.date() < door_date.date():
-            state = 'locked'  # Future door
-        elif now.date() == door_date.date():
-            state = 'available' if not door_data.get('opened') else 'opened'
-        else:
-            state = 'missed' if not door_data.get('opened') else 'opened'
-
-        doors_status[door_num] = {
-            'state': state,
-            'opened': door_data.get('opened', False),
-            'reward': door_data.get('claimed_reward'),
-            'reward_type': ADVENT_REWARDS[door_num]['type'],
-            'description': ADVENT_REWARDS[door_num]['description']
-        }
-
-        if door_num == 1:
-            print(f"DEBUG Door 1: door_date={door_date.date()}, now.date={now.date()}, state={state}")
-
-    print(f"DEBUG: Total doors in response: {len(doors_status)}")
-    print(f"DEBUG: Sample doors_status: {list(doors_status.items())[:3]}")
-
-    return jsonify({
-        'success': True,
-        'doors': doors_status,
-        'current_date': now.strftime('%Y-%m-%d')
-    })
-
-@app.route('/api/advent/open/<int:door_number>', methods=['POST'])
-@login_required
-def open_advent_door(door_number):
-    """Open an advent calendar door"""
-    username = session['username']
-
-    # Validate door number
-    if door_number < 1 or door_number > 24:
-        return jsonify({'error': 'Invalid door number'}), 400
-
-    ny_tz = pytz.timezone('America/New_York')
-    now = datetime.now(ny_tz)
-    door_date = datetime(2025, 12, door_number, tzinfo=ny_tz)  # December 2025
-
-    # Check if it's the correct date
-    if now.date() != door_date.date():
-        return jsonify({'error': 'This door can only be opened on its day!'}), 403
-
-    # Initialize user's advent calendar if not exists
-    if username not in advent_calendar:
-        advent_calendar[username] = {}
-
-    door_key = f'door_{door_number}'
-
-    # Check if already opened
-    if advent_calendar[username].get(door_key, {}).get('opened'):
-        return jsonify({'error': 'Door already opened!'}), 400
-
-    # Get reward configuration
-    reward_config = ADVENT_REWARDS[door_number]
-
-    # Handle different reward types
-    if reward_config['type'] == 'tokens':
-        # Award tokens immediately
-        amount = reward_config['amount']
-        users[username]['tokens'] = users[username].get('tokens', 0) + amount
-        save_json(USERS_FILE, users)
-
-        # Mark door as opened
-        advent_calendar[username][door_key] = {
-            'opened': True,
-            'claimed_reward': f"{amount} Tokens",
-            'opened_date': now.strftime('%Y-%m-%d %H:%M:%S')
-        }
-        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-        return jsonify({
-            'success': True,
-            'reward_type': 'tokens',
-            'amount': amount,
-            'new_balance': users[username]['tokens']
-        })
-
-    elif reward_config['type'] == 'free_game':
-        # Get list of unpurchased games
-        user_purchases = purchases.get(username, [])
-        available_games = []
-
-        for game_id, game in games.items():
-            if game_id not in user_purchases and not game.get('free_for_all', True):
-                available_games.append({
-                    'id': game_id,
-                    'name': game['name'],
-                    'price': game.get('price', 0)
-                })
-
-        if not available_games:
-            return jsonify({'error': 'No games available to claim!'}), 400
-
-        # Mark door as opened but not fully claimed yet
-        advent_calendar[username][door_key] = {
-            'opened': True,
-            'claimed_reward': None,  # Will be set when game is selected
-            'opened_date': now.strftime('%Y-%m-%d %H:%M:%S'),
-            'game_selected': None
-        }
-        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-        return jsonify({
-            'success': True,
-            'reward_type': 'free_game',
-            'available_games': available_games
-        })
-
-    elif reward_config['type'] == 'youtube_access':
-        # Grant YouTube access
-        if username not in site_access:
-            site_access[username] = []
-
-        if 'youtube' not in site_access[username]:
-            site_access[username].append('youtube')
-            save_json(SITE_ACCESS_FILE, site_access)
-            reward_text = 'YouTube Access Granted!'
-        else:
-            reward_text = 'YouTube Access (Already Had)'
-
-        # Mark door as opened
-        advent_calendar[username][door_key] = {
-            'opened': True,
-            'claimed_reward': reward_text,
-            'opened_date': now.strftime('%Y-%m-%d %H:%M:%S')
-        }
-        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-        return jsonify({
-            'success': True,
-            'reward_type': 'youtube_access',
-            'message': reward_text
-        })
-
-    elif reward_config['type'] == 'glow_effect':
-        # Grant glow effect to user
-        if 'glow_effect' not in users[username]:
-            users[username]['glow_effect'] = {
-                'unlocked': True,
-                'enabled': True  # Enabled by default
-            }
-        else:
-            users[username]['glow_effect']['unlocked'] = True
-            users[username]['glow_effect']['enabled'] = True
-
-        save_json(USERS_FILE, users)
-
-        # Mark door as opened
-        advent_calendar[username][door_key] = {
-            'opened': True,
-            'claimed_reward': 'Username Glow Effect',
-            'opened_date': now.strftime('%Y-%m-%d %H:%M:%S'),
-            'game_selected': None
-        }
-        save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-        return jsonify({
-            'success': True,
-            'reward_type': 'glow_effect',
-            'message': 'Username Glow Effect Unlocked!'
-        })
-
-    elif reward_config['type'] == 'placeholder':
-        return jsonify({'error': 'This reward is not available yet!'}), 400
-
-    return jsonify({'error': 'Unknown reward type'}), 500
-
-@app.route('/api/advent/claim_game', methods=['POST'])
-@login_required
-def claim_advent_game():
-    """Claim the free game from any advent door"""
-    username = session['username']
-    data = request.json
-    game_id = data.get('game_id')
-    door_number = data.get('door_number')  # ✅ NEW: Get door number from request
-
-    if not game_id:
-        return jsonify({'error': 'No game selected'}), 400
-
-    if not door_number:
-        return jsonify({'error': 'Invalid door number'}), 400
-
-    # Check if game exists
-    if game_id not in games:
-        return jsonify({'error': 'Game not found'}), 404
-
-    # Check if the specified door was opened but game not yet claimed
-    door_key = f'door_{door_number}'  # ✅ CHANGED: Use dynamic door number
-    if username not in advent_calendar or door_key not in advent_calendar[username]:
-        return jsonify({'error': f'Door {door_number} not opened'}), 400
-
-    door_data = advent_calendar[username][door_key]
-    if door_data.get('game_selected'):
-        return jsonify({'error': 'Game already claimed'}), 400
-
-    # Check if user already owns this game
-    if username in purchases and game_id in purchases[username]:
-        return jsonify({'error': 'You already own this game'}), 400
-
-    # Grant the game
-    if username not in purchases:
-        purchases[username] = []
-
-    purchases[username].append(game_id)
-    save_json(PURCHASES_FILE, purchases)
-
-    # Update advent calendar
-    advent_calendar[username][door_key]['claimed_reward'] = f"Free Game: {games[game_id]['name']}"
-    advent_calendar[username][door_key]['game_selected'] = game_id
-    save_json(ADVENT_CALENDAR_FILE, advent_calendar)
-
-    return jsonify({
-        'success': True,
-        'game_name': games[game_id]['name']
-    })
-
 @app.route('/api/toggle_glow_effect', methods=['POST'])
 @login_required
 def toggle_glow_effect():
@@ -4704,26 +4421,18 @@ def groups_list():
             'last_message': last_message,
             'member_count': len(group_data.get('members', [])) + 1,  # +1 for leader
             'rank': group_data.get('rank', 0),
-            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display']
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display'],
+            'bank': group_data.get('bank', 0)
         })
 
-    # Sort by last message timestamp (most recent first)
-    groups_data.sort(key=lambda x: x['last_message']['timestamp'] if x['last_message'] else '', reverse=True)
+    # Sort by bank amount (highest first)
+    groups_data.sort(key=lambda x: x['bank'], reverse=True)
 
     # Check if user already has a group they lead
     user_has_group = any(g['leader'] == username for g in groups.values())
 
-    return render_template('groups_list.html',
-        groups=groups_data,
-        user_has_group=user_has_group,
-        unread_count=unread_count,
-        group_unread_count=group_unread_count,
-        lounge_unread_count=lounge_unread_count,
-        user_role=users[username]['role'],
-        user_tokens=users[username].get('tokens', 0),
-        profiles=profiles,
-        all_users=[u for u in users.keys() if u != username]
-    )
+    # Redirect to main chat page which has groups
+    return redirect(url_for('chat'))
 
 @app.route('/group/<group_id>')
 @maintenance_check
@@ -7236,4 +6945,3 @@ def blackjack_split(game_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-

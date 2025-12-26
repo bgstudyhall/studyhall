@@ -17,14 +17,15 @@
         }
 
         :root {
-            --christmas-red: #d32f2f;
-            --christmas-red-dark: #b71c1c;
-            --christmas-red-light: #ef5350;
-            --christmas-white: #ffffff;
-            --christmas-snow: #f8f9fa;
-            --christmas-cream: #fffaf5;
-            --christmas-gold: #ffd700;
-            --christmas-gold-dark: #d4af37;
+            --winter-ice: #87CEEB;
+            --winter-ice-dark: #5F9EA0;
+            --winter-ice-light: #ADD8E6;
+            --winter-frost: #E0F6FF;
+            --winter-snow: #F0F8FF;
+            --winter-white: #FFFFFF;
+            --winter-silver: #C0C0C0;
+            --winter-silver-dark: #A8A8A8;
+            --winter-cream: #F5FCFF;
             --text-dark: #1a1a1a;
             --text-medium: #4a4a4a;
             --text-light: #888888;
@@ -32,6 +33,7 @@
             --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-hover: 0 8px 0 rgba(44, 44, 44, 0.9);
+            --shadow-frost: 0 4px 16px rgba(135, 206, 250, 0.3);
         }
 
         body {
@@ -112,7 +114,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: var(--christmas-cream);
+            background: var(--winter-cream);
             padding: 2.5rem;
             border-radius: 32px;
             border: 6px solid var(--border-main);
@@ -121,7 +123,7 @@
             overflow: hidden;
         }
 
-        /* Christmas header decoration */
+        /* Winter header decoration */
         .container::before {
             content: 'StudyHall Casino (New Gamemode this week)';
             position: absolute;
@@ -131,7 +133,7 @@
             text-align: center;
             font-size: 1.5rem;
             font-family: 'Fredoka One', cursive;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             padding: 0.75rem 0;
             border-bottom: 5px solid var(--border-main);
             letter-spacing: 3px;
@@ -181,7 +183,7 @@
         }
 
         .header h2 .holiday-accent {
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             display: block;
             font-size: 1.6rem;
             text-shadow:
@@ -200,7 +202,7 @@
            BUTTON STYLES
         ======================================== */
         .btn {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 4px solid var(--border-main);
             padding: 0.75rem 1.4rem;
             border-radius: 16px;
@@ -230,7 +232,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border-color: var(--border-main);
             box-shadow:
@@ -239,14 +241,14 @@
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--christmas-red-light) 0%, var(--christmas-red) 100%);
+            background: linear-gradient(135deg, var(--winter-ice-light) 0%, var(--winter-ice) 100%);
             box-shadow:
                 0 8px 0 rgba(44, 44, 44, 0.9),
                 0 0 30px rgba(211, 47, 47, 0.6);
         }
 
         .btn-gold {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
             border-color: var(--border-main);
             box-shadow:
@@ -255,7 +257,7 @@
         }
 
         .btn-gold:hover {
-            background: linear-gradient(135deg, #ffed4e 0%, var(--christmas-gold) 100%);
+            background: linear-gradient(135deg, #ffed4e 0%, var(--winter-silver) 100%);
             box-shadow:
                 0 8px 0 rgba(44, 44, 44, 0.9),
                 0 0 30px rgba(255, 215, 0, 0.6);
@@ -265,13 +267,13 @@
            TOKENS DISPLAY
         ======================================== */
         .tokens-display {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             padding: 0.8rem 1.6rem;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            border: 6px solid var(--christmas-white);
+            border: 6px solid var(--winter-white);
             outline: 5px solid var(--border-main);
             box-shadow:
                 var(--shadow-cartoon-sm),
@@ -297,7 +299,7 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background: var(--christmas-red);
+            background: var(--winter-ice);
             color: white;
             border-radius: 50%;
             width: 26px;
@@ -325,7 +327,7 @@
             gap: 0.6rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
-            background: var(--christmas-white);
+            background: var(--winter-white);
             padding: 0.7rem;
             border-radius: 20px;
             width: fit-content;
@@ -352,13 +354,13 @@
         }
 
         .tab-btn:hover {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             color: var(--text-dark);
             transform: translateY(-2px);
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
             border: 4px solid var(--border-main);
             box-shadow: 0 4px 0 rgba(44, 44, 44, 0.9), inset 0 2px 0 rgba(255, 255, 255, 0.2);
@@ -376,7 +378,7 @@
            HERO BANNER
         ======================================== */
         .hero-banner {
-            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-white) 0%, var(--winter-snow) 100%);
             border: 5px solid var(--border-main);
             border-radius: 24px;
             padding: 3rem 2rem;
@@ -406,7 +408,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 2.5rem;
             font-weight: 400;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
             margin-bottom: 0.75rem;
             line-height: 1.2;
             letter-spacing: 0.5px;
@@ -431,7 +433,7 @@
         }
 
         .game-card {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 5px solid var(--border-main);
             border-radius: 20px;
             overflow: hidden;
@@ -446,13 +448,13 @@
             box-shadow:
                 0 10px 0 rgba(44, 44, 44, 0.9),
                 0 15px 35px rgba(211, 47, 47, 0.2);
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
         }
 
         .game-image {
             width: 100%;
             height: 200px;
-            background: linear-gradient(135deg, var(--christmas-snow) 0%, var(--christmas-white) 100%);
+            background: linear-gradient(135deg, var(--winter-snow) 0%, var(--winter-white) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -490,7 +492,7 @@
 
         .play-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
             border: 4px solid var(--border-main);
             padding: 1rem 1.5rem;
@@ -518,7 +520,7 @@
            GAME VIEWS
         ======================================== */
         .game-container {
-            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-white) 0%, var(--winter-snow) 100%);
             border: 5px solid var(--border-main);
             border-radius: 24px;
             padding: 2.5rem;
@@ -550,7 +552,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 2.2rem;
             font-weight: 400;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
             margin-bottom: 0.5rem;
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
         }
@@ -565,7 +567,7 @@
            COIN DISPLAY AREA
         ======================================== */
         .coin-display-area {
-            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-white) 0%, var(--winter-snow) 100%);
             border: 5px solid var(--border-main);
             border-radius: 20px;
             padding: 3rem 2rem;
@@ -600,7 +602,7 @@
            GAME CONTROLS
         ======================================== */
         .game-controls {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 5px solid var(--border-main);
             border-radius: 20px;
             padding: 2rem;
@@ -629,7 +631,7 @@
 
         .side-btn {
             padding: 1.5rem;
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             border: 5px solid var(--border-main);
             border-radius: 16px;
             color: var(--text-medium);
@@ -647,7 +649,7 @@
         }
 
         .side-btn:hover {
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
             background: rgba(255, 215, 0, 0.1);
             transform: translateY(-3px);
             box-shadow: 0 7px 0 rgba(44, 44, 44, 0.9);
@@ -660,7 +662,7 @@
 
         .side-btn.selected {
             background: rgba(255, 215, 0, 0.2);
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
             color: var(--text-dark);
             font-weight: 900;
             box-shadow: 0 5px 0 rgba(44, 44, 44, 0.9), inset 0 2px 0 rgba(255, 255, 255, 0.2);
@@ -679,7 +681,7 @@
         .bet-input {
             width: 100%;
             padding: 1rem 1.3rem;
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             border: 5px solid var(--border-main);
             border-radius: 16px;
             color: var(--text-dark);
@@ -692,14 +694,14 @@
 
         .bet-input:focus {
             outline: none;
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
             box-shadow: 0 4px 0 rgba(44, 44, 44, 0.9), 0 0 0 4px rgba(255, 215, 0, 0.2);
         }
 
         .flip-btn {
             width: 100%;
             padding: 1.3rem 2rem;
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
             border: 5px solid var(--border-main);
             border-radius: 18px;
@@ -764,7 +766,7 @@
            LOTTERY BANNER
         ======================================== */
         .lottery-banner {
-            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-white) 0%, var(--winter-snow) 100%);
             border: 5px solid var(--border-main);
             border-radius: 24px;
             padding: 2rem;
@@ -797,18 +799,18 @@
             font-family: 'Fredoka One', cursive;
             font-size: 2rem;
             font-weight: 400;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             letter-spacing: 0.5px;
         }
 
         .lottery-timer {
             background: rgba(255, 215, 0, 0.2);
-            border: 4px solid var(--christmas-gold);
+            border: 4px solid var(--winter-silver);
             border-radius: 16px;
             padding: 0.75rem 1.25rem;
             font-size: 1.1rem;
             font-weight: 900;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             box-shadow: var(--shadow-cartoon-sm);
         }
 
@@ -823,7 +825,7 @@
 
         .lottery-stat {
             background: rgba(255, 215, 0, 0.1);
-            border: 4px solid var(--christmas-gold);
+            border: 4px solid var(--winter-silver);
             border-radius: 16px;
             padding: 1rem;
             text-align: center;
@@ -842,7 +844,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 1.5rem;
             font-weight: 400;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
         }
 
         .lottery-participants {
@@ -878,7 +880,7 @@
         }
 
         .participant-item:hover {
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
             transform: translateX(5px);
         }
 
@@ -888,7 +890,7 @@
         }
 
         .participant-tickets {
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             font-weight: 900;
         }
 
@@ -909,7 +911,7 @@
         }
 
         .tower-tile {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             border: 5px solid var(--border-main);
             border-radius: 12px;
             color: var(--text-medium);
@@ -924,7 +926,7 @@
         }
 
         .tower-tile:hover:not(:disabled) {
-            border-color: var(--christmas-gold);
+            border-color: var(--winter-silver);
             background: rgba(255, 215, 0, 0.1);
             transform: translateY(-3px);
             box-shadow: 0 7px 0 rgba(44, 44, 44, 0.9);
@@ -939,7 +941,7 @@
            STATS SECTION
         ======================================== */
         .stats-section {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 5px solid var(--border-main);
             border-radius: 20px;
             padding: 2rem;
@@ -951,7 +953,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 1.4rem;
             font-weight: 400;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
             margin-bottom: 1rem;
             text-align: center;
         }
@@ -964,7 +966,7 @@
 
         .stat-item {
             background: rgba(255, 215, 0, 0.1);
-            border: 4px solid var(--christmas-gold);
+            border: 4px solid var(--winter-silver);
             border-radius: 12px;
             padding: 1rem 1.5rem;
             display: flex;
@@ -1010,7 +1012,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 1.2rem;
             font-weight: 400;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
         }
 
         /* ========================================
@@ -1087,24 +1089,24 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             border-radius: 10px;
-            border: 3px solid var(--christmas-snow);
+            border: 3px solid var(--winter-snow);
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #ffed4e 0%, var(--christmas-gold) 100%);
+            background: linear-gradient(135deg, #ffed4e 0%, var(--winter-silver) 100%);
         }
 
         /* ========================================
    BLACKJACK CARD STYLES
 ======================================== */
 .bj-card {
-    background: var(--christmas-white);
+    background: var(--winter-white);
     border: 4px solid var(--border-main);
     border-radius: 12px;
     padding: 0.75rem 0.5rem;
@@ -1121,7 +1123,7 @@
 }
 
 .bj-card.red {
-    color: var(--christmas-red);
+    color: var(--winter-ice);
 }
 
 .bj-card.black {
@@ -1129,7 +1131,7 @@
 }
 
 .bj-card-back {
-    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+    background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
     border: 4px solid var(--border-main);
     border-radius: 12px;
     padding: 0.75rem 0.5rem;
@@ -1223,7 +1225,7 @@
             <!-- Hero Banner -->
             <div class="hero-banner">
                 <div class="hero-content">
-                    <h1 class="hero-title">🎄 Welcome to the Casino</h1>
+                    <h1 class="hero-title">Welcome to the Casino</h1>
                     <p class="hero-subtitle">StudyHall Casino was established October 23rd to gamble Tokens. "The highest form of wisdom is to know when to play and when to stay away." Test your luck with our festive games this holiday season!</p>
                 </div>
             </div>
@@ -1439,7 +1441,7 @@
                             </div>
                             <div style="text-align: center;">
                                 <div style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 700;">CURRENT PROFIT</div>
-                                <div style="color: var(--christmas-gold-dark); font-size: 1.5rem; font-weight: 900;" id="currentProfit">0.00x</div>
+                                <div style="color: var(--winter-silver-dark); font-size: 1.5rem; font-weight: 900;" id="currentProfit">0.00x</div>
                             </div>
                             <div style="text-align: right;">
                                 <div style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 700;">LEVEL</div>
@@ -1488,7 +1490,7 @@
         <!-- Access Restricted Message -->
         <div class="coin-display-area" style="padding: 2rem; text-align: center; margin: 2rem auto; max-width: 600px;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-            <h2 style="color: var(--christmas-gold-dark); margin-bottom: 1rem; font-size: 1.5rem;">Blackjack Access Restricted</h2>
+            <h2 style="color: var(--winter-silver-dark); margin-bottom: 1rem; font-size: 1.5rem;">Blackjack Access Restricted</h2>
             <p style="color: var(--text-medium); font-size: 1.1rem; line-height: 1.6;">
                 This game is available to <strong>Platinum+ users</strong> and the <strong>admin</strong>.
             </p>
@@ -1518,7 +1520,7 @@
             <!-- Dealer Section -->
             <div class="coin-display-area" style="padding: 1.5rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <img src="https://i.ibb.co/nNxQMGb1/IMG-1954.png" alt="Dealer" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--christmas-snow); padding: 0.5rem;">
+                    <img src="https://i.ibb.co/nNxQMGb1/IMG-1954.png" alt="Dealer" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--winter-snow); padding: 0.5rem;">
                     <div>
                         <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">DEALER</div>
                         <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-dark);" id="dealerValue">?</div>
@@ -1533,7 +1535,7 @@
             <div class="coin-display-area" style="padding: 1.5rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <img src="https://i.ibb.co/FkwcDYxs/IMG-1951.png" alt="Player" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--christmas-snow); padding: 0.5rem;">
+                        <img src="https://i.ibb.co/FkwcDYxs/IMG-1951.png" alt="Player" style="width: 50px; height: 50px; object-fit: contain; border: 4px solid var(--border-main); border-radius: 12px; background: var(--winter-snow); padding: 0.5rem;">
                         <div>
                             <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">YOUR HAND</div>
                             <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-dark);" id="playerValue">0</div>
@@ -1541,7 +1543,7 @@
                     </div>
                     <div>
                         <div style="font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 0.25rem;">BET</div>
-                        <div style="font-size: 1.2rem; font-weight: 900; color: var(--christmas-gold-dark);" id="currentBlackjackBet">0</div>
+                        <div style="font-size: 1.2rem; font-weight: 900; color: var(--winter-silver-dark);" id="currentBlackjackBet">0</div>
                     </div>
                 </div>
                 <div id="playerCards" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; min-height: 80px;">
@@ -1881,7 +1883,7 @@
                     padding-right: 1rem;
                     font-weight: 900;
                     font-size: ${level === 8 ? '1.3rem' : '1rem'};
-                    color: ${level === 8 ? 'var(--christmas-gold-dark)' : 'var(--text-dark)'};
+                    color: ${level === 8 ? 'var(--winter-silver-dark)' : 'var(--text-dark)'};
                 `;
                 multiplierLabel.textContent = `${multiplier.toFixed(2)}x`;
                 row.appendChild(multiplierLabel);
@@ -1947,7 +1949,7 @@
                     if (data.hit_egg) {
                         button.textContent = '🥚';
                         button.style.background = 'rgba(255, 215, 0, 0.2)';
-                        button.style.borderColor = 'var(--christmas-gold)';
+                        button.style.borderColor = 'var(--winter-silver)';
 
                         clickedTiles.push({ level: level, tile: tile });
 
@@ -1990,7 +1992,7 @@
                                     const otherBtn = document.querySelector(`[data-level="${level}"][data-tile="${t}"]`);
                                     otherBtn.textContent = '🥚';
                                     otherBtn.style.background = 'rgba(255, 215, 0, 0.1)';
-                                    otherBtn.style.borderColor = 'var(--christmas-gold)';
+                                    otherBtn.style.borderColor = 'var(--winter-silver)';
                                 }
                             }
 
@@ -2002,7 +2004,7 @@
                                     if (wasClicked) {
                                         btn.textContent = '🥚';
                                         btn.style.background = 'rgba(255, 215, 0, 0.2)';
-                                        btn.style.borderColor = 'var(--christmas-gold)';
+                                        btn.style.borderColor = 'var(--winter-silver)';
                                     } else {
                                         const img = document.createElement('img');
                                         img.src = 'https://i.ibb.co/nNxQMGb1/IMG-1954.png';
@@ -2173,9 +2175,9 @@
                         if (data.winner) {
                             previousWinner.style.display = 'block';
                             previousWinner.innerHTML = `
-                                <div style="background: rgba(255, 215, 0, 0.2); border: 5px solid var(--christmas-gold); border-radius: 16px; padding: 2rem; text-align: center; margin-top: 1.5rem; box-shadow: var(--shadow-cartoon-sm);">
+                                <div style="background: rgba(255, 215, 0, 0.2); border: 5px solid var(--winter-silver); border-radius: 16px; padding: 2rem; text-align: center; margin-top: 1.5rem; box-shadow: var(--shadow-cartoon-sm);">
                                     <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
-                                    <div style="font-family: 'Fredoka One', cursive; font-size: 1.3rem; font-weight: 400; color: var(--christmas-gold-dark); margin-bottom: 0.5rem;">Last Winner: ${data.winner}</div>
+                                    <div style="font-family: 'Fredoka One', cursive; font-size: 1.3rem; font-weight: 400; color: var(--winter-silver-dark); margin-bottom: 0.5rem;">Last Winner: ${data.winner}</div>
                                     <div style="font-size: 1rem; color: var(--text-medium); font-weight: 700;">
                                         Won ${data.won_amount} 🎟️ with ${data.winner_tickets}/${data.total_tickets_won} tickets
                                     </div>

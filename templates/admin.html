@@ -761,20 +761,25 @@
             </div>
             {% endif %}
             {% if user_permissions.maintenance_mode or user_permissions.view_action_logs %}
-            <div class="nav-section">
-                <div class="nav-section-title">System</div>
-                {% if user_permissions.view_action_logs %}
-                <button class="nav-item" onclick="showSection('action-logs', this)">
-                    <span class="nav-item-icon">➜</span> Action Logs
-                </button>
-                {% endif %}
-                {% if user_permissions.maintenance_mode %}
-                <button class="nav-item" onclick="showSection('maintenance', this)">
-                    <span class="nav-item-icon">➜</span> Maintenance
-                </button>
-                {% endif %}
-            </div>
-            {% endif %}
+<div class="nav-section">
+    <div class="nav-section-title">System</div>
+    {% if user_permissions.view_action_logs %}
+    <button class="nav-item" onclick="showSection('action-logs', this)">
+        <span class="nav-item-icon">➜</span> Action Logs
+    </button>
+    {% endif %}
+    {% if user_role == 'admin' %}
+    <button class="nav-item" onclick="showSection('chat-viewer', this)">
+        <span class="nav-item-icon">➜</span> Chat Viewer
+    </button>
+    {% endif %}
+    {% if user_permissions.maintenance_mode %}
+    <button class="nav-item" onclick="showSection('maintenance', this)">
+        <span class="nav-item-icon">➜</span> Maintenance
+    </button>
+    {% endif %}
+</div>
+{% endif %}
             {% endif %}
         </nav>
         <div class="sidebar-footer">
@@ -1507,6 +1512,36 @@
             </div>
         </section>
         {% endif %}
+
+        <!-- Chat Viewer (Admin Only) -->
+{% if user_role == 'admin' %}
+<section id="chat-viewer-section" class="section">
+    <div class="page-header">
+        <h1 class="page-title">Chat Viewer</h1>
+        <p class="page-description">View all private conversations (Admin Only)</p>
+    </div>
+    <div class="alert alert-warning mb-4">
+        <strong>⚠️ Privacy Notice:</strong> This feature is for moderation purposes only. Use responsibly.
+    </div>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">Select User</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label">Choose a user to view their chats</label>
+                <select id="chatViewerUserSelect" class="form-select" onchange="loadUserChats()">
+                    <option value="">-- Select User --</option>
+                    {% for username in users.keys() %}
+                    <option value="{{ username }}">{{ username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    <div id="chatViewerResults"></div>
+</section>
+{% endif %}
     </main>
     <!-- Modals -->
     <!-- Edit Tokens Modal -->
@@ -2461,6 +2496,122 @@
             if (document.getElementById('statTotalCirculation')) loadTokenStats();
             if (document.getElementById('coinflipProfit')) loadCasinoStats();
         });
+
+        // Chat Viewer (Admin Only)
+function loadUserChats() {
+    const username = document.getElementById('chatViewerUserSelect').value;
+    const resultsContainer = document.getElementById('chatViewerResults');
+
+    if (!username) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
+
+    resultsContainer.innerHTML = '<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-title">Loading chats...</div></div></div></div>';
+
+    fetch(`/api/admin/user_chats/${username}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                renderUserChats(username, data.chats);
+            } else {
+                resultsContainer.innerHTML = `<div class="alert alert-danger">${data.error || 'Error loading chats'}</div>`;
+            }
+        })
+        .catch(err => {
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+        });
+}
+
+function renderUserChats(username, chats) {
+    const resultsContainer = document.getElementById('chatViewerResults');
+
+    if (chats.length === 0) {
+        resultsContainer.innerHTML = '<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-title">No chats found</div></div></div></div>';
+        return;
+    }
+
+    let html = `<div class="card"><div class="card-header"><h3 class="card-title">${username}'s Chats (${chats.length} conversations)</h3></div><div class="card-body">`;
+
+    chats.forEach(chat => {
+        html += `
+            <div class="report-item" style="margin-bottom: 1.5rem;">
+                <div class="report-header">
+                    <div class="flex items-center gap-2">
+                        <strong>Chat with: ${chat.other_user}</strong>
+                        <span class="badge badge-info">${chat.message_count} messages</span>
+                    </div>
+                    ${chat.last_message ? `<div class="text-muted" style="font-size: 0.75rem;">Last: ${chat.last_message.timestamp}</div>` : ''}
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-md); margin-top: 0.75rem;">
+        `;
+
+        chat.messages.forEach(msg => {
+            const isFromUser = msg.from === username;
+            const msgClass = isFromUser ? 'background: #e3f2fd; margin-left: 2rem;' : 'background: #f5f5f5; margin-right: 2rem;';
+
+            if (msg.type === 'snap') {
+                html += `
+                    <div style="${msgClass} padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            <strong>${msg.from}</strong> → ${msg.to} · ${msg.timestamp}
+                        </div>
+                        <div style="font-style: italic; color: var(--text-tertiary);">📷 Snap ${msg.opened ? '(Opened)' : '(Not opened)'}</div>
+                        ${msg.photo ? `<img src="${msg.photo}" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 0.5rem; cursor: pointer;" onclick="window.open('${msg.photo}', '_blank')">` : ''}
+                    </div>
+                `;
+            } else if (msg.type === 'voice') {
+                html += `
+                    <div style="${msgClass} padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            <strong>${msg.from}</strong> → ${msg.to} · ${msg.timestamp}
+                        </div>
+                        <div style="font-style: italic; color: var(--text-tertiary);">🎤 Voice message (${msg.duration || 0}s)</div>
+                        ${msg.audio ? `<audio controls style="width: 100%; margin-top: 0.5rem;"><source src="${msg.audio}" type="audio/webm"></audio>` : ''}
+                    </div>
+                `;
+            } else if (msg.type === 'token_gift') {
+                html += `
+                    <div style="background: #fff3cd; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            ${msg.timestamp}
+                        </div>
+                        <div>🎁 ${msg.text}</div>
+                    </div>
+                `;
+            } else if (msg.type === 'rps_invite') {
+                html += `
+                    <div style="background: #e8f5e9; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            <strong>${msg.from}</strong> → ${msg.to} · ${msg.timestamp}
+                        </div>
+                        <div>🎮 ${msg.text}</div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="${msgClass} padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            <strong>${msg.from}</strong> → ${msg.to} · ${msg.timestamp}
+                        </div>
+                        <div>${escapeHtml(msg.text)}</div>
+                    </div>
+                `;
+            }
+        });
+
+        html += `</div></div>`;
+    });
+
+    html += '</div></div>';
+    resultsContainer.innerHTML = html;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Hall Portal - Christmas Edition</title>
+    <title>Study Hall Portal - Winter Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
     <!-- Performance optimization: DNS prefetch and preconnect -->
@@ -22,14 +22,14 @@
         }
 
         :root {
-            --christmas-red: #d32f2f;
-            --christmas-red-dark: #b71c1c;
-            --christmas-red-light: #ef5350;
-            --christmas-white: #ffffff;
-            --christmas-snow: #f8f9fa;
-            --christmas-cream: #fffaf5;
-            --christmas-gold: #ffd700;
-            --christmas-gold-dark: #d4af37;
+            --winter-ice: #87CEEB;
+            --winter-ice-dark: #5F9EA0;
+            --winter-ice-light: #ADD8E6;
+            --winter-frost: #E0F6FF;
+            --winter-snow: #F0F8FF;
+            --winter-white: #FFFFFF;
+            --winter-silver: #C0C0C0;
+            --winter-silver-dark: #A8A8A8;
             --text-dark: #1a1a1a;
             --text-medium: #4a4a4a;
             --text-light: #888888;
@@ -37,18 +37,45 @@
             --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-hover: 0 8px 0 rgba(44, 44, 44, 0.9);
+            --shadow-frost: 0 4px 16px rgba(135, 206, 250, 0.3);
         }
 
         body {
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(180deg, #1a1f2e 0%, #252d3d 50%, #1a1f2e 100%);
-            background-attachment: fixed;
+            background: #0a0e1a;
             color: var(--text-dark);
             padding: 1.5rem;
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
         }
+
+        /* Video Background */
+        #bgVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.6;
+        }
+
+        /* Full-screen blur overlay - REMOVED for clean snow effect */
+        /* body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(10, 14, 26, 0.3);
+            z-index: -1;
+            pointer-events: none;
+        } */
 
         /* ========================================
    ENHANCED SNOWFALL - BIG BURST THEN FADE
@@ -116,16 +143,40 @@ body::after {
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: var(--christmas-cream);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             padding: 2.5rem;
             border-radius: 32px;
-            border: 6px solid var(--border-main);
-            box-shadow: var(--shadow-cartoon), 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(135, 206, 250, 0.2);
+            box-shadow:
+                0 8px 32px rgba(135, 206, 250, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 80px rgba(135, 206, 250, 0.1);
             position: relative;
             overflow: hidden;
         }
 
-        /* Christmas header decoration */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(135, 206, 250, 0.5),
+                transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Winter wonderland decoration */
         .christmas-countdown-header {
             position: absolute;
             top: -3px;
@@ -134,7 +185,7 @@ body::after {
             text-align: center;
             font-size: 1.5rem;
             font-family: 'Fredoka One', cursive;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             padding: 0.75rem 0;
             border-bottom: 5px solid var(--border-main);
             letter-spacing: 3px;
@@ -146,16 +197,16 @@ body::after {
            HEADER STYLES
         ======================================== */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 4rem;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 5px solid var(--border-main);
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 5px solid var(--border-main);
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
 
         .header-left {
             display: flex;
@@ -166,33 +217,31 @@ body::after {
         .santa-icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: transparent;
             border-radius: 50%;
-            border: 5px solid var(--border-main);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
-            box-shadow: 0 5px 0 rgba(44, 44, 44, 0.9), 0 0 30px rgba(211, 47, 47, 0.5);
+            filter: drop-shadow(0 0 15px rgba(135, 206, 250, 0.6));
         }
 
         .header h2 {
             font-family: 'Fredoka One', cursive;
             font-weight: 400;
             font-size: 2.2rem;
-            color: var(--text-dark);
+            color: #ffffff;
             letter-spacing: 1px;
-            text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 20px rgba(135, 206, 250, 0.6);
             line-height: 1.2;
         }
 
         .header h2 .holiday-accent {
-            color: var(--christmas-red);
+            color: #87CEEB;
             display: block;
             font-size: 1.6rem;
-            text-shadow:
-                2px 2px 0 rgba(0, 0, 0, 0.1),
-                0 0 20px rgba(211, 47, 47, 0.4);
+            text-shadow: 0 0 25px rgba(135, 206, 250, 0.8);
         }
 
         .header-buttons {
@@ -206,7 +255,7 @@ body::after {
            BUTTON STYLES
         ======================================== */
         .btn {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 4px solid var(--border-main);
             padding: 0.75rem 1.4rem;
             border-radius: 16px;
@@ -236,7 +285,7 @@ body::after {
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border-color: var(--border-main);
             box-shadow:
@@ -245,7 +294,7 @@ body::after {
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--christmas-red-light) 0%, var(--christmas-red) 100%);
+            background: linear-gradient(135deg, var(--winter-ice-light) 0%, var(--winter-ice) 100%);
             box-shadow:
                 0 8px 0 rgba(44, 44, 44, 0.9),
                 0 0 30px rgba(211, 47, 47, 0.6);
@@ -255,13 +304,13 @@ body::after {
            TOKENS DISPLAY - CHUNKY CARTOON STYLE
         ======================================== */
         .tokens-display {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             padding: 0.8rem 1.6rem;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            border: 6px solid var(--christmas-white);
+            border: 6px solid var(--winter-white);
             outline: 5px solid var(--border-main);
             box-shadow:
                 var(--shadow-cartoon-sm),
@@ -287,7 +336,7 @@ body::after {
             position: absolute;
             top: -10px;
             right: -10px;
-            background: var(--christmas-red);
+            background: var(--winter-ice);
             color: white;
             border-radius: 50%;
             width: 26px;
@@ -315,7 +364,7 @@ body::after {
             height: 56px;
             border-radius: 50%;
             border: 5px solid var(--border-main);
-            background: var(--christmas-white);
+            background: var(--winter-white);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -344,7 +393,7 @@ body::after {
         }
 
         .announcement {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             border-radius: 20px;
             padding: 1.3rem 2rem;
             margin-bottom: 1rem;
@@ -374,17 +423,22 @@ body::after {
            TABS NAVIGATION
         ======================================== */
         .tabs-container {
-            display: flex;
-            gap: 0.6rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            background: var(--christmas-white);
-            padding: 0.7rem;
-            border-radius: 20px;
-            width: fit-content;
-            border: 5px solid var(--border-main);
-            box-shadow: var(--shadow-cartoon-sm);
-        }
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    width: fit-content;
+}
+
+.tab-group {
+    display: flex;
+    gap: 0.6rem;
+    background: var(--winter-white);
+    padding: 0.7rem;
+    border-radius: 20px;
+    border: 5px solid var(--border-main);
+    box-shadow: var(--shadow-cartoon-sm);
+}
 
         .tab-btn {
             background: transparent;
@@ -405,13 +459,13 @@ body::after {
         }
 
         .tab-btn:hover {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             color: var(--text-dark);
             transform: translateY(-2px);
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border: 4px solid var(--border-main);
             box-shadow: 0 4px 0 rgba(44, 44, 44, 0.9), inset 0 2px 0 rgba(255, 255, 255, 0.2);
@@ -442,7 +496,7 @@ body::after {
             font-size: 1rem;
             font-weight: 700;
             font-family: inherit;
-            background: var(--christmas-white);
+            background: var(--winter-white);
             color: var(--text-dark);
             transition: all 0.2s ease;
             box-shadow: var(--shadow-cartoon-sm);
@@ -458,7 +512,7 @@ body::after {
 
         .search-box:focus {
             outline: none;
-            border-color: var(--christmas-red);
+            border-color: var(--winter-ice);
             box-shadow:
                 var(--shadow-cartoon-sm),
                 0 0 0 4px rgba(211, 47, 47, 0.2);
@@ -524,7 +578,7 @@ body::after {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--christmas-white);
+            background: var(--winter-white);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -542,7 +596,7 @@ body::after {
         }
 
         .section-header:hover .section-toggle {
-            background: var(--christmas-red);
+            background: var(--winter-ice);
             transform: scale(1.1);
         }
 
@@ -590,16 +644,19 @@ body::after {
         }
 
         .game-card {
-            background: var(--christmas-white);
-            border: 5px solid var(--border-main);
+            background: transparent;
+            background-origin: border-box;
+            background-clip: border-box;
+            border: 1px solid rgba(135, 206, 250, 0.3);
             border-radius: 18px;
             padding: 1.5rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             min-height: 160px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             box-shadow: var(--shadow-cartoon-sm);
         }
 
@@ -620,11 +677,11 @@ body::after {
         }
 
         .game-card:hover {
-            transform: translateY(-6px) scale(1.02);
+            transform: translateY(-8px) scale(1.03);
             box-shadow:
-                0 10px 0 rgba(44, 44, 44, 0.9),
-                0 15px 35px rgba(211, 47, 47, 0.2);
-            border-color: var(--christmas-red);
+                0 8px 32px rgba(135, 206, 250, 0.4),
+                0 0 40px rgba(135, 206, 250, 0.2);
+            border-color: rgba(135, 206, 250, 0.6);
         }
 
         .game-card.unavailable {
@@ -645,10 +702,11 @@ body::after {
         .game-title {
             font-size: 1.15rem;
             font-weight: 900;
-            color: var(--text-dark);
+            color: #ffffff;
             line-height: 1.3;
             flex: 1;
             padding-right: 0.5rem;
+            text-shadow: 0 0 10px rgba(135, 206, 250, 0.5);
         }
 
         .game-badge {
@@ -670,7 +728,7 @@ body::after {
         }
 
         .badge-price {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
         }
 
@@ -692,7 +750,7 @@ body::after {
 
         .play-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border: 4px solid var(--border-main);
             padding: 0.85rem 1.2rem;
@@ -720,7 +778,7 @@ body::after {
         }
 
         .play-btn.purchase {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
         }
 
@@ -734,12 +792,14 @@ body::after {
            TOKENS TAB
         ======================================== */
         .tokens-content {
-            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-            border: 5px solid var(--border-main);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(135, 206, 250, 0.25);
             border-radius: 24px;
             padding: 2.5rem;
             margin-bottom: 2rem;
-            box-shadow: var(--shadow-cartoon);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
             position: relative;
             overflow: hidden;
         }
@@ -763,9 +823,9 @@ body::after {
         font-weight: 400;
         font-size: 2rem;
         margin-bottom: 0.5rem;
-        color: var(--christmas-red);
+        color: #ffffff;
         text-align: center;
-        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        text-shadow: 0 0 20px rgba(135, 206, 250, 0.6);
     }
 
     .tokens-content p.subtitle {
@@ -840,7 +900,7 @@ body::after {
 
     /* Available state (can open today) */
     .advent-door.available {
-        background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+        background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
         color: white;
         animation: doorPulse 2s ease-in-out infinite;
         box-shadow:
@@ -857,10 +917,10 @@ body::after {
 
     /* Opened state */
     .advent-door.opened {
-        background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+        background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
         color: var(--text-dark);
         cursor: default;
-        border-color: var(--christmas-gold-dark);
+        border-color: var(--winter-silver-dark);
     }
 
     .advent-door.opened::after {
@@ -929,7 +989,7 @@ body::after {
     }
 
     .game-select-card {
-        background: var(--christmas-white);
+        background: var(--winter-white);
         border: 4px solid var(--border-main);
         border-radius: 16px;
         padding: 1.2rem;
@@ -942,7 +1002,7 @@ body::after {
     .game-select-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 8px 0 rgba(44, 44, 44, 0.9);
-        border-color: var(--christmas-gold);
+        border-color: var(--winter-silver);
     }
 
     .game-select-card h4 {
@@ -954,7 +1014,7 @@ body::after {
 
     .game-select-card .game-price {
         font-size: 0.85rem;
-        color: var(--christmas-gold-dark);
+        color: var(--winter-silver-dark);
         font-weight: 800;
     }
 
@@ -962,7 +1022,7 @@ body::after {
     font-family: 'Fredoka One', cursive;
     font-size: 2.8rem;
     font-weight: 400;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-align: center;
     margin: 2rem 0;
     text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
@@ -989,7 +1049,7 @@ body::after {
     font-weight: 400;
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-align: center;
 }
 
@@ -1004,7 +1064,7 @@ body::after {
     align-items: center;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    background: var(--christmas-white);
+    background: var(--winter-white);
     border: 4px solid var(--border-main);
     border-radius: 16px;
     box-shadow: 0 3px 0 rgba(44, 44, 44, 0.7);
@@ -1033,7 +1093,7 @@ body::after {
 .leaderboard-tokens {
     font-weight: 900;
     font-size: 1.1rem;
-    color: var(--christmas-gold-dark);
+    color: var(--winter-silver-dark);
 }
 
 /* ========================================
@@ -1053,7 +1113,7 @@ body::after {
     font-weight: 400;
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-align: center;
 }
 
@@ -1072,14 +1132,14 @@ body::after {
     font-size: 1rem;
     font-weight: 700;
     font-family: inherit;
-    background: var(--christmas-white);
+    background: var(--winter-white);
     color: var(--text-dark);
     text-transform: uppercase;
 }
 
 .code-input-group input:focus {
     outline: none;
-    border-color: var(--christmas-red);
+    border-color: var(--winter-ice);
 }
 
 #codeMessage {
@@ -1118,7 +1178,7 @@ body::after {
 }
 
 .rank-card {
-    background: var(--christmas-white);
+    background: var(--winter-white);
     border: 4px solid var(--border-main);
     border-radius: 16px;
     padding: 1.5rem 1rem;
@@ -1128,7 +1188,7 @@ body::after {
 }
 
 .rank-card.active {
-    border-color: var(--christmas-gold);
+    border-color: var(--winter-silver);
     transform: scale(1.05);
     box-shadow: 0 6px 0 rgba(44, 44, 44, 0.9), 0 0 20px rgba(255, 215, 0, 0.5);
 }
@@ -1153,12 +1213,12 @@ body::after {
 .rank-card-tokens {
     font-weight: 800;
     font-size: 0.85rem;
-    color: var(--christmas-gold-dark);
+    color: var(--winter-silver-dark);
 }
 
 .rank-claim-btn {
     width: 100%;
-    background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+    background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
     color: var(--text-dark);
     border: 5px solid var(--border-main);
     padding: 1.2rem 2rem;
@@ -1212,7 +1272,7 @@ body::after {
     font-weight: 400;
     font-size: 2.2rem;
     margin-bottom: 2rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-align: center;
 }
 
@@ -1245,7 +1305,7 @@ body::after {
     align-items: center;
     justify-content: space-between;
     padding: 1.2rem 1.5rem;
-    background: var(--christmas-white);
+    background: var(--winter-white);
     border: 4px solid var(--border-main);
     border-radius: 16px;
     box-shadow: var(--shadow-cartoon-sm);
@@ -1275,7 +1335,7 @@ body::after {
 .rank-shop-price {
     font-weight: 800;
     font-size: 0.95rem;
-    color: var(--christmas-gold-dark);
+    color: var(--winter-silver-dark);
 }
 
 .rank-shop-actions {
@@ -1300,7 +1360,7 @@ body::after {
     font-weight: 400;
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-align: center;
 }
 
@@ -1313,7 +1373,7 @@ body::after {
     font-size: 1rem;
     font-weight: 600;
     font-family: inherit;
-    background: var(--christmas-white);
+    background: var(--winter-white);
     color: var(--text-dark);
     resize: vertical;
     margin-bottom: 1rem;
@@ -1321,7 +1381,7 @@ body::after {
 
 .feedback-textarea:focus {
     outline: none;
-    border-color: var(--christmas-red);
+    border-color: var(--winter-ice);
 }
 
 /* ========================================
@@ -1341,7 +1401,7 @@ body::after {
 }
 
 .modal-content {
-    background: var(--christmas-cream);
+    background: var(--winter-cream);
     border: 6px solid var(--border-main);
     border-radius: 24px;
     padding: 2rem;
@@ -1365,11 +1425,11 @@ body::after {
     font-family: 'Fredoka One', cursive;
     font-weight: 400;
     font-size: 1.8rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
 }
 
 .modal-close {
-    background: var(--christmas-red);
+    background: var(--winter-ice);
     color: white;
     border: 4px solid var(--border-main);
     width: 40px;
@@ -1391,7 +1451,7 @@ body::after {
 
 /* Lunch menu styles */
 .lunch-today, .lunch-tomorrow {
-    background: var(--christmas-white);
+    background: var(--winter-white);
     border: 4px solid var(--border-main);
     border-radius: 16px;
     padding: 1.5rem;
@@ -1402,7 +1462,7 @@ body::after {
 .lunch-label {
     font-weight: 900;
     font-size: 0.85rem;
-    color: var(--christmas-red);
+    color: var(--winter-ice);
     text-transform: uppercase;
     margin-bottom: 0.5rem;
     letter-spacing: 0.5px;
@@ -1421,7 +1481,7 @@ body::after {
     font-weight: 600;
     font-style: italic;
     padding-top: 0.5rem;
-    border-top: 2px solid var(--christmas-snow);
+    border-top: 2px solid var(--winter-snow);
 }
 
 /* ========================================
@@ -1436,7 +1496,7 @@ body::after {
 
 .chat-notification {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border: 5px solid var(--christmas-gold);
+    border: 5px solid var(--winter-silver);
     border-radius: 20px;
     padding: 1rem 1.5rem;
     min-width: 300px;
@@ -1481,7 +1541,7 @@ body::after {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background: var(--christmas-gold);
+    background: var(--winter-silver);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1495,7 +1555,7 @@ body::after {
 .notification-title {
     font-weight: 900;
     font-size: 0.9rem;
-    color: var(--christmas-gold);
+    color: var(--winter-silver);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -1602,67 +1662,59 @@ body::after {
 }</style>
 </head>
 <body>
+    <!-- Video Background -->
+    <video id="bgVideo" autoplay muted loop playsinline>
+        <source src="{{ url_for('static', filename='bgbg.mp4') }}" type="video/mp4">
+    </video>
+
     <!-- Background Music -->
-    <audio id="bgMusic" loop>
-        <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
-    </audio>
-    <script>
-    window.addEventListener('DOMContentLoaded', function() {
-        const audio = document.getElementById('bgMusic');
-        audio.volume = 0.8;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(function() {
-                const startAudio = function() {
-                    audio.play();
-                    document.removeEventListener('click', startAudio);
-                    document.removeEventListener('keydown', startAudio);
-                };
-                document.addEventListener('click', startAudio);
-                document.addEventListener('keydown', startAudio);
-            });
-        }
-    });
+<audio id="bgMusic" loop>
+    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.8;
 
-    // Christmas Countdown Timer
-    function updateChristmasCountdown() {
-        const countdownEl = document.getElementById('christmasCountdown');
-        if (!countdownEl) return;
-
-        const now = new Date();
-        const christmasYear = now.getMonth() === 11 && now.getDate() > 25 ? now.getFullYear() + 1 : 2025;
-        const christmas = new Date(christmasYear, 11, 25, 0, 0, 0);
-        const diff = christmas - now;
-
-        if (diff > 0) {
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            const countdownText = `🎄 Christmas in ${days} Days, ${hours} Hours, ${minutes} Minutes, ${seconds} Seconds`;
-            countdownEl.textContent = countdownText;
-        } else {
-            countdownEl.textContent = '🎄 Merry Christmas! 🎅';
-        }
+    // Resume from saved position if exists
+    const savedTime = sessionStorage.getItem('musicTime');
+    if (savedTime) {
+        audio.currentTime = parseFloat(savedTime);
     }
 
-    // Initialize countdown when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        updateChristmasCountdown();
-        setInterval(updateChristmasCountdown, 1000);
-    });
-</script>
-<div class="container">
-    <!-- Christmas Countdown Header -->
-    <div class="christmas-countdown-header" id="christmasCountdown">
-        🎄 Christmas in ...
-    </div>
+    // Try to play
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(function() {
+            const startAudio = function() {
+                audio.play();
+                document.removeEventListener('click', startAudio);
+                document.removeEventListener('keydown', startAudio);
+            };
+            document.addEventListener('click', startAudio);
+            document.addEventListener('keydown', startAudio);
+        });
+    }
 
+    // Save position every second
+    setInterval(() => {
+        if (!audio.paused) {
+            sessionStorage.setItem('musicTime', audio.currentTime);
+        }
+    }, 1000);
+
+    // Save position before leaving page
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('musicTime', audio.currentTime);
+    });
+});
+</script>
+
+<div class="container">
     <!-- Header Section -->
     <div class="header">
         <div class="header-left">
-            <div class="santa-icon">🎄</div>
+            <div class="santa-icon">❄️</div>
             <h2>
                 Welcome Back!
                 <span class="holiday-accent">{{ session.username }}</span>
@@ -1670,12 +1722,12 @@ body::after {
         </div>
         <div class="header-buttons">
             <a href="{{ url_for('profile') }}" class="profile-btn">
-                {% if session.username in profiles and profiles.get(session.username, {}).get('setup_complete', False) and profiles.get(session.username, {}).get('profile_picture') %}
-                <img src="{{ profiles[session.username]['profile_picture'] }}" alt="Profile">
-                {% else %}
-                🎅
-                {% endif %}
-            </a>
+    {% if session.username in profiles and profiles.get(session.username, {}).get('setup_complete', False) and profiles.get(session.username, {}).get('profile_picture') %}
+    <img src="{{ profiles[session.username]['profile_picture'] }}" alt="Profile">
+    {% else %}
+    <img src="https://i.ibb.co/S7Xg66mQ/user.png" alt="Default Profile">
+    {% endif %}
+</a>
             <div class="tokens-display">
                 <span class="token-amount">{{ "{:,}".format(users[session.username]['tokens']) }}</span>
             </div>
@@ -1710,12 +1762,16 @@ body::after {
      TABS NAVIGATION
 ======================================== -->
 <div class="tabs-container">
-    <button class="tab-btn active" onclick="switchTab('games', this)">Games</button>
-<button class="tab-btn" onclick="switchTab('tokens', this)">Tokens</button>
-<button class="tab-btn" onclick="switchTab('shop', this)">Shop</button>
-    <a href="{{ url_for('casino') }}" class="tab-btn">Casino</a>
-    <a href="{{ url_for('proxy') }}" class="tab-btn">Unblock</a>
-    <a href="{{ url_for('bg') }}" class="tab-btn">BG</a>
+    <div class="tab-group">
+        <button class="tab-btn active" onclick="switchTab('games', this)">Games</button>
+        <button class="tab-btn" onclick="switchTab('tokens', this)">Tokens</button>
+        <button class="tab-btn" onclick="switchTab('shop', this)">Shop</button>
+    </div>
+    <div class="tab-group">
+        <a href="{{ url_for('casino') }}" class="tab-btn" target="_blank">Casino</a>
+        <a href="{{ url_for('proxy') }}" class="tab-btn" target="_blank">Unblock</a>
+        <a href="{{ url_for('bg') }}" class="tab-btn" target="_blank">BG</a>
+    </div>
 </div>
 
 <!-- ========================================
@@ -1745,7 +1801,7 @@ body::after {
             <div class="games-grid" id="ownGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if game.get('is_own_game', False) %}
-                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
                     <div class="game-card-header">
                         <h3 class="game-title">{{ game.name }}</h3>
                         {% if not game.get('available', True) %}
@@ -1795,7 +1851,7 @@ body::after {
 <div class="games-grid" id="robloxGamesGrid">
 {% for game_id, game in games.items() %}
 {% if game.get('is_roblox_game', False) %}
-<div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+<div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.425), rgba(255, 255, 255, 0.425)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
 <div class="game-card-header">
 <h3 class="game-title">{{ game.name }}</h3>
 {% if not game.get('available', True) %}
@@ -1843,7 +1899,7 @@ body::after {
             <div class="games-grid" id="minecraftGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if game.get('is_minecraft_game', False) %}
-                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.425), rgba(255, 255, 255, 0.425)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
                     <div class="game-card-header">
                         <h3 class="game-title">{{ game.name }}</h3>
                         {% if not game.get('available', True) %}
@@ -1893,7 +1949,7 @@ body::after {
             <div class="games-grid" id="pokemonGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if game.get('is_pokemon_game', False) %}
-                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.425), rgba(255, 255, 255, 0.425)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
                     <div class="game-card-header">
                         <h3 class="game-title">{{ game.name }}</h3>
                         {% if not game.get('available', True) %}
@@ -1943,7 +1999,7 @@ body::after {
             <div class="games-grid" id="normalGamesGrid">
                 {% for game_id, game in games.items() %}
                 {% if not game.get('is_own_game', False) and not game.get('is_roblox_game', False) and not game.get('is_minecraft_game', False) and not game.get('is_pokemon_game', False) %}
-                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.425), rgba(255, 255, 255, 0.425)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
                     <div class="game-card-header">
                         <h3 class="game-title">{{ game.name }}</h3>
                         {% if not game.get('available', True) %}
@@ -1979,22 +2035,6 @@ body::after {
      TOKENS TAB
 ======================================== -->
 <div id="tokensTab" class="tab-content">
-    <!-- Advent Calendar -->
-    <div class="tokens-content">
-        <h2>🎄 Advent Calendar 2025</h2>
-        <p class="subtitle">Open a door each day to claim your reward!</p>
-
-        <div class="advent-message" id="adventMessage"></div>
-
-        <div class="advent-calendar-container">
-            <div class="advent-tree" id="adventTree">
-                <!-- Tree will be built by JavaScript -->
-            </div>
-        </div>
-
-        <div class="balance-display"><span id="balance">{{ "{:,}".format(users[session.username]['tokens']) }}</span> 🎟️</div>
-    </div>
-
     <!-- Rank Pass -->
     <div class="tokens-content">
         <h2>Rank Pass</h2>
@@ -2149,7 +2189,7 @@ body::after {
             <h2 class="modal-title">🎁 Choose Your Free Game!</h2>
             <button onclick="closeGameSelectModal()" class="modal-close">×</button>
         </div>
-        <p style="text-align: center; color: var(--christmas-red); font-weight: 800; margin-bottom: 1rem;">
+        <p style="text-align: center; color: var(--winter-ice); font-weight: 800; margin-bottom: 1rem;">
             ⚠️ Choose wisely! You can only pick ONE game. Closing this window forfeits your reward.
         </p>
         <div id="gameSelectGrid" class="game-select-grid">
@@ -2216,7 +2256,7 @@ body::after {
                 })
                 .catch(error => {
                     document.getElementById('lunchMenuContent').innerHTML =
-                        '<p style="text-align: center; color: var(--christmas-red);">Error loading menu</p>';
+                        '<p style="text-align: center; color: var(--winter-ice);">Error loading menu</p>';
                 });
         }
     }
@@ -2716,7 +2756,7 @@ function showRankInfo(rankId, rankName, rankColor) {
     let html = `<p style="margin-bottom: 1rem; color: var(--text-medium);">${info.description}</p>`;
     html += `<h4 style="margin-bottom: 0.75rem; color: ${rankColor}; font-family: 'Fredoka One', cursive;">Perks</h4><ul style="list-style: none; padding: 0;">`;
     info.perks.forEach(perk => {
-        html += `<li style="padding: 0.5rem 0.75rem; background: var(--christmas-snow); border-left: 3px solid ${rankColor}; margin-bottom: 0.4rem; border-radius: 4px;">✓ ${perk}</li>`;
+        html += `<li style="padding: 0.5rem 0.75rem; background: var(--winter-snow); border-left: 3px solid ${rankColor}; margin-bottom: 0.4rem; border-radius: 4px;">✓ ${perk}</li>`;
     });
     html += '</ul>';
 

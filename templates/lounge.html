@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Study Hall Lounge 🎄</title>
+    <title>The Study Hall Lounge</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
         /* [Keep all your existing CSS exactly as is] */
@@ -19,14 +19,15 @@
         }
 
         :root {
-            --christmas-red: #d32f2f;
-            --christmas-red-dark: #b71c1c;
-            --christmas-red-light: #ef5350;
-            --christmas-white: #ffffff;
-            --christmas-snow: #f8f9fa;
-            --christmas-cream: #fffaf5;
-            --christmas-gold: #ffd700;
-            --christmas-gold-dark: #d4af37;
+            --winter-ice: #87CEEB;
+            --winter-ice-dark: #5F9EA0;
+            --winter-ice-light: #ADD8E6;
+            --winter-frost: #E0F6FF;
+            --winter-snow: #F0F8FF;
+            --winter-white: #FFFFFF;
+            --winter-silver: #C0C0C0;
+            --winter-silver-dark: #A8A8A8;
+            --winter-cream: #F5FCFF;
             --text-dark: #1a1a1a;
             --text-medium: #4a4a4a;
             --text-light: #6b7280;
@@ -34,6 +35,7 @@
             --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-hover: 0 8px 0 rgba(44, 44, 44, 0.9);
+            --shadow-frost: 0 4px 16px rgba(135, 206, 250, 0.3);
         }
 
         body {
@@ -91,7 +93,7 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            background: var(--christmas-cream);
+            background: var(--winter-cream);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             position: relative;
             z-index: 1;
@@ -100,7 +102,7 @@
         }
 
         .lounge-header {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             border-bottom: 6px solid var(--border-main);
             padding: 1.2rem 1.5rem;
             box-shadow: var(--shadow-cartoon);
@@ -130,10 +132,10 @@
         }
 
         .back-btn {
-            background: linear-gradient(135deg, var(--christmas-white) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-white) 0%, var(--winter-snow) 100%);
             border: 4px solid var(--border-main);
             border-radius: 12px;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
             font-size: 1.3rem;
             cursor: pointer;
             text-decoration: none;
@@ -177,7 +179,7 @@
         }
 
         .cookie-banner {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             padding: 1rem 1.5rem;
             border-radius: 20px;
             display: flex;
@@ -188,7 +190,7 @@
         }
 
         .cookie-banner.claimed {
-            background: linear-gradient(135deg, var(--christmas-snow) 0%, var(--christmas-white) 100%);
+            background: linear-gradient(135deg, var(--winter-snow) 0%, var(--winter-white) 100%);
         }
 
         .cookie-info {
@@ -224,7 +226,7 @@
 
         .cookie-btn {
             background: white;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             border: 4px solid var(--border-main);
             padding: 0.75rem 1.8rem;
             border-radius: 14px;
@@ -238,7 +240,7 @@
         }
 
         .cookie-btn:hover:not(:disabled) {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             transform: translateY(-2px);
             box-shadow: var(--shadow-cartoon);
         }
@@ -264,7 +266,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
-            background: linear-gradient(135deg, var(--christmas-cream) 0%, var(--christmas-snow) 100%);
+            background: linear-gradient(135deg, var(--winter-cream) 0%, var(--winter-snow) 100%);
             display: flex;
             flex-direction: column;
             gap: 0.9rem;
@@ -275,18 +277,18 @@
         }
 
         .messages-container::-webkit-scrollbar-track {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             border-radius: 10px;
         }
 
         .messages-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             border-radius: 10px;
-            border: 3px solid var(--christmas-snow);
+            border: 3px solid var(--winter-snow);
         }
 
         .messages-container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, var(--christmas-red-light) 0%, var(--christmas-red) 100%);
+            background: linear-gradient(135deg, var(--winter-ice-light) 0%, var(--winter-ice) 100%);
         }
 
         .message {
@@ -311,7 +313,7 @@
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -324,7 +326,7 @@
         }
 
         .message.system .message-avatar {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
         }
 
         .message-content {
@@ -353,7 +355,7 @@
         }
 
         .message.system .message-author {
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
         }
 
         .chat-role-badge {
@@ -385,7 +387,7 @@
 
         .message.system .message-text {
             font-weight: 900;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
         }
 
         .message-actions {
@@ -396,7 +398,7 @@
         }
 
         .reaction-btn, .delete-btn {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             border: 3px solid var(--border-main);
             padding: 0.4rem 0.7rem;
             border-radius: 10px;
@@ -423,7 +425,7 @@
         }
 
         .reaction-btn.active {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
         }
 
@@ -454,13 +456,13 @@
         }
 
         .reaction-count:hover {
-            background: var(--christmas-snow);
+            background: var(--winter-snow);
             transform: translateY(-2px);
             box-shadow: 0 4px 0 rgba(44, 44, 44, 0.5);
         }
 
         .reaction-count.user-reacted {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
         }
 
@@ -568,7 +570,7 @@
         }
 
         .message-input-container {
-            background: linear-gradient(135deg, var(--christmas-snow) 0%, white 100%);
+            background: linear-gradient(135deg, var(--winter-snow) 0%, white 100%);
             border-top: 6px solid var(--border-main);
             padding: 1rem 1.5rem;
             box-shadow: 0 -4px 0 rgba(44, 44, 44, 0.2);
@@ -593,7 +595,7 @@
             transition: all 0.3s;
             color: white;
             box-shadow: var(--shadow-cartoon-sm);
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
         }
 
         .voice-btn.recording {
@@ -632,8 +634,8 @@
 
         .message-input:focus {
             outline: none;
-            border-color: var(--christmas-red);
-            box-shadow: 0 4px 0 var(--christmas-red);
+            border-color: var(--winter-ice);
+            box-shadow: 0 4px 0 var(--winter-ice);
         }
 
         .message-input::placeholder {
@@ -642,7 +644,7 @@
         }
 
         .send-btn {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border: 4px solid var(--border-main);
             padding: 0.9rem 1.5rem;
@@ -691,7 +693,7 @@
         }
 
         .fortune-content, .voice-modal-content {
-            background: var(--christmas-cream);
+            background: var(--winter-cream);
             border: 6px solid var(--border-main);
             padding: 3rem;
             border-radius: 32px;
@@ -732,7 +734,7 @@
             font-family: 'Fredoka One', cursive;
             font-size: 2.2rem;
             font-weight: 400;
-            color: var(--christmas-red);
+            color: var(--winter-ice);
             margin-bottom: 1.5rem;
             text-transform: uppercase;
             text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
@@ -751,7 +753,7 @@
         }
 
         .fortune-reward {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: white;
             padding: 1.2rem 2rem;
             border-radius: 16px;
@@ -764,7 +766,7 @@
         }
 
         .fortune-close-btn {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border: 4px solid var(--border-main);
             padding: 1rem 2.5rem;
@@ -1015,7 +1017,7 @@ align-items: center;
         font-family: 'Fredoka One', cursive;
         font-size: 1.75rem;
         font-weight: 400;
-        color: var(--christmas-red);
+        color: var(--winter-ice);
         margin-bottom: 1.5rem;
         letter-spacing: 0.5px;
         text-transform: uppercase;
@@ -1024,7 +1026,7 @@ align-items: center;
     .voice-timer {
         font-size: 3rem;
         font-weight: 900;
-        color: var(--christmas-red);
+        color: var(--winter-ice);
         margin-bottom: 2rem;
         font-family: monospace;
     }
@@ -1040,7 +1042,7 @@ align-items: center;
 
     .viz-bar {
         width: 4px;
-        background: var(--christmas-red);
+        background: var(--winter-ice);
         border-radius: 2px;
         animation: vizPulse 0.6s ease-in-out infinite;
     }
@@ -1057,7 +1059,7 @@ align-items: center;
 
     .voice-cancel-btn {
         flex: 1;
-        background: var(--christmas-snow);
+        background: var(--winter-snow);
         color: var(--text-medium);
         border: 4px solid var(--border-main);
         padding: 1rem;
@@ -1077,7 +1079,7 @@ align-items: center;
 
     .voice-send-btn {
         flex: 1;
-        background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+        background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
         color: white;
         border: 4px solid var(--border-main);
         padding: 1rem;
@@ -1117,7 +1119,7 @@ align-items: center;
     }
 
     #reactionMenu button:hover {
-        background: var(--christmas-snow);
+        background: var(--winter-snow);
         transform: scale(1.15);
     }
 
@@ -1161,7 +1163,7 @@ align-items: center;
             <div class="header-top">
                 <a href="{{ url_for('index') }}" class="back-btn">←</a>
                 <div class="header-title">
-                    <h1>🎄 The Study Hall Lounge</h1>
+                    <h1>The Study Hall Lounge</h1>
                 </div>
                 {% if user_role == 'admin' %}
                 <button onclick="clearLoungeHistory()" class="clear-btn">
@@ -1174,7 +1176,7 @@ align-items: center;
             <div class="cookie-banner {% if cookie_state['claimed'] %}claimed{% endif %}" id="cookieBanner">
             <div class="cookie-info">
                 {% if not cookie_state['claimed'] %}
-                <div class="cookie-title">🍪 Christmas Cookie Available</div>
+                <div class="cookie-title">🍪 Cookie Available</div>
                 <div class="cookie-subtitle">Resets every 3 hours • +5 tokens</div>
                 {% else %}
                 <div class="cookie-title">🍪 Cookie Claimed</div>
@@ -2079,6 +2081,44 @@ const countdownEl = document.getElementById('countdown');
             audio.play();
         }
     });
+</script>
+<!-- Background Music (Persistent) -->
+<audio id="bgMusic" loop>
+    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+(function() {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.8;
+
+    // Resume from saved position
+    const savedTime = sessionStorage.getItem('musicTime');
+    if (savedTime) {
+        audio.currentTime = parseFloat(savedTime);
+    }
+
+    // Auto-play (will work since user already interacted on main page)
+    audio.play().catch(() => {
+        // Fallback: play on first click
+        const playOnce = () => {
+            audio.play();
+            document.removeEventListener('click', playOnce);
+        };
+        document.addEventListener('click', playOnce);
+    });
+
+    // Save position every second
+    setInterval(() => {
+        if (!audio.paused) {
+            sessionStorage.setItem('musicTime', audio.currentTime);
+        }
+    }, 1000);
+
+    // Save position before leaving
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('musicTime', audio.currentTime);
+    });
+})();
 </script>
 </body>
 </html>

@@ -14,19 +14,21 @@
         }
 
         :root {
-            --christmas-red: #d32f2f;
-            --christmas-red-dark: #b71c1c;
-            --christmas-white: #ffffff;
-            --christmas-snow: #f8f9fa;
-            --christmas-cream: #fffaf5;
-            --christmas-gold: #ffd700;
-            --christmas-gold-dark: #d4af37;
+            --winter-ice: #87CEEB;
+            --winter-ice-dark: #5F9EA0;
+            --winter-frost: #E0F6FF;
+            --winter-snow: #F0F8FF;
+            --winter-white: #FFFFFF;
+            --winter-silver: #C0C0C0;
+            --winter-silver-dark: #A8A8A8;
+            --winter-cream: #F5FCFF;
             --text-dark: #1a1a1a;
             --text-medium: #4a4a4a;
             --text-light: #888888;
             --border-main: #2c2c2c;
             --shadow-cartoon: 0 6px 0 rgba(44, 44, 44, 0.9);
             --shadow-cartoon-sm: 0 4px 0 rgba(44, 44, 44, 0.9);
+            --shadow-frost: 0 4px 16px rgba(135, 206, 250, 0.3);
         }
 
         body {
@@ -41,7 +43,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: var(--christmas-cream);
+            background: var(--winter-cream);
             padding: 2.5rem;
             border-radius: 32px;
             border: 6px solid var(--border-main);
@@ -68,7 +70,7 @@
         .icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             border-radius: 50%;
             border: 5px solid var(--border-main);
             display: flex;
@@ -94,7 +96,7 @@
         }
 
         .btn {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 4px solid var(--border-main);
             padding: 0.75rem 1.4rem;
             border-radius: 16px;
@@ -124,18 +126,18 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
         }
 
         .tokens-display {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             padding: 0.8rem 1.6rem;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            border: 6px solid var(--christmas-white);
+            border: 6px solid var(--winter-white);
             outline: 5px solid var(--border-main);
             box-shadow: var(--shadow-cartoon-sm);
         }
@@ -156,7 +158,7 @@
         }
 
         .site-card {
-            background: var(--christmas-white);
+            background: var(--winter-white);
             border: 5px solid var(--border-main);
             border-radius: 18px;
             overflow: hidden;
@@ -205,7 +207,7 @@
         .site-price {
             font-weight: 800;
             font-size: 1.1rem;
-            color: var(--christmas-gold-dark);
+            color: var(--winter-silver-dark);
             margin-bottom: 1rem;
         }
 
@@ -232,7 +234,7 @@
 
         .site-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             color: white;
             border: 4px solid var(--border-main);
             padding: 0.85rem 1.2rem;
@@ -259,7 +261,7 @@
         }
 
         .site-btn.purchase {
-            background: linear-gradient(135deg, var(--christmas-gold) 0%, var(--christmas-gold-dark) 100%);
+            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
             color: var(--text-dark);
         }
 
@@ -267,7 +269,7 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background: var(--christmas-red);
+            background: var(--winter-ice);
             color: white;
             border-radius: 50%;
             width: 26px;

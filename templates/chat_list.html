@@ -274,13 +274,26 @@
 
         .group-avatar {
             border-radius: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #F3F4F6;
         }
 
         .group-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .group-bank-box {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            border: 3px solid #2C2C2C;
+            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: #2C2C2C;
+            white-space: nowrap;
+            margin-top: 0.3rem;
+            box-shadow: 0 2px 0 rgba(44, 44, 44, 0.3);
         }
 
         .user-item:hover .user-avatar, .group-item:hover .group-avatar {
@@ -766,42 +779,42 @@
         }
 
         /* Glow Effect Animation */
-        @keyframes christmasGlow {
+        @keyframes winterGlow {
             0%, 100% {
                 text-shadow:
-                    0 0 5px rgba(255, 215, 0, 0.8),
-                    0 0 10px rgba(255, 215, 0, 0.6),
-                    0 0 15px rgba(255, 215, 0, 0.4),
-                    0 0 20px rgba(255, 255, 255, 0.3);
+                    0 0 5px rgba(135, 206, 250, 0.8),
+                    0 0 10px rgba(135, 206, 250, 0.6),
+                    0 0 15px rgba(135, 206, 250, 0.4),
+                    0 0 20px rgba(255, 255, 255, 0.5);
                 filter: brightness(1.1);
             }
             50% {
                 text-shadow:
-                    0 0 10px rgba(255, 215, 0, 1),
-                    0 0 20px rgba(255, 215, 0, 0.8),
-                    0 0 30px rgba(255, 215, 0, 0.6),
-                    0 0 40px rgba(255, 255, 255, 0.4),
-                    0 0 50px rgba(211, 47, 47, 0.2);
+                    0 0 10px rgba(135, 206, 250, 1),
+                    0 0 20px rgba(135, 206, 250, 0.8),
+                    0 0 30px rgba(173, 216, 230, 0.6),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    0 0 50px rgba(176, 224, 230, 0.3);
                 filter: brightness(1.3);
             }
         }
 
         .user-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
             font-weight: 800;
         }
 
         .member-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
             font-weight: 800;
         }
 
         .message-author.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
         }
 
         .message-sender-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
         }
 
         /* Toggle Switch for Glow Effect */
@@ -1059,6 +1072,10 @@
             if (window.currentSearchValue) { document.getElementById('userSearch').value = window.currentSearchValue; filterUsers(); }
         }
 
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         function renderGroups() {
             const groupList = document.getElementById('groupList');
 
@@ -1069,9 +1086,9 @@
 
             let html = '';
 
-            // Sort groups: member groups first, then by last message
-            const memberGroups = allGroups.filter(g => g.is_member);
-            const otherGroups = allGroups.filter(g => !g.is_member);
+            // Sort groups: member groups first, then by bank amount
+            const memberGroups = allGroups.filter(g => g.is_member).sort((a, b) => (b.bank || 0) - (a.bank || 0));
+            const otherGroups = allGroups.filter(g => !g.is_member).sort((a, b) => (b.bank || 0) - (a.bank || 0));
 
             if (memberGroups.length > 0) {
                 html += `<div class="rank-section"><div class="rank-header" style="color: #c19a6b;"><span style="font-size: 1.2rem;">⭐</span> Your Groups</div>`;
@@ -1079,18 +1096,21 @@
                 for (const group of memberGroups) {
                     const timeStr = group.last_message ? getTimeString(group.last_message.timestamp) : '';
                     const isLeader = group.leader === currentUsername;
-                    const badge = isLeader ? '<span class="group-member-badge group-leader-badge">👑 Leader</span>' : '<span class="group-member-badge">Member</span>';
+                    const badge = isLeader ? '<span class="group-member-badge group-leader-badge">Leader</span>' : '<span class="group-member-badge">Member</span>';
+                    const groupImage = group.image ? `<img src="${group.image}">` : '<img src="https://i.ibb.co/XrJQtC46/615075.png">';
+                    const rankInfo = group.rank > 0 ? ` • ${group.rank_display}` : '';
 
                     html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
-                        <div class="group-avatar">${group.image ? `<img src="${group.image}">` : '👥'}</div>
+                        <div class="group-avatar">${groupImage}</div>
                         <div class="group-content">
                             <div class="group-name">${group.name} ${badge}</div>
                             <div class="group-preview ${group.unread > 0 ? 'unread' : ''}">${group.last_message ? (group.last_message.from === currentUsername ? 'You: ' : group.last_message.from + ': ') + group.last_message.preview : 'No messages yet'}</div>
-                            <div class="group-meta-info">${group.member_count} members</div>
+                            <div class="group-meta-info">${group.member_count} members${rankInfo}</div>
                         </div>
                         <div class="group-meta">
                             ${timeStr ? `<div class="group-time">${timeStr}</div>` : ''}
                             ${group.unread > 0 ? `<div class="unread-badge">${group.unread}</div>` : ''}
+                            <div class="group-bank-box">💰 ${formatNumber(group.bank || 0)}</div>
                         </div>
                     </a>`;
                 }
@@ -1101,15 +1121,19 @@
                 html += `<div class="rank-section"><div class="rank-header" style="color: #888;"><span style="font-size: 1.2rem;">🔍</span> Discover Groups</div>`;
 
                 for (const group of otherGroups) {
+                    const groupImage = group.image ? `<img src="${group.image}">` : '<img src="https://i.ibb.co/XrJQtC46/615075.png">';
+                    const rankInfo = group.rank > 0 ? ` • ${group.rank_display}` : '';
+
                     html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
-                        <div class="group-avatar">${group.image ? `<img src="${group.image}">` : '👥'}</div>
+                        <div class="group-avatar">${groupImage}</div>
                         <div class="group-content">
                             <div class="group-name">${group.name}</div>
                             <div class="group-preview">Led by ${group.leader}</div>
-                            <div class="group-meta-info">${group.member_count} members</div>
+                            <div class="group-meta-info">${group.member_count} members${rankInfo}</div>
                         </div>
                         <div class="group-meta">
                             <div class="group-time">View</div>
+                            <div class="group-bank-box">💰 ${formatNumber(group.bank || 0)}</div>
                         </div>
                     </a>`;
                 }
@@ -1420,5 +1444,44 @@
     </div>
 
     <script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
+
+<!-- Background Music (Persistent) -->
+<audio id="bgMusic" loop>
+    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+(function() {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.8;
+
+    // Resume from saved position
+    const savedTime = sessionStorage.getItem('musicTime');
+    if (savedTime) {
+        audio.currentTime = parseFloat(savedTime);
+    }
+
+    // Auto-play (will work since user already interacted on main page)
+    audio.play().catch(() => {
+        // Fallback: play on first click
+        const playOnce = () => {
+            audio.play();
+            document.removeEventListener('click', playOnce);
+        };
+        document.addEventListener('click', playOnce);
+    });
+
+    // Save position every second
+    setInterval(() => {
+        if (!audio.paused) {
+            sessionStorage.setItem('musicTime', audio.currentTime);
+        }
+    }, 1000);
+
+    // Save position before leaving
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('musicTime', audio.currentTime);
+    });
+})();
+</script>
 </body>
 </html>

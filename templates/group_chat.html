@@ -1603,33 +1603,33 @@
         }
 
         /* Glow Effect Animation */
-        @keyframes christmasGlow {
+        @keyframes winterGlow {
             0%, 100% {
                 text-shadow:
-                    0 0 5px rgba(255, 215, 0, 0.8),
-                    0 0 10px rgba(255, 215, 0, 0.6),
-                    0 0 15px rgba(255, 215, 0, 0.4),
-                    0 0 20px rgba(255, 255, 255, 0.3);
+                    0 0 5px rgba(135, 206, 250, 0.8),
+                    0 0 10px rgba(135, 206, 250, 0.6),
+                    0 0 15px rgba(135, 206, 250, 0.4),
+                    0 0 20px rgba(255, 255, 255, 0.5);
                 filter: brightness(1.1);
             }
             50% {
                 text-shadow:
-                    0 0 10px rgba(255, 215, 0, 1),
-                    0 0 20px rgba(255, 215, 0, 0.8),
-                    0 0 30px rgba(255, 215, 0, 0.6),
-                    0 0 40px rgba(255, 255, 255, 0.4),
-                    0 0 50px rgba(211, 47, 47, 0.2);
+                    0 0 10px rgba(135, 206, 250, 1),
+                    0 0 20px rgba(135, 206, 250, 0.8),
+                    0 0 30px rgba(173, 216, 230, 0.6),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    0 0 50px rgba(176, 224, 230, 0.3);
                 filter: brightness(1.3);
             }
         }
 
         .member-name.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
             font-weight: 800;
         }
 
         .message-author.has-glow {
-            animation: christmasGlow 2s ease-in-out infinite;
+            animation: winterGlow 2s ease-in-out infinite;
         }
     </style>
 </head>
@@ -1863,7 +1863,7 @@
                     <div class="message-content">
                         <div class="message-header">
                             {% set author_glow = users[msg.from].get('glow_effect', {}).get('enabled', False) if msg.from != 'system' else False %}
-                            <span class="message-author {% if author_glow %}has-glow{% endif %}">
+                            <span class="message-author">
                                 {% if msg.from == 'system' %}
                                     System
                                 {% else %}
@@ -2672,5 +2672,44 @@
         setInterval(sendHeartbeat, 15000);
     </script>
     <script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
+
+<!-- Background Music (Persistent) -->
+<audio id="bgMusic" loop>
+    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+(function() {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.8;
+
+    // Resume from saved position
+    const savedTime = sessionStorage.getItem('musicTime');
+    if (savedTime) {
+        audio.currentTime = parseFloat(savedTime);
+    }
+
+    // Auto-play (will work since user already interacted on main page)
+    audio.play().catch(() => {
+        // Fallback: play on first click
+        const playOnce = () => {
+            audio.play();
+            document.removeEventListener('click', playOnce);
+        };
+        document.addEventListener('click', playOnce);
+    });
+
+    // Save position every second
+    setInterval(() => {
+        if (!audio.paused) {
+            sessionStorage.setItem('musicTime', audio.currentTime);
+        }
+    }, 1000);
+
+    // Save position before leaving
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('musicTime', audio.currentTime);
+    });
+})();
+</script>
 </body>
 </html>

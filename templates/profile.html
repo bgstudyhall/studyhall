@@ -384,5 +384,44 @@
         });
     });
     </script>
+
+<!-- Background Music (Persistent) -->
+<audio id="bgMusic" loop>
+    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+(function() {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.8;
+
+    // Resume from saved position
+    const savedTime = sessionStorage.getItem('musicTime');
+    if (savedTime) {
+        audio.currentTime = parseFloat(savedTime);
+    }
+
+    // Auto-play (will work since user already interacted on main page)
+    audio.play().catch(() => {
+        // Fallback: play on first click
+        const playOnce = () => {
+            audio.play();
+            document.removeEventListener('click', playOnce);
+        };
+        document.addEventListener('click', playOnce);
+    });
+
+    // Save position every second
+    setInterval(() => {
+        if (!audio.paused) {
+            sessionStorage.setItem('musicTime', audio.currentTime);
+        }
+    }, 1000);
+
+    // Save position before leaving
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('musicTime', audio.currentTime);
+    });
+})();
+</script>
 </body>
 </html>
