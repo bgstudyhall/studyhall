@@ -20,6 +20,8 @@ from email.mime.text import MIMEText
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from flask_compress import Compress
+# WebSocket disabled - not compatible with PythonAnywhere WSGI
+# from flask_socketio import SocketIO, emit, join_room, leave_room
 
 # ===============================================================
 # Flask App Configuration
@@ -32,6 +34,9 @@ app.config['SESSION_COOKIE_SECURE'] = False
 
 # Enable Gzip compression for all responses
 Compress(app)
+
+# WebSocket disabled - not compatible with PythonAnywhere WSGI
+# socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Rank system hierarchy
 RANKS = [
@@ -219,6 +224,8 @@ RANK_PASS_FILE = os.path.join(DATA_DIR, 'rank_pass.json')
 PLAYS_FILE = os.path.join(DATA_DIR, 'game_plays.json')
 LOUNGE_REACTIONS_FILE = os.path.join(DATA_DIR, 'lounge_reactions.json')
 LOUNGE_READ_RECEIPTS_FILE = os.path.join(DATA_DIR, 'lounge_read_receipts1.json')
+LOUNGE_TYPING_FILE = os.path.join(DATA_DIR, 'lounge_typing.json')
+LOUNGE_MESSAGE_READS_FILE = os.path.join(DATA_DIR, 'lounge_message_reads.json')
 MAINTENANCE_FILE = os.path.join(DATA_DIR, 'maintenance.json')
 TOWER_WINS_FILE = os.path.join(DATA_DIR, 'tower_wins.json')
 PROFILES_FILE = os.path.join(DATA_DIR, 'profiles.json')
@@ -470,6 +477,8 @@ user_activity = load_json(USER_ACTIVITY_FILE, {})
 lounge_messages = load_json(LOUNGE_FILE, [])
 lounge_reactions = load_json(LOUNGE_REACTIONS_FILE, {})
 lounge_read_receipts = load_json(LOUNGE_READ_RECEIPTS_FILE, {})
+lounge_typing = load_json(LOUNGE_TYPING_FILE, {})
+lounge_message_reads = load_json(LOUNGE_MESSAGE_READS_FILE, {})
 login_notifications = load_json(LOGIN_NOTIFICATIONS_FILE, {})
 gmail_tokens = load_json(GMAIL_TOKENS_FILE, {})
 maintenance_mode = load_json(MAINTENANCE_FILE, {
@@ -2112,16 +2121,23 @@ def mark_lounge_read():
 @login_required
 def send_lounge_message():
     message_text = request.form.get('message')
+    reply_to_index = request.form.get('reply_to')  # Support for slide-to-reply
     current_user = session['username']
 
     if message_text:
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-        lounge_messages.append({
+        message_obj = {
             'from': current_user,
             'text': message_text,
             'timestamp': new_timestamp
-        })
+        }
+
+        # Add reply reference if present
+        if reply_to_index is not None:
+            message_obj['reply_to'] = int(reply_to_index)
+
+        lounge_messages.append(message_obj)
         save_json(LOUNGE_FILE, lounge_messages)
 
         # ✅ CRITICAL: Mark lounge as read for yourself after sending
@@ -2193,6 +2209,7 @@ def react_to_lounge_message(message_index):
     else:
         lounge_reactions[msg_key][emoji].append(username)
     save_json(LOUNGE_REACTIONS_FILE, lounge_reactions)
+
     return jsonify({'success': True, 'reactions': lounge_reactions.get(msg_key, {})})
 
 @app.route('/lounge/delete/<int:message_index>', methods=['POST'])
@@ -2212,6 +2229,7 @@ def delete_lounge_message(message_index):
             new_reactions[str(idx - 1)] = reactions
     lounge_reactions = new_reactions
     save_json(LOUNGE_REACTIONS_FILE, lounge_reactions)
+
     return jsonify({'success': True})
 
 @app.route('/lounge/send_snap', methods=['POST'])
@@ -2223,13 +2241,15 @@ def send_lounge_snap():
     if photo_data:
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-        lounge_messages.append({
+        snap_message = {
             'from': current_user,
             'type': 'snap',
             'photo': photo_data,
             'opened_by': [],
             'timestamp': new_timestamp
-        })
+        }
+
+        lounge_messages.append(snap_message)
         save_json(LOUNGE_FILE, lounge_messages)
 
         # ✅ CRITICAL: Mark lounge as read for yourself after sending snap
@@ -2250,13 +2270,15 @@ def send_lounge_voice():
     if audio_data:
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-        lounge_messages.append({
+        voice_message = {
             'from': current_user,
             'type': 'voice',
             'audio': audio_data,
             'duration': duration,
             'timestamp': new_timestamp
-        })
+        }
+
+        lounge_messages.append(voice_message)
         save_json(LOUNGE_FILE, lounge_messages)
 
         # Mark lounge as read for yourself after sending voice
@@ -2529,6 +2551,7 @@ def clear_lounge_history():
         print(f"Error clearing lounge history: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ===============================================================
 @app.route('/api/mark_all_as_read', methods=['POST'])
 @login_required
 @admin_required
