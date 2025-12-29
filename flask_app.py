@@ -2337,6 +2337,9 @@ def proxy():
         site_access=site_access
     )
 
+@app.route('/proxy_test')
+def proxy_test():
+    return redirect('https://bg.i-creativelearner.com/*/@/hvtrs8%2F-wuw%2Ctkkvoi.aoo%2Fdopymu')
 
 
 @app.route('/bg')
