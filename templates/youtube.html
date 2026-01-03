@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitch Proxy - StudyHall</title>
+    <title>YouTube - StudyHall</title>
     <style>
         * {
             margin: 0;
@@ -11,21 +11,28 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --winter-ice: #87CEEB;
+            --winter-ice-dark: #5F9EA0;
+        }
+
         body {
-            background: #1a1a1a;
+            background: #0a0e1a;
             color: white;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         #header {
-            background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%);
+            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 20px rgba(145, 70, 255, 0.3);
+            box-shadow: 0 4px 24px rgba(135, 206, 250, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
             position: relative;
+            border-bottom: 2px solid rgba(135, 206, 250, 0.3);
         }
 
         h2 {
@@ -35,66 +42,48 @@
             align-items: center;
             gap: 12px;
             letter-spacing: -1px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .live-indicator {
+        .platform-indicator {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             padding: 6px 12px;
             border-radius: 20px;
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #ff0000;
-            border-radius: 50%;
-            animation: blink 1.5s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .live-text {
+        .platform-text {
             font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        iframe {
+        video {
             width: 100%;
-            height: calc(100vh - 60px);
-            border: none;
+            height: calc(100vh - 66px);
+            background: #000;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
     <div id="header">
         <h2>
-            Twitch
-            <span class="live-indicator">
-                <span class="live-dot"></span>
-                <span class="live-text">BG StudyHall</span>
+            YouTube Tutorial
+            <span class="platform-indicator">
+                <span class="platform-text">How to Unblock</span>
             </span>
         </h2>
     </div>
-    <div id="player"></div>
-
-    <script>
-        // Base64 encoded proxy URL for Twitch
-        const proxyUrl = 'https://bg.i-creativelearner.com/pages/media/movies';
-
-        const iframe = document.createElement('iframe');
-        iframe.src = proxyUrl;
-        iframe.allowFullscreen = true;
-        iframe.style.cssText = 'width:100%;height:calc(100vh - 60px);border:none;';
-        document.getElementById('player').appendChild(iframe);
-    </script>
+    <video autoplay loop muted playsinline controls>
+        <source src="/static/yt_tutorial.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 </body>
 </html>

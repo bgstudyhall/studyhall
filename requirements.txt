@@ -1,6 +1,13 @@
+Flask==3.0.0
+pytz==2024.1
+requests==2.31.0
+instaloader==4.10.3
 google-auth-oauthlib==1.0.0
 google-auth-httplib2==0.1.0
 google-api-python-client==2.95.0
 flask-socketio==5.3.5
 python-socketio==5.10.0
 python-engineio==4.8.0
+APScheduler==3.10.4
+Flask-Compress==1.14
+Brotli==1.1.0

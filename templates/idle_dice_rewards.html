@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Dice Rewards - StudyHall</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        } 
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        .stats-bar {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #ffffff;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .stat-value.tokens {
+            color: #ffffff;
+        }
+
+        .category-section {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+
+        .category-header {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .category-description {
+            color: #999;
+            font-size: 1em;
+            line-height: 1.6;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .achievement-card {
+            background: #0f0f0f;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #2a2a2a;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-4px);
+            border-color: #404040;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .achievement-card.claimed {
+            background: #151515;
+            border-color: #2a2a2a;
+            opacity: 0.5;
+        }
+
+        .achievement-card.claimed:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .achievement-card.locked {
+            background: #0a0a0a;
+            border-color: #1a1a1a;
+            opacity: 0.4;
+        }
+
+        .achievement-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .achievement-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .achievement-description {
+            color: #888;
+            font-size: 1em;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .achievement-reward {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 16px;
+        }
+
+        .claim-button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .claim-button.claimable {
+            background: #22c55e;
+            color: #ffffff;
+        }
+
+        .claim-button.claimable:hover {
+            background: #16a34a;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .claim-button.claimed {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .claim-button.locked {
+            background: #1a1a1a;
+            color: #444;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.claimed {
+            background: #2a2a2a;
+            color: #666;
+        }
+
+        .status-badge.locked {
+            background: #1a1a1a;
+            color: #444;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid #333;
+        }
+
+        .back-button:hover {
+            background: #2a2a2a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .empty-category {
+            text-align: center;
+            padding: 40px;
+            color: #555;
+            font-style: italic;
+            font-size: 1.1em;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            min-width: 320px;
+            border: 1px solid #333;
+        }
+
+        .notification.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/lounge" class="back-button">← Back to Lounge</a>
+
+        {% if not is_january %}
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; border: 2px solid #991b1b;">
+            <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">⏰ January Event Has Ended</h3>
+            <p style="margin: 0; font-size: 1.1em;">Token rewards are only available during January. The game remains playable, but achievements no longer award tokens until next January.</p>
+        </div>
+        {% endif %}
+
+        <div class="header">
+            <h1>Idle Dice Achievement Rewards</h1>
+            <p>Claim tokens for your Idle Dice achievements - one time only!</p>
+            <p style="font-style: italic; color: #666; margin-top: 10px;">Thank you to Theo & Beckett for the suggestion to add Idle Dice.</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-label">Current Balance</div>
+                <div class="stat-value tokens">🎟️ {{ current_tokens }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Earned from Idle Dice</div>
+                <div class="stat-value tokens">🎟️ {{ total_earned_tokens }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Possible</div>
+                <div class="stat-value">🎟️ {{ total_possible_tokens }}</div>
+            </div>
+        </div>
+
+        {% for category_name in ['Basic', 'Advanced', 'Expert', 'Legendary', 'Godlike', 'Lustslike'] %}
+            {% if categories[category_name]|length > 0 %}
+                <div class="category-section {{ category_name.lower() }}">
+                    <div class="category-header">
+                        <h2 class="category-title">{{ category_name }} Achievements</h2>
+                        <p class="category-description">{{ category_descriptions[category_name] }}</p>
+                    </div>
+                    <div class="achievements-grid">
+                        {% for achievement in categories[category_name] %}
+                            <div class="achievement-card {% if achievement.claimed %}claimed{% endif %}"
+                                 data-achievement-id="{{ achievement.id }}"
+                                 data-check="{{ achievement.check }}">
+
+                                {% if achievement.claimed %}
+                                    <span class="status-badge claimed">✓ Claimed</span>
+                                {% endif %}
+
+                                <div class="achievement-name">{{ achievement.name }}</div>
+                                <div class="achievement-description">{{ achievement.description }}</div>
+                                <div class="achievement-reward">🎟️ {{ achievement.tokens }} Tokens</div>
+
+                                <button class="claim-button {% if achievement.claimed %}claimed{% else %}claimable{% endif %}"
+                                        data-achievement-id="{{ achievement.id }}"
+                                        {% if achievement.claimed %}disabled{% endif %}>
+                                    {% if achievement.claimed %}
+                                        ✓ Already Claimed
+                                    {% else %}
+                                        Claim {{ achievement.tokens }} Tokens
+                                    {% endif %}
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="category-section {{ category_name.lower() }}">
+                    <div class="category-header">
+                        <h2 class="category-title">{{ category_name }} Achievements</h2>
+                        <p class="category-description">{{ category_descriptions[category_name] }}</p>
+                    </div>
+                    <div class="empty-category">No achievements unlocked in this category yet...</div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Check localStorage for achievement completion
+        function checkAchievementInGame(checkString) {
+            try {
+                // Handle threshold checks (e.g., "a_value_points1m>=1000000")
+                if (checkString.includes('>=')) {
+                    const [key, threshold] = checkString.split('>=');
+                    const achievementKey = Object.keys(localStorage).find(k =>
+                        k.includes(key) && k.includes('Idle')
+                    );
+
+                    if (achievementKey) {
+                        const value = parseFloat(localStorage.getItem(achievementKey)) || 0;
+                        return value >= parseFloat(threshold);
+                    }
+                    return false;
+                }
+
+                return false;
+            } catch (error) {
+                console.error('[StudyHall] Error checking achievement:', error);
+                return false;
+            }
+        }
+
+        // Update UI based on achievement status
+        function updateAchievementUI() {
+            document.querySelectorAll('.achievement-card').forEach(card => {
+                const button = card.querySelector('.claim-button');
+                const checkString = card.dataset.check;
+                const isClaimed = card.classList.contains('claimed');
+
+                if (!isClaimed) {
+                    const hasAchievement = checkAchievementInGame(checkString);
+
+                    if (!hasAchievement) {
+                        card.classList.add('locked');
+                        button.classList.remove('claimable');
+                        button.classList.add('locked');
+                        button.textContent = '🔒 Not Unlocked in Game';
+                        button.disabled = true;
+                    }
+                }
+            });
+        }
+
+        // Claim achievement
+        function claimAchievement(achievementId, button) {
+            const card = button.closest('.achievement-card');
+            const checkString = card.dataset.check;
+
+            // Verify user has the achievement
+            if (!checkAchievementInGame(checkString)) {
+                showNotification('You must unlock this achievement in Idle Dice first!', 'error');
+                return;
+            }
+
+            // Disable button during request
+            button.disabled = true;
+            button.textContent = 'Claiming...';
+
+            fetch('/api/claim_idle_dice_achievement', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    achievement_id: achievementId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    card.classList.add('claimed');
+                    button.classList.remove('claimable');
+                    button.classList.add('claimed');
+                    button.textContent = '✓ Already Claimed';
+
+                    // Add claimed badge
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge claimed';
+                    badge.textContent = '✓ Claimed';
+                    card.appendChild(badge);
+
+                    // Show success notification
+                    showNotification(
+                        `Success! You earned ${data.tokens_awarded} tokens! New balance: 🎟️ ${data.new_balance}`,
+                        'success'
+                    );
+
+                    // Update stats
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showNotification(data.error || 'Failed to claim achievement', 'error');
+                    button.disabled = false;
+                    button.textContent = 'Claim Reward';
+                }
+            })
+            .catch(error => {
+                console.error('[StudyHall] Error claiming achievement:', error);
+                showNotification('Network error. Please try again.', 'error');
+                button.disabled = false;
+                button.textContent = 'Claim Reward';
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Add click handlers to claim buttons
+        document.querySelectorAll('.claim-button.claimable').forEach(button => {
+            button.addEventListener('click', function() {
+                const achievementId = this.dataset.achievementId;
+                claimAchievement(achievementId, this);
+            });
+        });
+
+        // Update UI on page load
+        updateAchievementUI();
+
+        // Log localStorage for debugging
+        console.log('[StudyHall] Idle Dice Rewards page loaded');
+        console.log('[StudyHall] Checking localStorage for Idle Dice data...');
+        const idleDiceKeys = Object.keys(localStorage).filter(k => k.includes('Idle'));
+        console.log('[StudyHall] Found Idle Dice keys:', idleDiceKeys);
+    </script>
+</body>
+</html>

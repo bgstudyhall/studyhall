@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>More - StudyHall</title>
+    <title>Unblock Sites - StudyHall</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -13,288 +13,238 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --page-bg: linear-gradient(180deg, #f7f9fc 0%, #eef1f6 50%, #f7f9fc 100%);
-            --panel-bg: #ffffff;
-            --card-border: #e5e7eb;
-            --text-strong: #0f172a;
-            --text-muted: #4b5563;
-            --accent: #0a84ff;
-            --accent-soft: rgba(10, 132, 255, 0.12);
-            --shadow-soft: 0 18px 60px rgba(15, 23, 42, 0.08);
-            --shadow-card: 0 12px 40px rgba(15, 23, 42, 0.06);
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--page-bg);
-            background-attachment: fixed;
-            color: var(--text-strong);
-            padding: 2.5rem 1.5rem;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: var(--panel-bg);
-            padding: 2rem;
-            border-radius: 28px;
-            border: 1px solid var(--card-border);
-            box-shadow: var(--shadow-soft);
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
         }
 
         .header {
+            background: #0d1117;
+            border-bottom: 1px solid #30363d;
+            padding: 16px 20px;
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.25rem;
-            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 12px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .icon {
-            width: 58px;
-            height: 58px;
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.12) 0%, rgba(10, 132, 255, 0.2) 100%);
-            border-radius: 16px;
-            border: 1px solid rgba(10, 132, 255, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            color: var(--accent);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
-
-        h1 {
+        .site-title {
+            font-size: 20px;
             font-weight: 600;
-            font-size: 1.9rem;
-            color: var(--text-strong);
+            color: #e6edf3;
         }
 
         .header-buttons {
             display: flex;
-            gap: 0.8rem;
-            align-items: center;
+            gap: 8px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .btn {
-            background: #f8fafc;
-            border: 1px solid var(--card-border);
-            padding: 0.75rem 1.2rem;
-            border-radius: 14px;
-            color: var(--text-strong);
+            background: #21262d;
+            border: 1px solid #30363d;
+            padding: 6px 12px;
+            color: #c9d1d9;
             text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.18s ease;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
+            transition: all 0.2s;
+            border-radius: 6px;
             position: relative;
-            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            border-color: rgba(10, 132, 255, 0.4);
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-        }
-
-        .btn-primary {
-            background: linear-gradient(120deg, #0b84ff 0%, #0a7ae6 100%);
-            color: #ffffff;
-            border-color: transparent;
+            background: #30363d;
+            border-color: #8b949e;
         }
 
         .tokens-display {
-            background: #0f172a;
-            color: #e5e7eb;
-            padding: 0.6rem 1.1rem;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+            background: #0d1117;
+            color: #58a6ff;
+            padding: 6px 12px;
+            border: 1px solid #30363d;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 6px;
         }
 
-        .token-amount {
-            font-weight: 600;
-            font-size: 1.1rem;
+        .status-line {
+            font-size: 12px;
+            color: #8b949e;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
         }
 
         .sites-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
-            margin-top: 1.5rem;
+            gap: 16px;
+            padding: 20px;
         }
 
         .site-card {
-            background: #ffffff;
-            border: 1px solid var(--card-border);
-            border-radius: 18px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
             overflow: hidden;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-card);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .youtube-wrapper {
-            width: 100%;
-            height: 160px;
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8fafc;
-        }
-
-        .youtube-logo-img {
-            width: 46%;
-            height: auto;
+            transition: all 0.2s;
         }
 
         .site-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(10, 132, 255, 0.35);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+            border-color: #8b949e;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .site-image {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            border-bottom: 1px solid var(--card-border);
+        .site-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .site-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e6edf3;
         }
 
         .site-content {
-            padding: 1.2rem 1.4rem 1.4rem;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .site-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-strong);
+            gap: 10px;
         }
 
         .site-price {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 14px;
+            color: #8b949e;
+        }
+
+        .site-price.free {
+            color: #3fb950;
         }
 
         .site-status {
             display: inline-block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            border: 1px solid transparent;
-            margin-bottom: 0.6rem;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 12px;
+            border: 1px solid;
         }
 
         .status-owned {
-            background: rgba(34, 197, 94, 0.12);
-            color: #166534;
-            border-color: rgba(34, 197, 94, 0.18);
+            background: rgba(63, 185, 80, 0.1);
+            color: #3fb950;
+            border-color: #3fb950;
         }
 
         .status-locked {
-            background: rgba(248, 180, 0, 0.1);
-            color: #92400e;
-            border-color: rgba(248, 180, 0, 0.22);
+            background: rgba(248, 81, 73, 0.1);
+            color: #f85149;
+            border-color: #f85149;
         }
 
         .site-btn {
             width: 100%;
-            background: linear-gradient(120deg, #0b84ff 0%, #0a7ae6 100%);
-            color: white;
-            border: none;
-            padding: 0.85rem 1.2rem;
-            font-size: 0.96rem;
-            font-weight: 600;
-            border-radius: 12px;
+            background: #238636;
+            color: #ffffff;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             text-decoration: none;
             display: block;
             text-align: center;
-            margin-top: auto;
+            border-radius: 6px;
+            margin-top: 8px;
         }
 
         .site-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(10, 132, 255, 0.25);
-        }
-
-        .site-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 6px 18px rgba(10, 132, 255, 0.2);
+            background: #2ea043;
         }
 
         .site-btn.purchase {
-            background: #f8fafc;
-            color: var(--text-strong);
-            border: 1px solid var(--card-border);
+            background: #21262d;
+            color: #c9d1d9;
+            border-color: #30363d;
+        }
+
+        .site-btn.purchase:hover {
+            background: #30363d;
+            border-color: #8b949e;
         }
 
         .unread-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #0b84ff;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
+            top: -4px;
+            right: -4px;
+            background: #d29922;
+            color: #0d1117;
+            border-radius: 10px;
+            min-width: 18px;
+            height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 700;
-            border: 2px solid #fff;
-            box-shadow: 0 8px 18px rgba(10, 132, 255, 0.3);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 0 5px;
+        }
+
+        .site-image {
+            width: 100%;
+            height: 140px;
+            object-fit: contain;
+            background: #0d1117;
+            padding: 20px;
+        }
+
+        .youtube-wrapper {
+            width: 100%;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0d1117;
+            padding: 20px;
+        }
+
+        .youtube-logo-img {
+            width: 50%;
+            height: auto;
         }
 
         @media (max-width: 768px) {
             body {
-                padding: 1rem;
-            }
-
-            .container {
-                padding: 1.5rem;
+                padding: 10px;
             }
 
             .sites-grid {
                 grid-template-columns: 1fr;
+                padding: 12px;
             }
 
             .header {
-                flex-direction: column;
-                align-items: stretch;
+                padding: 12px 16px;
             }
         }
     </style>
@@ -302,29 +252,28 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-left">
-                <div class="icon">🔓</div>
-                <h1>Unblock Sites</h1>
-            </div>
-            <div class="header-buttons">
-                <div class="tokens-display">
-                    <span>🎟️</span>
-                    <span class="token-amount" id="tokenBalance">{{ user_tokens }}</span>
+            <div class="header-top">
+                <div class="site-title">Unblock Sites</div>
+                <div class="header-buttons">
+                    <div class="tokens-display">
+                        <span class="token-amount" id="tokenBalance">{{ user_tokens }}</span> tokens
+                    </div>
+                    <a href="{{ url_for('lounge') }}" class="btn">
+                        Lounge
+                        {% if lounge_unread_count > 0 %}
+                        <span class="unread-badge">{{ lounge_unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('chat') }}" class="btn">
+                        Chat
+                        {% if unread_count > 0 %}
+                        <span class="unread-badge">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn">Home</a>
                 </div>
-                <a href="{{ url_for('lounge') }}" class="btn">
-                    🏠 Lounge
-                    {% if lounge_unread_count > 0 %}
-                    <span class="unread-badge">{{ lounge_unread_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('chat') }}" class="btn">
-                    💬 Chat
-                    {% if unread_count > 0 %}
-                    <span class="unread-badge">{{ unread_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('index') }}" class="btn btn-primary">Home</a>
             </div>
+            <div class="status-line">{{ username }}@studyhall ~ online</div>
         </div>
 
         <div class="sites-grid">
@@ -333,31 +282,30 @@
                 <div class="youtube-wrapper">
                     <img src="https://i.ibb.co/MyKN0GV2/You-Tube-full-color-icon-2017-svg.webp" class="youtube-logo-img" alt="YouTube">
                 </div>
+                <div class="site-header">
+                    <div class="site-name">YouTube</div>
+                </div>
                 <div class="site-content">
-                    <h3 class="site-title">YouTube</h3>
-                    <div class="site-price">🎟 120 Tokens</div>
-                    {% if username in site_access and 'youtube' in site_access[username] %}
-                        <span class="site-status status-owned">✓ Owned</span>
-                        <a href="{{ url_for('youtube') }}" class="site-btn">Open YouTube</a>
-                    {% else %}
-                        <span class="site-status status-locked">🔒 Locked</span>
-                        <button class="site-btn purchase" onclick="purchaseSite('youtube', 120)">Purchase Access</button>
-                    {% endif %}
+                    <div class="site-price free">Free</div>
+                    <span class="site-status status-owned">Available</span>
+                    <a href="{{ url_for('youtube') }}" class="site-btn">Access</a>
                 </div>
             </div>
 
             <!-- Twitch Card -->
             <div class="site-card">
                 <img src="https://i.ibb.co/DH3KnQrt/images-1.png" alt="Twitch" class="site-image">
+                <div class="site-header">
+                    <div class="site-name">Twitch</div>
+                </div>
                 <div class="site-content">
-                    <h3 class="site-title">Twitch</h3>
-                    <div class="site-price">🎟️ 170 Tokens</div>
+                    <div class="site-price">50 tokens</div>
                     {% if username in site_access and 'twitch' in site_access[username] %}
-                        <span class="site-status status-owned">✓ Owned</span>
-                        <a href="{{ url_for('twitch') }}" class="site-btn">Open Twitch</a>
+                        <span class="site-status status-owned">Purchased</span>
+                        <a href="{{ url_for('twitch') }}" class="site-btn">Access</a>
                     {% else %}
-                        <span class="site-status status-locked">🔒 Locked</span>
-                        <button class="site-btn purchase" onclick="purchaseSite('twitch', 170)">Purchase Access</button>
+                        <span class="site-status status-locked">Locked</span>
+                        <button class="site-btn purchase" onclick="purchaseSite('twitch', 50)">Purchase</button>
                     {% endif %}
                 </div>
             </div>
@@ -365,15 +313,17 @@
             <!-- Free Movies Card -->
             <div class="site-card">
                 <img src="https://cdn-icons-png.freepik.com/512/2798/2798007.png" alt="Free Movies" class="site-image">
+                <div class="site-header">
+                    <div class="site-name">Free Movies</div>
+                </div>
                 <div class="site-content">
-                    <h3 class="site-title">Free Movies</h3>
-                    <div class="site-price">🎟️ 100 Tokens</div>
+                    <div class="site-price">100 tokens</div>
                     {% if username in site_access and 'freemovies' in site_access[username] %}
-                        <span class="site-status status-owned">✓ Owned</span>
-                        <a href="{{ url_for('freemovies') }}" class="site-btn">Open Free Movies</a>
+                        <span class="site-status status-owned">Purchased</span>
+                        <a href="{{ url_for('freemovies') }}" class="site-btn">Access</a>
                     {% else %}
-                        <span class="site-status status-locked">🔒 Locked</span>
-                        <button class="site-btn purchase" onclick="purchaseSite('freemovies', 100)">Purchase Access</button>
+                        <span class="site-status status-locked">Locked</span>
+                        <button class="site-btn purchase" onclick="purchaseSite('freemovies', 100)">Purchase</button>
                     {% endif %}
                 </div>
             </div>
@@ -381,15 +331,17 @@
             <!-- Gmail Card -->
             <div class="site-card">
                 <img src="https://cdn4.iconfinder.com/data/icons/free-colorful-icons/360/gmail.png" alt="Gmail" class="site-image">
+                <div class="site-header">
+                    <div class="site-name">Gmail</div>
+                </div>
                 <div class="site-content">
-                    <h3 class="site-title">Gmail</h3>
-                    <div class="site-price">🎟️50 Tokens</div>
+                    <div class="site-price">50 tokens</div>
                     {% if username in site_access and 'gmail' in site_access[username] %}
-                        <span class="site-status status-owned">✓ Owned</span>
-                        <a href="{{ url_for('gmail_page') }}" class="site-btn">Open Gmail</a>
+                        <span class="site-status status-owned">Purchased</span>
+                        <a href="{{ url_for('gmail_page') }}" class="site-btn">Access</a>
                     {% else %}
-                        <span class="site-status status-locked">🔒 Locked</span>
-                        <button class="site-btn purchase" onclick="purchaseSite('gmail', 50)">Purchase Access</button>
+                        <span class="site-status status-locked">Locked</span>
+                        <button class="site-btn purchase" onclick="purchaseSite('gmail', 50)">Purchase</button>
                     {% endif %}
                 </div>
             </div>
@@ -398,7 +350,8 @@
 
     <script>
         function purchaseSite(siteId, price) {
-            if (!confirm(`Purchase ${siteId.charAt(0).toUpperCase() + siteId.slice(1)} access for ${price} tokens?`)) {
+            const siteName = siteId.charAt(0).toUpperCase() + siteId.slice(1);
+            if (!confirm(`Purchase ${siteName} access for ${price} tokens?`)) {
                 return;
             }
 
@@ -411,7 +364,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Successfully purchased ${siteId.charAt(0).toUpperCase() + siteId.slice(1)} access!`);
+                    alert(`Successfully purchased ${siteName} access!`);
                     document.getElementById('tokenBalance').textContent = data.new_balance;
                     location.reload();
                 } else {

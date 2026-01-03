@@ -20,8 +20,12 @@ from email.mime.text import MIMEText
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from flask_compress import Compress
-# WebSocket disabled - not compatible with PythonAnywhere WSGI
-# from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import sys
+
+# Force stdout/stderr to flush immediately for logging
+sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
+sys.stderr = io.TextIOWrapper(open(sys.stderr.fileno(), 'wb', 0), write_through=True)
 
 # ===============================================================
 # Flask App Configuration
@@ -32,11 +36,35 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
 
-# Enable Gzip compression for all responses
+# Enable Gzip/Brotli compression with optimized settings
+app.config['COMPRESS_ALGORITHM'] = ['br', 'gzip', 'deflate']  # Brotli first, then gzip
+app.config['COMPRESS_BR_LEVEL'] = 4  # Balanced compression (1-11, 4 is good for speed)
+app.config['COMPRESS_LEVEL'] = 6  # Gzip level (1-9, 6 is balanced)
+app.config['COMPRESS_MIN_SIZE'] = 500  # Only compress files larger than 500 bytes
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/javascript', 'application/javascript',
+    'application/json', 'text/xml', 'application/xml', 'image/svg+xml'
+]
 Compress(app)
 
-# WebSocket disabled - not compatible with PythonAnywhere WSGI
-# socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+# Enable WebSockets (now compatible with Fly.io!)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+
+# Add caching headers for static files and CDN optimization
+@app.after_request
+def add_cache_headers(response):
+    # Cache static files for a long time (1 year for immutable resources)
+    if request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        response.headers['Vary'] = 'Accept-Encoding'
+    # Cache game content for 1 hour (can be updated)
+    elif request.path.startswith('/play/'):
+        response.headers['Cache-Control'] = 'public, max-age=3600'
+        response.headers['Vary'] = 'Accept-Encoding'
+    # Don't cache dynamic API responses
+    elif request.path.startswith('/api/'):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
 
 # Rank system hierarchy
 RANKS = [
@@ -167,18 +195,6 @@ PERMISSIONS = {
     'manage_groups': ['admin', 'president'],
 }
 
-FORTUNES = [
-    "A quiet moment will help you understand something important.",
-    "A good idea will come to you when your mind is calm.",
-    "Your kindness will spread farther than you think.",
-    "You will find comfort in something simple and familiar.",
-    "The peace you give will return to you.",
-    "Your next step will lead to something good.",
-    "Something you’ve been hoping for will show up when you least expect it.",
-    "Hope arrives quietly, like snow on rooftops."
-
-]
-
 # ===============================================================
 # Jinja2 Filters
 # ===============================================================
@@ -205,7 +221,8 @@ def format_time_filter(timestamp):
 # ===============================================================
 # File paths for JSON storage
 # ===============================================================
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+# Use environment variable if set (for fly.io persistent volume), otherwise use local ./data
+DATA_DIR = os.environ.get('DATA_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data'))
 
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 GAMES_FILE = os.path.join(DATA_DIR, 'games.json')
@@ -213,9 +230,9 @@ ANNOUNCEMENTS_FILE = os.path.join(DATA_DIR, 'announcements.json')
 FEEDBACK_FILE = os.path.join(DATA_DIR, 'feedback.json')
 MESSAGES_FILE = os.path.join(DATA_DIR, 'messages.json')
 READ_RECEIPTS_FILE = os.path.join(DATA_DIR, 'read_receipts1.json')
+SNAP_VIEWS_FILE = os.path.join(DATA_DIR, 'snap_views.json')
 USER_ACTIVITY_FILE = os.path.join(DATA_DIR, 'user_activity.json')
 LOUNGE_FILE = os.path.join(DATA_DIR, 'lounge.json')
-COOKIE_FILE = os.path.join(DATA_DIR, 'cookie_state.json')
 RANKS_FILE = os.path.join(DATA_DIR, 'ranks.json')
 PURCHASES_FILE = os.path.join(DATA_DIR, 'purchases.json')
 CODES_FILE = os.path.join(DATA_DIR, 'codes.json')
@@ -248,6 +265,8 @@ CASINO_STATS_FILE = os.path.join(DATA_DIR, 'casino_stats.json')
 LOTTERY_HISTORY_FILE = os.path.join(DATA_DIR, 'lottery_history.json')
 GMAIL_TOKENS_FILE = os.path.join(DATA_DIR, 'gmail_tokens.json')
 GMAIL_CREDENTIALS_FILE = os.path.join(DATA_DIR, 'client_secret.json')
+IDLE_DICE_ACHIEVEMENTS_FILE = os.path.join(DATA_DIR, 'idle_dice_achievements.json')
+IDLE_DICE_CLAIMS_FILE = os.path.join(DATA_DIR, 'idle_dice_claims.json')
 
 tower_games = {}
 
@@ -473,11 +492,26 @@ announcements = load_json(ANNOUNCEMENTS_FILE, [])
 feedback = load_json(FEEDBACK_FILE, [])
 messages = load_json(MESSAGES_FILE, {})
 read_receipts = load_json(READ_RECEIPTS_FILE, {})
+# Snap views tracking: {chat_key: {message_index: {'opened_by': [users], 'replayed_by': [users]}}}
+snap_views = load_json(SNAP_VIEWS_FILE, {})
 user_activity = load_json(USER_ACTIVITY_FILE, {})
 lounge_messages = load_json(LOUNGE_FILE, [])
 lounge_reactions = load_json(LOUNGE_REACTIONS_FILE, {})
 lounge_read_receipts = load_json(LOUNGE_READ_RECEIPTS_FILE, {})
 lounge_typing = load_json(LOUNGE_TYPING_FILE, {})
+
+# Debug logging for lounge messages on startup
+print(f"[STARTUP DEBUG] ========================================")
+print(f"[STARTUP DEBUG] DATA_DIR: {DATA_DIR}")
+print(f"[STARTUP DEBUG] LOUNGE_FILE: {LOUNGE_FILE}")
+print(f"[STARTUP DEBUG] Lounge messages loaded: {len(lounge_messages)}")
+if os.path.exists(LOUNGE_FILE):
+    file_size = os.path.getsize(LOUNGE_FILE)
+    print(f"[STARTUP DEBUG] Lounge file exists, size: {file_size} bytes")
+else:
+    print(f"[STARTUP DEBUG] WARNING: Lounge file does NOT exist!")
+print(f"[STARTUP DEBUG] ========================================")
+
 lounge_message_reads = load_json(LOUNGE_MESSAGE_READS_FILE, {})
 login_notifications = load_json(LOGIN_NOTIFICATIONS_FILE, {})
 gmail_tokens = load_json(GMAIL_TOKENS_FILE, {})
@@ -487,18 +521,60 @@ maintenance_mode = load_json(MAINTENANCE_FILE, {
     'notes': []
 })
 tower_recent_wins = load_json(TOWER_WINS_FILE, [])
-cookie_state = load_json(COOKIE_FILE, {
-    'last_reset': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
-    'claimed': False,
-    'claimed_by': None,
-    'claimed_at': None,
-    'fortune': None
-})
-
 profiles = load_json(PROFILES_FILE, {})
 
 rps_games = load_json(RPS_GAMES_FILE, {})
 rps_history = load_json(RPS_HISTORY_FILE, [])
+
+# Load Idle Dice achievement data
+idle_dice_achievements = load_json(IDLE_DICE_ACHIEVEMENTS_FILE, {
+    # Basic Achievements
+    'firstSteps': {'name': 'First Steps', 'description': 'Start your journey', 'tokens': 1, 'category': 'Basic', 'check': 'a_value_firstSteps>=1'},
+    'points1m': {'name': 'Millionaire', 'description': 'Reach 1M points', 'tokens': 10, 'category': 'Basic', 'check': 'a_value_points1m>=1000000'},
+    'points1b': {'name': 'Billionaire', 'description': 'Reach 1B points', 'tokens': 20, 'category': 'Basic', 'check': 'a_value_points1b>=1000000000'},
+    'points1t': {'name': 'Trillionaire', 'description': 'Reach 1T points', 'tokens': 40, 'category': 'Basic', 'check': 'a_value_points1t>=1000000000000'},
+    'points1qa': {'name': 'Quadrillionaire', 'description': 'Reach 1Qa points', 'tokens': 80, 'category': 'Basic', 'check': 'a_value_points1qa>=1000000000000000'},
+    'points1qi': {'name': 'Quintillionaire', 'description': 'Reach 1Qi points', 'tokens': 150, 'category': 'Basic', 'check': 'a_value_points1qi>=1000000000000000000'},
+    'roll20': {'name': 'Roll 20', 'description': 'Roll the dice 20 times', 'tokens': 5, 'category': 'Basic', 'check': 'a_value_roll20>=20'},
+    'roll1k': {'name': 'Roll 1000', 'description': 'Roll the dice 1000 times', 'tokens': 35, 'category': 'Basic', 'check': 'a_value_roll1k>=1000'},
+    'prestige2': {'name': 'Prestige 2', 'description': 'Prestige 2 times', 'tokens': 10, 'category': 'Basic', 'check': 'a_value_prestige2>=2'},
+    'prestige10': {'name': 'Prestige 10', 'description': 'Prestige 10 times', 'tokens': 25, 'category': 'Basic', 'check': 'a_value_prestige10>=10'},
+    'prestige100': {'name': 'Prestige 100', 'description': 'Prestige 100 times', 'tokens': 50, 'category': 'Basic', 'check': 'a_value_prestige100>=100'},
+    'prestige1k': {'name': 'Prestige 1000', 'description': 'Prestige 1000 times', 'tokens': 100, 'category': 'Basic', 'check': 'a_value_prestige1k>=1000'},
+    'lazy': {'name': 'Lazy', 'description': 'Be lazy', 'tokens': 5, 'category': 'Basic', 'check': 'a_value_lazy>=1'},
+    'playtime1': {'name': 'Playtime 1h', 'description': 'Play for 1 hour', 'tokens': 5, 'category': 'Basic', 'check': 'a_value_playtime1>=1'},
+    'playtime24': {'name': 'Playtime 24h', 'description': 'Play for 24 hours', 'tokens': 15, 'category': 'Basic', 'check': 'a_value_playtime24>=1'},
+    'playtime168': {'name': 'Playtime 168h', 'description': 'Play for 168 hours (1 week)', 'tokens': 30, 'category': 'Basic', 'check': 'a_value_playtime168>=1'},
+
+    # Advanced Achievements (Card-based - correct IDs from game)
+    'cards5': {'name': 'Full Hand', 'description': 'Draw 5 cards in one run', 'tokens': 6, 'category': 'Advanced', 'check': 'a_value_cards5>=5'},
+    'cards10': {'name': 'Double or Nothing', 'description': 'Draw 10 cards in one run', 'tokens': 10, 'category': 'Advanced', 'check': 'a_value_cards10>=10'},
+    'cards15': {'name': 'Three Hands Full', 'description': 'Draw 15 cards in one run', 'tokens': 15, 'category': 'Advanced', 'check': 'a_value_cards15>=15'},
+    'cards20': {'name': 'Draw 20', 'description': 'Draw 20 cards in one run', 'tokens': 20, 'category': 'Advanced', 'check': 'a_value_cards20>=20'},
+    'cards26': {'name': 'Half Deck', 'description': 'Draw 26 cards in one run', 'tokens': 25, 'category': 'Advanced', 'check': 'a_value_cards26>=26'},
+    'cards32': {'name': 'Wrong Type of Deck', 'description': 'Draw 32 cards in one run', 'tokens': 30, 'category': 'Advanced', 'check': 'a_value_cards32>=32'},
+    'cards45': {'name': 'Almost Done', 'description': 'Draw 45 cards in one run', 'tokens': 35, 'category': 'Advanced', 'check': 'a_value_cards45>=45'},
+    'cards52': {'name': 'Full Deck', 'description': 'Draw 52 cards in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards52>=52'},
+    'cards4_2': {'name': 'Strategic Mastermind', 'description': 'Draw 4 2s in one run', 'tokens': 20, 'category': 'Advanced', 'check': 'a_value_cards4_2>=4'},
+    'cards4_3': {'name': 'Equality', 'description': 'Draw 4 3s in one run', 'tokens': 25, 'category': 'Advanced', 'check': 'a_value_cards4_3>=4'},
+    'cards4_4': {'name': 'Into Heaven', 'description': 'Draw 4 4s in one run', 'tokens': 30, 'category': 'Advanced', 'check': 'a_value_cards4_4>=4'},
+    'cards4_5': {'name': 'Combo Master', 'description': 'Draw 4 5s in one run', 'tokens': 35, 'category': 'Advanced', 'check': 'a_value_cards4_5>=4'},
+    'cards4_6': {'name': '5th Dice', 'description': 'Draw 4 6s in one run', 'tokens': 40, 'category': 'Advanced', 'check': 'a_value_cards4_6>=4'},
+    'cards4_7': {'name': '4th Dice', 'description': 'Draw 4 7s in one run', 'tokens': 35, 'category': 'Advanced', 'check': 'a_value_cards4_7>=4'},
+    'cards4_8': {'name': '3rd Dice', 'description': 'Draw 4 8s in one run', 'tokens': 30, 'category': 'Advanced', 'check': 'a_value_cards4_8>=4'},
+    'cards4_9': {'name': '2nd Dice', 'description': 'Draw 4 9s in one run', 'tokens': 25, 'category': 'Advanced', 'check': 'a_value_cards4_9>=4'},
+    'cards4_10': {'name': '1st Dice', 'description': 'Draw 4 10s in one run', 'tokens': 20, 'category': 'Advanced', 'check': 'a_value_cards4_10>=4'},
+    'cards4_J': {'name': 'Faster!!', 'description': 'Draw 4 Jacks in one run', 'tokens': 25, 'category': 'Advanced', 'check': 'a_value_cards4_J>=4'},
+    'cards4_Q': {'name': 'Multiply the Multipliers', 'description': 'Draw 4 Queens in one run', 'tokens': 40, 'category': 'Advanced', 'check': 'a_value_cards4_Q>=4'},
+    'cards4_K': {'name': 'Patience', 'description': 'Draw 4 Kings in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards4_K>=4'},
+    'cards4_A': {'name': 'No Patience', 'description': 'Draw 4 Aces in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards4_A>=4'},
+
+    # Expert Achievements (Roulette-based)
+    'roulette10': {'name': 'Roulette 10', 'description': 'Reach roulette level 10', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_roulette10>=10'},
+    'straight1k': {'name': 'Straight Master', 'description': 'Roll 1000 Straights', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_straight1k>=1000'},
+    'spinrun15': {'name': 'Expert Spinner', 'description': 'Spin the roulette 15 times in one run', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_spinrun15>=15'},
+})
+idle_dice_claims = load_json(IDLE_DICE_CLAIMS_FILE, {})
 
 user_ranks = load_json(RANKS_FILE, {})
 purchases = load_json(PURCHASES_FILE, {})
@@ -790,33 +866,6 @@ def get_lounge_unread_count(username):
     return sum(1 for msg in lounge_messages
                if msg.get('from') != username and msg['timestamp'] > last_read)
 
-def check_and_reset_cookie():
-    """Reset cookie every 3 hours if needed"""
-    global cookie_state
-    now = get_ny_time()
-    try:
-        last_reset = datetime.strptime(cookie_state['last_reset'], '%Y-%m-%d %H:%M:%S')
-        last_reset = pytz.timezone('America/New_York').localize(last_reset)
-    except:
-        last_reset = now - timedelta(hours=4)
-
-    time_diff = (now - last_reset).total_seconds() / 3600
-    if time_diff >= 3:
-        cookie_state = {
-            'last_reset': now.strftime('%Y-%m-%d %H:%M:%S'),
-            'claimed': False,
-            'claimed_by': None,
-            'claimed_at': None,
-            'fortune': random.choice(FORTUNES)
-        }
-        save_json(COOKIE_FILE, cookie_state)
-
-    if cookie_state.get('fortune') is None:
-        cookie_state['fortune'] = random.choice(FORTUNES)
-        cookie_state['last_reset'] = now.strftime('%Y-%m-%d %H:%M:%S')
-        save_json(COOKIE_FILE, cookie_state)
-
-
 # OAuth 2.0 scopes for Gmail
 SCOPES = ['https://www.googleapis.com/auth/gmail.send',
           'https://www.googleapis.com/auth/gmail.readonly',
@@ -824,29 +873,106 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.send',
 
 # Lunch menu data
 lunch_menu = {
-    '2025-12-01': {'food': 'Rodeo Cheeseburger & Sweet Potato Fries', 'fact': 'Sweet potato fries became trendy in the 2000s as a "healthier" alternative - sweet potatoes have more fiber and vitamin A than regular potatoes!'},
-    '2025-12-02': {'food': 'Chicken Quesadilla w/ Meat & Cheese, Corn, Rice', 'fact': 'Quesadillas date back to the 16th century when Spanish colonizers introduced cheese to Mexico, where it was combined with traditional tortillas!'},
-    '2025-12-03': {'food': 'Hot Dog, Tater Tots & Baked Beans', 'fact': 'Tater Tots were invented in 1953 by the Ore-Ida company as a way to use up leftover potato scraps - now over 70 million pounds are sold yearly!'},
-    '2025-12-04': {'food': 'NY Beef & NY Broccoli w/ Rice & Egg Roll', 'fact': 'Beef and broccoli is actually an American-Chinese dish invented in the U.S. - it\'s rarely found in traditional Chinese cuisine!'},
-    '2025-12-05': {'food': 'Assorted Pizza & Romaine Salad w/ Tomatoes & Cucumbers', 'fact': 'December 5th is National Sacher Torte Day, but pizza is always a celebration! The average American eats 46 slices of pizza per year!'},
-    '2025-12-08': {'food': 'BBQ Rib on a Bun & French Fries', 'fact': 'BBQ ribs on sandwiches became popular in the American South during the early 1900s as a portable, finger-licking meal for workers!'},
-    '2025-12-09': {'food': 'Tacos w/ Meat, Cheese, Salsa, Sour Cream, Refried Beans & Rice', 'fact': 'Taco Tuesday was actually trademarked by Taco John\'s in 1989, though the phrase has become so common it\'s hard to enforce!'},
-    '2025-12-10': {'food': 'BBQ Pulled Chicken on Bun & Coleslaw', 'fact': 'Coleslaw comes from the Dutch word "koolsla" meaning "cabbage salad" - Dutch settlers brought the recipe to America in the 1600s!'},
-    '2025-12-11': {'food': 'Holiday Meal: Baked Ziti, Garlic Bread, Green Beans & Cherry Cobbler', 'fact': 'Baked ziti is a classic Italian-American comfort food perfect for the holidays! It became popular in the U.S. in the early 20th century with Italian immigration!'},
-    '2025-12-12': {'food': 'Assorted Pizza & Romaine Salad w/ Tomatoes & Cucumbers', 'fact': 'Pizza margherita was created in 1889 to honor Queen Margherita of Italy, featuring the colors of the Italian flag: red tomatoes, white mozzarella, and green basil!'},
-    '2025-12-15': {'food': 'Chicken Patty, Curly Fries & Carrots', 'fact': 'Curly fries were popularized by Arby\'s in the 1980s - their signature spiral shape is created by pushing potatoes through a special cutting machine!'},
-    '2025-12-16': {'food': 'Buffalo Chicken Dip w/ Tortilla Chips & Celery Sticks', 'fact': 'Buffalo chicken dip was invented in the 1990s as a party appetizer inspired by Buffalo wings - it quickly became a game day favorite across America!'},
-    '2025-12-17': {'food': 'Baked Chicken, Pasta Salad, Baked Beans & WG Roll', 'fact': 'Baked beans became a Boston staple in colonial times - molasses was abundant due to the rum trade, making sweetened beans affordable and popular!'},
-    '2025-12-18': {'food': 'NY Butternut Squash Mac & Cheese, Maple Roasted NY Brussels Sprouts, Garlic Breadstick & NY Apple Slices', 'fact': 'Brussels sprouts got their name from Brussels, Belgium, where they were widely grown in the 16th century! Roasting them brings out their natural sweetness!'},
-    '2025-12-19': {'food': 'Three Cheese or Pepperoni Pizza Roll & Romaine Salad w/ Tomatoes & Cucumbers', 'fact': 'Pizza rolls were invented in 1951 by a Chinese-American restaurateur who wanted to create a snack that combined pizza and egg rolls!'},
-    '2025-12-22': {'food': 'Chicken Tenders, French Fries, Green Beans & WG Dinner Roll', 'fact': 'Chicken tenders are actually a specific muscle from the chicken breast called the "tenderloin" - they\'re naturally tender, hence the name!'},
-    '2025-12-23': {'food': 'Deep Dish Pizza & Roasted Broccoli', 'fact': 'Deep dish pizza was invented in Chicago in 1943 at Pizzeria Uno - its thick crust can hold way more toppings than traditional thin-crust pizza!'},
-    '2025-12-24': {'food': 'Winter Break ❄️', 'fact': 'Enjoy your winter break! Time to relax and recharge before the new year!'},
-    '2025-12-25': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: Many winter celebrations around the world feature special meals and family gatherings!'},
-    '2025-12-26': {'food': 'Winter Break ❄️', 'fact': 'December 26th is Boxing Day in many countries! It originated as a day when servants received gifts in boxes from their employers!'},
-    '2025-12-29': {'food': 'Winter Break ❄️', 'fact': 'Enjoy your winter break! This is the perfect time to try making your favorite lunch items at home!'},
-    '2025-12-30': {'food': 'Winter Break ❄️', 'fact': 'Fun fact: The end of December is a perfect time to reflect on the year and set goals for the next!'},
-    '2025-12-31': {'food': 'New Year\'s Eve 🎉', 'fact': 'Happy New Year\'s Eve! Did you know that eating 12 grapes at midnight is a Spanish tradition for good luck in each month of the new year?'}
+    '2026-01-05': {
+        'food': 'Chicken Patty on a Bun, French Fries, Seasoned Carrots',
+        'fact': 'Chicken patties are a popular school lunch because they provide protein in a familiar, easy-to-eat form that helps reduce food waste.',
+        'breakfast': 'French Toast Sticks'
+    },
+    '2026-01-06': {
+        'food': 'Nachos with Meat & Cheese, Black Beans, Corn',
+        'fact': 'Black beans are rich in fiber and plant protein, which help students stay full and focused longer.',
+        'breakfast': 'Cheese Omelet with 1/2 Bagel'
+    },
+    '2026-01-07': {
+        'food': 'Chicken Alfredo over Rotini, Roasted Broccoli, Whole-Grain Dinner Roll',
+        'fact': 'Whole-grain pasta provides longer-lasting energy than refined grains, supporting afternoon concentration.',
+        'breakfast': 'Confetti Pancakes with 1/2 Bagel'
+    },
+    '2026-01-08': {
+        'food': 'NY Southwest Chili, NY Black Beans, Corn, Onion, Carrots, Cornbread, NY Roasted Corn, NY Apple',
+        'fact': 'Chili is a well-balanced meal that combines protein, vegetables, and fiber in one hearty dish.',
+        'breakfast': 'Yogurt & Muffin'
+    },
+    '2026-01-09': {
+        'food': 'Assorted Pizza, Romaine Salad with Tomatoes & Cucumbers',
+        'fact': 'Serving salad alongside pizza helps balance carbohydrates with fresh vegetables and nutrients.',
+        'breakfast': 'Breakfast Sandwich'
+    },
+    '2026-01-12': {
+        'food': 'Cheeseburger on a Bun, Tater Tots, Baked Beans',
+        'fact': 'Baked beans provide fiber and iron, which support muscle function and energy levels.',
+        'breakfast': 'Breakfast on a Stick'
+    },
+    '2026-01-13': {
+        'food': 'Tacos with Meat & Cheese, Rice, Corn',
+        'fact': 'Rice is a key energy source for the brain, helping students stay alert during class.',
+        'breakfast': 'Breakfast Pizza'
+    },
+    '2026-01-14': {
+        'food': 'Cheesy Chicken & Rice, Broccoli, Whole-Grain Roll',
+        'fact': 'Broccoli is high in vitamin C, which supports immune health during winter months.',
+        'breakfast': 'Breakfast Banana Splits'
+    },
+    '2026-01-15': {
+        'food': 'Rotini with Meat Sauce, Carrots, Whole-Grain Roll',
+        'fact': 'Tomato-based sauces contain antioxidants that support long-term health.',
+        'breakfast': 'Waffles'
+    },
+    '2026-01-16': {
+        'food': 'Three-Cheese or Pepperoni Roll with Dipping Sauce, Romaine Salad with Tomatoes & Cucumbers',
+        'fact': 'Cheese is an important source of calcium for growing bones and teeth.',
+        'breakfast': 'Breakfast Sandwich'
+    },
+    '2026-01-17': {
+        'food': 'No School - Martin Luther King Jr. Day',
+        'fact': 'School is closed in observance of Martin Luther King Jr. Day.',
+        'breakfast': 'No school today.'
+    },
+    '2026-01-20': {
+        'food': 'Toasty Grilled Cheese Sandwich, Tomato Soup',
+        'fact': 'Tomato soup helps boost vegetable intake and is especially popular in colder weather.',
+        'breakfast': 'Cinni Minis'
+    },
+    '2026-01-21': {
+        'food': 'Chicken & Cheese Quesadillas, Mexican Street Corn Salad',
+        'fact': 'Corn provides natural carbohydrates that fuel learning and physical activity.',
+        'breakfast': 'Coffee Cake'
+    },
+    '2026-01-22': {
+        'food': 'Teriyaki Chicken Stir Fry over Rice with Peppers & Onions, Potstickers',
+        'fact': 'Stir-fry meals introduce students to global flavors while delivering vegetables in an appealing way.',
+        'breakfast': 'French Toast'
+    },
+    '2026-01-23': {
+        'food': 'Assorted Pizza, Romaine Salad with Tomatoes & Cucumbers',
+        'fact': 'Romaine lettuce contains folate, which supports focus and cognitive development.',
+        'breakfast': 'Breakfast Sandwich'
+    },
+    '2026-01-26': {
+        'food': 'Chicken Tenders, Potato Wedges, Carrots, Whole-Grain Dinner Roll',
+        'fact': 'Whole grains help keep students energized longer than refined breads.',
+        'breakfast': 'Apple Frudel'
+    },
+    '2026-01-27': {
+        'food': 'Tater Tot Totchos with Taco Meat, Cheese, Salsa, Sour Cream, Seasoned Black Beans, Corn Muffin',
+        'fact': 'Beans and grains together form a more complete protein for growing bodies.',
+        'breakfast': 'Scrambled Eggs with 1/2 Bagel'
+    },
+    '2026-01-28': {
+        'food': 'Hot Dog on a Bun, Macaroni Salad, Baked Beans',
+        'fact': 'Carbohydrate-rich sides help replenish energy for afternoon learning.',
+        'breakfast': 'Pancakes'
+    },
+    '2026-01-29': {
+        'food': 'NY Sliced Pork Loin, Smashed NY Potatoes, NY Green Beans, Warmed NY Apples with Cinnamon & NY Honey Biscuit',
+        'fact': 'Locally sourced meals support regional farms and often arrive fresher on students\' plates.',
+        'breakfast': 'Yogurt & Muffin'
+    },
+    '2026-01-30': {
+        'food': 'Assorted Pizza, Romaine Salad with Tomatoes & Cucumbers',
+        'fact': 'Familiar end-of-week meals can increase participation in school lunch programs.',
+        'breakfast': 'Breakfast Sandwich'
+    }
 }
 
 
@@ -1419,16 +1545,19 @@ def view_profile(username):
 @app.route('/api/get_profile/<username>')
 @login_required
 def get_profile_data(username):
+    user_rank = users.get(username, {}).get('rank')  # Purchased rank for avatar colors (not staff role)
+
     if username not in profiles:
-        return jsonify({'has_profile': False})
+        return jsonify({'has_profile': False, 'rank': user_rank})
 
     profile = profiles[username]
     if not profile.get('setup_complete', False):
-        return jsonify({'has_profile': False})
+        return jsonify({'has_profile': False, 'rank': user_rank})
 
     return jsonify({
         'has_profile': True,
-        'profile_picture': profile.get('profile_picture')
+        'profile_picture': profile.get('profile_picture'),  # Can be None if no Instagram connected
+        'rank': user_rank  # Purchased rank for profile colors
     })
 
 
@@ -1617,16 +1746,24 @@ def chat_conversation(other_user):
     if chat_key not in messages:
         messages[chat_key] = []
 
+    # Get last read timestamp for NEW line
+    last_read = read_receipts.get(current_user, {}).get(chat_key, '')
+
+    # Get snap views for this chat
+    chat_snap_views = snap_views.get(chat_key, {})
+
     return render_template('chat_conversation.html',
         other_user=other_user,
         messages=messages[chat_key],
         current_user=current_user,
         read_receipts=read_receipts,
+        last_read_timestamp=last_read,
         users=users,
         session=session,
         STAFF_ROLES=STAFF_ROLES,
         RANKS=RANKS,
-        profiles=profiles
+        profiles=profiles,
+        snap_views=chat_snap_views
     )
 
 @app.route('/chat/<other_user>/send', methods=['POST'])
@@ -1695,7 +1832,42 @@ def get_messages(other_user):
     # Limit to last N messages
     chat_messages = chat_messages[-limit:]
 
-    return jsonify({'messages': chat_messages})
+    # Process snap messages using snap_views to determine state per user
+    processed_messages = []
+    base_index = len(messages[chat_key]) - len(chat_messages)  # Starting index for these messages
+
+    for i, msg in enumerate(chat_messages):
+        msg_copy = msg.copy()
+        message_index = base_index + i
+
+        # For snaps: check snap_views to determine opened/replayed state
+        if msg.get('type') == 'snap':
+            is_sender = msg.get('from') == current_user
+            is_recipient = msg.get('to') == current_user
+
+            # Check snap_views for this snap
+            snap_data = {}
+            if chat_key in snap_views and str(message_index) in snap_views[chat_key]:
+                snap_data = snap_views[chat_key][str(message_index)]
+
+            opened_by_list = snap_data.get('opened_by', [])
+            replayed_by_list = snap_data.get('replayed_by', [])
+
+            if is_recipient:
+                # Recipient never sees it as opened (they're the one who opens it)
+                msg_copy['opened'] = False
+                msg_copy['replayed_by'] = None
+                msg_copy['can_replay'] = False
+            elif is_sender:
+                # Sender sees if recipient has opened/replayed
+                recipient = msg.get('to')
+                msg_copy['opened'] = recipient in opened_by_list
+                msg_copy['replayed_by'] = recipient if recipient in replayed_by_list else None
+                msg_copy['can_replay'] = recipient not in replayed_by_list
+
+        processed_messages.append(msg_copy)
+
+    return jsonify({'messages': processed_messages})
 
 @app.route('/chat/<other_user>/read_status')
 @login_required
@@ -1770,7 +1942,7 @@ def send_snap(other_user):
 
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-        messages[chat_key].append({
+        snap_message = {
             'from': current_user,
             'to': other_user,
             'type': 'snap',
@@ -1778,7 +1950,8 @@ def send_snap(other_user):
             'opened': False,
             'timestamp': new_timestamp,
             'read': False
-        })
+        }
+        messages[chat_key].append(snap_message)
         save_json(MESSAGES_FILE, messages)
 
         # ✅ Mark as read for yourself after sending
@@ -1786,6 +1959,13 @@ def send_snap(other_user):
             read_receipts[current_user] = {}
         read_receipts[current_user][chat_key] = new_timestamp
         save_json(READ_RECEIPTS_FILE, read_receipts)
+
+        # Broadcast new snap to recipient via WebSocket
+        message_index = len(messages[chat_key]) - 1
+        socketio.emit('new_snap', {
+            'message': snap_message,
+            'message_index': message_index
+        }, room=f'chat_{other_user}')
 
         return jsonify({'success': True})
 
@@ -1833,9 +2013,129 @@ def open_snap(other_user, message_index):
     if chat_key in messages and message_index < len(messages[chat_key]):
         msg = messages[chat_key][message_index]
         if msg.get('type') == 'snap' and msg.get('to') == current_user:
-            msg['opened'] = True
-            save_json(MESSAGES_FILE, messages)
+            # Track who opened this snap in snap_views
+            if chat_key not in snap_views:
+                snap_views[chat_key] = {}
+            if str(message_index) not in snap_views[chat_key]:
+                snap_views[chat_key][str(message_index)] = {'opened_by': [], 'replayed_by': []}
+
+            if current_user not in snap_views[chat_key][str(message_index)]['opened_by']:
+                snap_views[chat_key][str(message_index)]['opened_by'].append(current_user)
+
+            save_json(SNAP_VIEWS_FILE, snap_views)
+
+            # Emit WebSocket event ONLY to sender to show snap was opened
+            snap_sender = msg.get('from')
+            socketio.emit('snap_opened', {
+                'message_index': message_index,
+                'opened_by': current_user,
+                'chat_key': chat_key
+            }, room=f'chat_{snap_sender}')
+
             return jsonify({'success': True, 'photo': msg['photo']})
+    return jsonify({'error': 'Snap not found'}), 404
+
+@app.route('/chat/<other_user>/replay_snap/<int:message_index>', methods=['POST'])
+@login_required
+def replay_snap(other_user, message_index):
+    current_user = session['username']
+    chat_key = get_chat_key(current_user, other_user)
+
+    if chat_key in messages and message_index < len(messages[chat_key]):
+        msg = messages[chat_key][message_index]
+
+        # Validate it's a snap, sent to current user, and not their own snap
+        if (msg.get('type') == 'snap' and
+            msg.get('to') == current_user and
+            msg.get('from') != current_user):
+
+            # Check snap_views to see if already replayed
+            if chat_key in snap_views and str(message_index) in snap_views[chat_key]:
+                if current_user in snap_views[chat_key][str(message_index)].get('replayed_by', []):
+                    return jsonify({'error': 'Snap already replayed'}), 400
+
+            # Track replay in snap_views
+            if chat_key not in snap_views:
+                snap_views[chat_key] = {}
+            if str(message_index) not in snap_views[chat_key]:
+                snap_views[chat_key][str(message_index)] = {'opened_by': [], 'replayed_by': []}
+
+            snap_views[chat_key][str(message_index)]['replayed_by'].append(current_user)
+            save_json(SNAP_VIEWS_FILE, snap_views)
+
+            # Emit WebSocket event to BOTH users
+            snap_sender = msg.get('from')
+            socketio.emit('snap_replayed', {
+                'message_index': message_index,
+                'replayed_by': current_user,
+                'chat_key': chat_key
+            }, room=f'chat_{snap_sender}')
+            socketio.emit('snap_replayed', {
+                'message_index': message_index,
+                'replayed_by': current_user,
+                'chat_key': chat_key
+            }, room=f'chat_{current_user}')
+
+            return jsonify({'success': True, 'photo': msg['photo']})
+
+    return jsonify({'error': 'Snap not found'}), 404
+
+@app.route('/chat/<other_user>/save_snap/<int:message_index>', methods=['POST'])
+@login_required
+def save_snap(other_user, message_index):
+    current_user = session['username']
+    chat_key = get_chat_key(current_user, other_user)
+
+    if chat_key in messages and message_index < len(messages[chat_key]):
+        msg = messages[chat_key][message_index]
+
+        if msg.get('type') == 'snap':
+            # Initialize snap_views structure
+            if chat_key not in snap_views:
+                snap_views[chat_key] = {}
+            if str(message_index) not in snap_views[chat_key]:
+                snap_views[chat_key][str(message_index)] = {'opened_by': [], 'replayed_by': [], 'saved_by': []}
+
+            saved_by_list = snap_views[chat_key][str(message_index)].get('saved_by', [])
+
+            # Toggle save/unsave
+            if current_user in saved_by_list:
+                # Unsave
+                saved_by_list.remove(current_user)
+                action = 'unsaved'
+            else:
+                # Save
+                saved_by_list.append(current_user)
+                action = 'saved'
+
+            snap_views[chat_key][str(message_index)]['saved_by'] = saved_by_list
+            save_json(SNAP_VIEWS_FILE, snap_views)
+
+            # Emit WebSocket event to BOTH users
+            snap_sender = msg.get('from')
+            snap_recipient = msg.get('to')
+
+            socketio.emit('snap_saved', {
+                'message_index': message_index,
+                'saved_by': current_user,
+                'action': action,
+                'saved_by_list': saved_by_list,
+                'snap_photo': msg['photo']
+            }, room=f'chat_{snap_sender}')
+            socketio.emit('snap_saved', {
+                'message_index': message_index,
+                'saved_by': current_user,
+                'action': action,
+                'saved_by_list': saved_by_list,
+                'snap_photo': msg['photo']
+            }, room=f'chat_{snap_recipient}')
+
+            return jsonify({
+                'success': True,
+                'action': action,
+                'saved_by_list': saved_by_list
+            })
+
     return jsonify({'error': 'Snap not found'}), 404
 
 @app.route('/chat/<other_user>/send_tokens', methods=['POST'])
@@ -1926,8 +2226,11 @@ def get_users_with_ranks():
     current_user = session['username']
     current_time = get_ny_time().timestamp()
 
-    # Performance optimization: Cache for 5 seconds to reduce load
-    if current_time - user_list_cache_time < 5 and user_list_cache:
+    # Performance optimization: Cache for 5 seconds per user to reduce load
+    cache_key = f"{current_user}_cache"
+    if (current_time - user_list_cache_time < 5 and
+        user_list_cache and
+        user_list_cache.get('_cached_for') == current_user):
         return jsonify(user_list_cache)
 
     online_threshold = 30
@@ -2006,8 +2309,11 @@ def get_users_with_ranks():
             'has_glow': users[username].get('glow_effect', {}).get('enabled', False)
         })
 
-    # Update cache
-    user_list_cache = {'users_by_rank': users_by_rank}
+    # Update cache with user identifier to prevent cross-user cache pollution
+    user_list_cache = {
+        'users_by_rank': users_by_rank,
+        '_cached_for': current_user
+    }
     user_list_cache_time = current_time
 
     return jsonify(user_list_cache)
@@ -2074,8 +2380,6 @@ def get_chat_list_data():
 @maintenance_check
 @login_required
 def lounge():
-    check_and_reset_cookie()
-
     username = session['username']
 
     # ✅ MARK AS READ IMMEDIATELY ON PAGE LOAD (server-side)
@@ -2093,7 +2397,6 @@ def lounge():
 
     return render_template('lounge.html',
         messages=lounge_messages,
-        cookie_state=cookie_state,
         current_user=username,
         user_role=users[username]['role'],
         reactions=lounge_reactions,
@@ -2126,19 +2429,39 @@ def send_lounge_message():
 
     if message_text:
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        display_time = get_ny_time().strftime('%I:%M %p')
 
         message_obj = {
             'from': current_user,
-            'text': message_text,
-            'timestamp': new_timestamp
+            'message': message_text,
+            'timestamp': new_timestamp,
+            'display_time': display_time,
+            'type': 'text'
         }
 
         # Add reply reference if present
         if reply_to_index is not None:
             message_obj['reply_to'] = int(reply_to_index)
 
+        print(f"[LOUNGE DEBUG] Before append - Total messages: {len(lounge_messages)}")
+        print(f"[LOUNGE DEBUG] LOUNGE_FILE path: {LOUNGE_FILE}")
+        print(f"[LOUNGE DEBUG] Message to add: {message_obj}")
+
         lounge_messages.append(message_obj)
+
+        print(f"[LOUNGE DEBUG] After append - Total messages: {len(lounge_messages)}")
+        print(f"[LOUNGE DEBUG] Last 3 messages: {lounge_messages[-3:] if len(lounge_messages) >= 3 else lounge_messages}")
+
         save_json(LOUNGE_FILE, lounge_messages)
+
+        print(f"[LOUNGE DEBUG] File saved successfully to {LOUNGE_FILE}")
+
+        # Verify file was written
+        if os.path.exists(LOUNGE_FILE):
+            file_size = os.path.getsize(LOUNGE_FILE)
+            print(f"[LOUNGE DEBUG] File exists! Size: {file_size} bytes")
+        else:
+            print(f"[LOUNGE DEBUG] WARNING: File does not exist after save!")
 
         # ✅ CRITICAL: Mark lounge as read for yourself after sending
         lounge_read_receipts[current_user] = new_timestamp
@@ -2151,43 +2474,30 @@ def send_lounge_message():
 @app.route('/lounge/messages')
 @login_required
 def get_lounge_messages():
-    check_and_reset_cookie()
-
     # ✅ DO NOT mark as read when polling - only when user explicitly marks
+
+    print(f"[LOUNGE DEBUG] GET /lounge/messages - Total messages in memory: {len(lounge_messages)}")
+    print(f"[LOUNGE DEBUG] LOUNGE_FILE path: {LOUNGE_FILE}")
+
+    # Check file on disk
+    if os.path.exists(LOUNGE_FILE):
+        file_size = os.path.getsize(LOUNGE_FILE)
+        print(f"[LOUNGE DEBUG] File exists! Size: {file_size} bytes")
+
+        # Read and verify file content
+        try:
+            with open(LOUNGE_FILE, 'r') as f:
+                file_content = json.load(f)
+                print(f"[LOUNGE DEBUG] Messages in file on disk: {len(file_content)}")
+        except Exception as e:
+            print(f"[LOUNGE DEBUG] Error reading file: {e}")
+    else:
+        print(f"[LOUNGE DEBUG] WARNING: File does not exist!")
 
     return jsonify({
         'messages': lounge_messages,
-        'cookie_state': cookie_state,
         'reactions': lounge_reactions,
         'user_role': users[session['username']]['role']
-    })
-
-@app.route('/lounge/claim_cookie', methods=['POST'])
-@login_required
-def claim_cookie():
-    global cookie_state
-    check_and_reset_cookie()
-    if cookie_state['claimed']:
-        return jsonify({'error': 'Cookie already claimed'}), 400
-    username = session['username']
-    cookie_state['claimed'] = True
-    cookie_state['claimed_by'] = username
-    cookie_state['claimed_at'] = get_ny_time().strftime('%I:%M %p')
-    cookie_state['last_reset'] = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')  # ✅ ADD THIS LINE
-    users[username]['tokens'] = users[username].get('tokens', 0) + 5  # ✅ FIXED TO 5
-    save_json(COOKIE_FILE, cookie_state)
-    save_json(USERS_FILE, users)
-    log_transaction('creation', 5, username, 'fortune_cookie')
-    lounge_messages.append({
-        'from': 'system',
-        'text': f'🥠 {username} claimed the fortune cookie! "{cookie_state["fortune"]}"',
-        'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
-    })
-    save_json(LOUNGE_FILE, lounge_messages)
-    return jsonify({
-        'success': True,
-        'fortune': cookie_state['fortune'],
-        'new_balance': users[username]['tokens']
     })
 
 @app.route('/lounge/react/<int:message_index>', methods=['POST'])
@@ -2212,14 +2522,16 @@ def react_to_lounge_message(message_index):
 
     return jsonify({'success': True, 'reactions': lounge_reactions.get(msg_key, {})})
 
-@app.route('/lounge/delete/<int:message_index>', methods=['POST'])
-@panel_access_required
-def delete_lounge_message(message_index):
-    if message_index >= len(lounge_messages):
-        return jsonify({'error': 'Message not found'}), 404
-    lounge_messages.pop(message_index)
-    save_json(LOUNGE_FILE, lounge_messages)
+def _delete_lounge_message_at_index(message_index):
+    """Shared helper to delete a lounge message and keep reaction indexes in sync."""
     global lounge_reactions
+
+    if message_index < 0 or message_index >= len(lounge_messages):
+        return None, 'Message not found'
+
+    deleted_message = lounge_messages.pop(message_index)
+    save_json(LOUNGE_FILE, lounge_messages)
+
     new_reactions = {}
     for key, reactions in lounge_reactions.items():
         idx = int(key)
@@ -2229,6 +2541,19 @@ def delete_lounge_message(message_index):
             new_reactions[str(idx - 1)] = reactions
     lounge_reactions = new_reactions
     save_json(LOUNGE_REACTIONS_FILE, lounge_reactions)
+
+    return deleted_message, None
+
+@app.route('/lounge/delete/<int:message_index>', methods=['POST'])
+@panel_access_required
+def delete_lounge_message_panel(message_index):
+    username = session['username']
+    if not has_permission(username, 'delete_lounge_messages'):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    _, error = _delete_lounge_message_at_index(message_index)
+    if error:
+        return jsonify({'error': error}), 404
 
     return jsonify({'success': True})
 
@@ -2256,6 +2581,20 @@ def send_lounge_snap():
         lounge_read_receipts[current_user] = new_timestamp
         save_json(LOUNGE_READ_RECEIPTS_FILE, lounge_read_receipts)
 
+        # Broadcast snap via WebSocket if user is in lounge
+        if current_user in lounge_users:
+            profile = profiles.get(current_user, {})
+            profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
+            user_rank = users.get(current_user, {}).get('rank')
+            broadcast_message = snap_message.copy()
+            broadcast_message['index'] = len(lounge_messages) - 1
+
+            socketio.emit('new_lounge_message', {
+                'message': broadcast_message,
+                'profile_picture': profile_picture,
+                'user_rank': user_rank
+            }, room='lounge')
+
         return jsonify({'success': True})
 
     return jsonify({'error': 'No photo provided'}), 400
@@ -2269,13 +2608,15 @@ def send_lounge_voice():
 
     if audio_data:
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        display_time = get_ny_time().strftime('%I:%M %p')
 
         voice_message = {
             'from': current_user,
             'type': 'voice',
             'audio': audio_data,
             'duration': duration,
-            'timestamp': new_timestamp
+            'timestamp': new_timestamp,
+            'display_time': display_time
         }
 
         lounge_messages.append(voice_message)
@@ -2284,6 +2625,20 @@ def send_lounge_voice():
         # Mark lounge as read for yourself after sending voice
         lounge_read_receipts[current_user] = new_timestamp
         save_json(LOUNGE_READ_RECEIPTS_FILE, lounge_read_receipts)
+
+        # Broadcast voice message via WebSocket if user is in lounge
+        if current_user in lounge_users:
+            profile = profiles.get(current_user, {})
+            profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
+            user_rank = users.get(current_user, {}).get('rank')
+            broadcast_message = voice_message.copy()
+            broadcast_message['index'] = len(lounge_messages) - 1
+
+            socketio.emit('new_lounge_message', {
+                'message': broadcast_message,
+                'profile_picture': profile_picture,
+                'user_rank': user_rank
+            }, room='lounge')
 
         return jsonify({'success': True})
 
@@ -2337,9 +2692,31 @@ def proxy():
         site_access=site_access
     )
 
+@app.route('/transfer-saves')
+@maintenance_check
+@login_required
+def transfer_saves():
+    return render_template('transfer_saves.html')
+
 @app.route('/proxy_test')
 def proxy_test():
     return redirect('https://bg.i-creativelearner.com/*/@/hvtrs8%2F-wuw%2Ctkkvoi.aoo%2Fdopymu')
+
+@app.route('/iframe')
+@maintenance_check
+@login_required
+def iframe_viewer():
+    """Simple iframe viewer - paste any URL and view it in an iframe"""
+    username = session['username']
+    return render_template('iframe.html', username=username)
+
+
+@app.route('/test')
+@maintenance_check
+@login_required
+def test_iframe():
+    test_url = "https://bg.i-creativelearner.com/*/@/hvtrs8%2F-wuw%2Chkgjsregdknvepngt%2Ccmm-tmons-sregd%2Ftgsv%2Faoopcrg%3Fwto_qowrae%3Fbkne%26wto_oefiwm%3Fpcif_qecrah%24uvm%5Dccmrakgl%3D081378161%26wto_aoltgnv%3D32692474415677%3A2%24uvm%5Dtgro%3Diwf-582675585137208lmc%2F1%3B0%24ngtuopk%3Fo%24adf%5Dulisug5%3F2c83506%3B120f1ce%3B9fa73%603df%3Af%3A7787%26osaliif%3D0a%3A17249302d3ag9%3Bdc51b1fd8d855%3A5"
+    return render_template('test.html', test_iframe_url=test_url)
 
 
 @app.route('/bg')
@@ -2366,13 +2743,7 @@ def bg():
 @maintenance_check
 @login_required
 def youtube():
-    username = session['username']
-    # Check if user has youtube access
-    if username not in site_access or 'youtube' not in site_access[username]:
-        return render_template('no_access.html',
-            site_name='YouTube',
-            purchase_url=url_for('proxy')
-        )
+    # YouTube is now free for everyone - no access check needed
     return render_template('youtube.html')
 
 @app.route('/twitch')
@@ -2401,123 +2772,6 @@ def freemovies():
         )
     return render_template('freemovies.html')
 
-
-# Serve UV config
-@app.route('/uv.config.js')
-def serve_config():
-    config = """
-self.__uv$config = {
-    prefix: '/service/',
-    bare: 'https://uv.holy.how/bare/',
-    encodeUrl: Ultraviolet.codec.xor.encode,
-    decodeUrl: Ultraviolet.codec.xor.decode,
-    handler: '/uv.handler.js',
-    client: '/uv.client.js',
-    bundle: '/static/uv/uv.bundle.js',
-    config: '/uv.config.js',
-    sw: '/uv.sw.js',
-};
-
-// Disable bare-mux, use direct bare client
-self.__uv$bareOptions = {
-    type: 'fetch'
-};
-"""
-    return Response(config, mimetype='application/javascript')
-
-# Serve WRAPPER service worker that imports everything
-@app.route('/uv.sw.js')
-def serve_sw():
-    wrapper = """// Import Ultraviolet bundle first
-importScripts('/static/uv/uv.bundle.js');
-importScripts('/uv.config.js');
-
-// Completely stub out BareMux to prevent it from initializing
-if (!self.BareMux) {
-    self.BareMux = {};
-}
-// Stub the function that tries to create bare-mux connection
-self.BareMux.createChannel = async () => {
-    throw new Error('BareMux disabled');
-};
-
-// Patch BareClient constructor to skip BareMux
-const OriginalBareClient = Ultraviolet.BareClient;
-Ultraviolet.BareClient = class PatchedBareClient extends OriginalBareClient {
-    constructor(server) {
-        super();
-        // Directly set the server, bypassing BareMux initialization
-        this.server = server || __uv$config.bare;
-        this.working = true;
-    }
-};
-
-importScripts('/uv.sw-core.js');
-
-// Instantiate the service worker
-const uv = new UVServiceWorker(__uv$config);
-
-// Set up event listeners
-self.addEventListener('fetch', (event) => {
-    if (uv.route(event)) {
-        event.respondWith(
-            (async () => {
-                try {
-                    return await uv.fetch(event);
-                } catch (err) {
-                    console.error('UV fetch error:', err);
-                    return new Response('Proxy error: ' + err.message, {
-                        status: 500,
-                        headers: { 'Content-Type': 'text/plain' }
-                    });
-                }
-            })()
-        );
-    }
-});
-"""
-    response = Response(wrapper, mimetype='application/javascript')
-    response.headers['Service-Worker-Allowed'] = '/'
-    return response
-
-# Serve the ACTUAL service worker code
-@app.route('/uv.sw-core.js')
-def serve_sw_core():
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'service', 'uv.sw.js')
-        with open(file_path, 'r') as f:
-            content = f.read()
-        return Response(content, mimetype='application/javascript')
-    except Exception as e:
-        return str(e), 500
-
-# Serve other UV files
-@app.route('/uv.handler.js')
-def serve_handler():
-    try:
-        response = send_from_directory(
-            os.path.join(app.root_path, 'static', 'service'),
-            'uv.handler.js',
-            mimetype='application/javascript'
-        )
-        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
-        return response
-    except Exception as e:
-        return str(e), 500
-
-@app.route('/uv.client.js')
-def serve_client():
-    try:
-        response = send_from_directory(
-            os.path.join(app.root_path, 'static', 'service'),
-            'uv.client.js',
-            mimetype='application/javascript'
-        )
-        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
-        return response
-    except Exception as e:
-        return str(e), 500
-
 @app.route('/lounge/clear_history', methods=['POST'])
 @login_required
 def clear_lounge_history():
@@ -2541,10 +2795,13 @@ def clear_lounge_history():
         save_json(LOUNGE_READ_RECEIPTS_FILE, {})
 
         # Add system message that history was cleared
+        timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
         lounge_messages.append({
             'from': 'system',
-            'text': f'🗑️ Lounge history was cleared by {session["username"]}',
-            'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+            'message': f'🗑️ Lounge history was cleared by {session["username"]}',
+            'timestamp': timestamp,
+            'display_time': get_ny_time().strftime('%I:%M %p'),
+            'type': 'text'
         })
         save_json(LOUNGE_FILE, lounge_messages)
 
@@ -2603,7 +2860,8 @@ def get_lunch_menu():
     # Get today's menu or show default message
     today_menu = lunch_menu.get(today_str, {
         'food': 'Weekend / No Menu Available',
-        'fact': 'Enjoy your day off!'
+        'fact': 'Enjoy your day off!',
+        'breakfast': 'No breakfast menu available'
     })
 
     # Get tomorrow's menu (can be None if not available)
@@ -2643,13 +2901,39 @@ def play_game(game_id):
     plays[username][game_id] += 1
     save_json(PLAYS_FILE, plays)
 
-    # Inject notification system into game HTML once (before closing body when present)
+    # Inject notification system into game HTML
     notification_html = (
         '<div id="chatNotificationContainer"></div>'
         '<script src="/static/notifications.js?v=2"></script>'
     )
 
     game_html = game['html_content']
+
+    # Add stopwatch overlay for Idle Dice (January event indicator)
+    if game_id == 'idle_dice' or 'idle-dice' in game_html.lower() or 'idle dice' in game.get('name', '').lower():
+        stopwatch_overlay = '''
+        <div id="idleDiceStopwatch" style="
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        " onclick="window.open('/idle_dice_rewards', '_blank')" onmouseover="this.style.background='rgba(0, 0, 0, 0.95)'" onmouseout="this.style.background='rgba(0, 0, 0, 0.8)'">
+            <img src="https://i.ibb.co/XfB6KsN8/stopwatch.png" alt="Limited Time" style="width: 24px; height: 24px;">
+            <span style="color: white; font-family: Arial, sans-serif; font-size: 13px; font-weight: 600;">January Event</span>
+        </div>
+        '''
+        notification_html = stopwatch_overlay + notification_html
+
+    # Inject notifications at the end
     if '</body>' in game_html:
         game_html = game_html.replace('</body>', notification_html + '</body>')
     else:
@@ -2693,8 +2977,8 @@ def purchase_access(site_id):
 
     # Define available sites and their prices
     site_prices = {
-        'youtube': 50,
-        'twitch': 170,
+        'youtube': 0,
+        'twitch': 50,
         'freemovies': 100,
         'gmail': 50
     }
@@ -2765,6 +3049,303 @@ def add_tokens(amount):
     users[username]['tokens'] += amount
     save_json(USERS_FILE, users)
     return jsonify({'success': True, 'new_balance': users[username]['tokens']})
+
+@app.route('/idle_dice_rewards')
+@login_required
+def idle_dice_rewards():
+    """Display Idle Dice achievement rewards page with manual claim buttons"""
+    username = session['username']
+
+    # Organize achievements by category
+    categories = {
+        'Basic': [],
+        'Advanced': [],
+        'Expert': [],
+        'Legendary': [],
+        'Godlike': [],
+        'Lustslike': []
+    }
+
+    # Get user's claimed achievements
+    user_claims = idle_dice_claims.get(username, [])
+
+    # Organize achievements
+    total_possible_tokens = 0
+    total_earned_tokens = 0
+
+    for ach_id, ach_data in idle_dice_achievements.items():
+        category = ach_data.get('category', 'Basic')
+        is_claimed = ach_id in user_claims
+
+        achievement_info = {
+            'id': ach_id,
+            'name': ach_data['name'],
+            'description': ach_data['description'],
+            'tokens': ach_data['tokens'],
+            'check': ach_data['check'],
+            'claimed': is_claimed
+        }
+
+        categories[category].append(achievement_info)
+        total_possible_tokens += ach_data['tokens']
+
+        if is_claimed:
+            total_earned_tokens += ach_data['tokens']
+
+    # Sort achievements by token amount (lowest to highest) within each category
+    for category in categories:
+        categories[category].sort(key=lambda x: x['tokens'])
+
+    # Category descriptions
+    category_descriptions = {
+        'Basic': 'Basic Achievements are unlocked at the start of the game. There are 17 achievements you can earn. This section includes a variety of requirements with rewards that will help you progress in the game including reaching a certain amount of points, rolling manually/automatically a certain amount of times, and reaching a certain prestige multiplier. Keep in mind that not all achievements you can receive in Idle Dice give you Tokens on StudyHall, "only" those listed below.',
+        'Advanced': 'Advanced Achievements are all card-related achievements. There are 21 of them and they are unlocked after getting the Double the Fun achievement which is accomplished by having a prestige multiplier of 200%.',
+        'Expert': 'Expert Achievements are mostly achievements that involve roulette. There are 22 of them and they are unlocked once you have access to the roulette which requires you to draw 10 cards in one run.',
+        'Legendary': 'Legendary achievements involve golden cards and 13 of them are golden card achievements to accomplish, most are similar to advanced achievements but with golden cards. They are unlocked when you have access to the decks which is obtained by having 52 regular cards and converting them which results in one deck.',
+        'Godlike': 'Godlike Achievements almost all have something to do with casinos in one way or another. They are unlocked when you invest your first casino.',
+        'Lustslike': 'This achievements tab involves the slot machine and duel dice. They are unlocked when you hit the highest item in the slot machine which is the Cup Point. The name \'Lustslike\' originates from the name of the German person (not the owner of this website) who created this game many years ago.'
+    }
+
+    # Check if it's January (NY timezone)
+    import pytz
+    from datetime import datetime
+    ny_tz = pytz.timezone('America/New_York')
+    current_time = datetime.now(ny_tz)
+    is_january = current_time.month == 1
+
+    return render_template('idle_dice_rewards.html',
+                         categories=categories,
+                         category_descriptions=category_descriptions,
+                         total_possible_tokens=total_possible_tokens,
+                         total_earned_tokens=total_earned_tokens,
+                         current_tokens=users[username].get('tokens', 0),
+                         is_january=is_january)
+
+@app.route('/api/claim_idle_dice_achievement', methods=['POST'])
+@login_required
+def claim_idle_dice_achievement():
+    """Claim tokens for completing an Idle Dice achievement (one-time only per account)"""
+    username = session['username']
+    data = request.get_json()
+    achievement_id = data.get('achievement_id')
+
+    # Check if it's January (NY timezone) - only award tokens during January
+    import pytz
+    from datetime import datetime
+    ny_tz = pytz.timezone('America/New_York')
+    current_time = datetime.now(ny_tz)
+    is_january = current_time.month == 1
+
+    # Validate achievement exists
+    if achievement_id not in idle_dice_achievements:
+        return jsonify({'error': 'Invalid achievement'}), 400
+
+    # Check if already claimed
+    if username not in idle_dice_claims:
+        idle_dice_claims[username] = []
+
+    if achievement_id in idle_dice_claims[username]:
+        return jsonify({'error': 'Achievement already claimed'}), 400
+
+    # Award tokens (only during January)
+    achievement = idle_dice_achievements[achievement_id]
+    tokens = achievement['tokens'] if is_january else 0
+
+    if is_january:
+        users[username]['tokens'] = users[username].get('tokens', 0) + tokens
+
+    # Record claim
+    idle_dice_claims[username].append(achievement_id)
+
+    # Save data
+    save_json(USERS_FILE, users)
+    save_json(IDLE_DICE_CLAIMS_FILE, idle_dice_claims)
+
+    # Log transaction (only if tokens were awarded)
+    if is_january:
+        log_transaction('creation', tokens, username, 'idle_dice_achievement',
+                       f"{achievement['name']} ({achievement_id})")
+
+        # Send notification to lounge
+        notification_msg = f"🎮 {username} unlocked '{achievement['name']}' in Idle Dice and earned {tokens} tokens!"
+        timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        lounge_messages.append({
+            'from': 'system',
+            'message': notification_msg,
+            'timestamp': timestamp,
+            'display_time': get_ny_time().strftime('%I:%M %p'),
+            'type': 'text'
+        })
+        save_json(LOUNGE_FILE, lounge_messages)
+
+    return jsonify({
+        'success': True,
+        'tokens_awarded': tokens,
+        'new_balance': users[username]['tokens'],
+        'achievement_name': achievement['name'],
+        'is_january': is_january
+    })
+
+@app.route('/debug_achievements')
+@login_required
+def debug_achievements():
+    """Debug page to show all Idle Dice achievement keys"""
+    return render_template('debug_achievements.html')
+
+@app.route('/show_amount')
+@login_required
+def show_amount():
+    """Debug route to show Idle Dice game data from localStorage"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Idle Dice Debug</title>
+        <style>
+            body {
+                font-family: monospace;
+                padding: 20px;
+                background: #1a1a1a;
+                color: #00ff00;
+            }
+            pre {
+                background: #000;
+                padding: 20px;
+                border-radius: 8px;
+                overflow-x: auto;
+            }
+            .key {
+                color: #ffaa00;
+                font-weight: bold;
+            }
+            .value {
+                color: #00ffff;
+            }
+            .points {
+                font-size: 24px;
+                color: #ff0;
+                margin: 20px 0;
+                padding: 10px;
+                background: #333;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🎲 Idle Dice LocalStorage Debug</h1>
+        <div id="output"></div>
+
+        <script>
+            const output = document.getElementById('output');
+
+            // Find all localStorage keys
+            const allKeys = Object.keys(localStorage);
+            output.innerHTML += '<h2>All localStorage keys:</h2>';
+            output.innerHTML += '<pre>' + JSON.stringify(allKeys, null, 2) + '</pre>';
+
+            // Find idle-dice related keys
+            const gameKeys = allKeys.filter(key =>
+                key.toLowerCase().includes('idle') ||
+                key.toLowerCase().includes('dice') ||
+                key.toLowerCase().includes('save')
+            );
+
+            output.innerHTML += '<h2>Game-related keys found: ' + gameKeys.length + '</h2>';
+
+            if (gameKeys.length === 0) {
+                output.innerHTML += '<p style="color: red;">❌ No Idle Dice save data found. Play the game first!</p>';
+            }
+
+            gameKeys.forEach(key => {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+
+                    output.innerHTML += '<hr>';
+                    output.innerHTML += '<h3 class="key">Key: ' + key + '</h3>';
+
+                    // Try to find points
+                    const possiblePoints = [
+                        data.money,
+                        data.totalMoney,
+                        data.points,
+                        data.totalPoints,
+                        data.total,
+                        data.score,
+                        data.totalScore
+                    ];
+
+                    let foundPoints = null;
+                    for (let i = 0; i < possiblePoints.length; i++) {
+                        if (possiblePoints[i] !== undefined && possiblePoints[i] !== null) {
+                            foundPoints = possiblePoints[i];
+                            break;
+                        }
+                    }
+
+                    if (foundPoints !== null) {
+                        output.innerHTML += '<div class="points">💰 POINTS FOUND: ' +
+                            (typeof foundPoints === 'number' ? foundPoints.toLocaleString() : foundPoints) +
+                            '</div>';
+
+                        if (parseFloat(foundPoints) >= 1000000) {
+                            output.innerHTML += '<div style="color: #0f0; font-size: 20px; padding: 10px; background: #004400; border-radius: 5px; margin: 10px 0;">✅ MILLIONAIRE ACHIEVED! (≥ 1,000,000)</div>';
+                        }
+                    }
+
+                    // Check for achievements
+                    const achievements = data.achievements ||
+                                       data.achievementsUnlocked ||
+                                       data.unlockedAchievements ||
+                                       [];
+
+                    if (achievements.length > 0) {
+                        output.innerHTML += '<h4>Achievements:</h4>';
+                        output.innerHTML += '<pre>' + JSON.stringify(achievements, null, 2) + '</pre>';
+                    }
+
+                    // Show full data structure
+                    output.innerHTML += '<h4>Full Save Data Structure:</h4>';
+                    output.innerHTML += '<pre>' + JSON.stringify(data, null, 2).substring(0, 5000) + '...</pre>';
+
+                } catch (e) {
+                    output.innerHTML += '<p style="color: orange;">⚠️ Could not parse key "' + key + '" - not JSON</p>';
+                }
+            });
+
+            // Manual claim button for testing
+            output.innerHTML += '<hr><h2>Manual Test</h2>';
+            output.innerHTML += '<button onclick="testClaim()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0066cc; color: white; border: none; border-radius: 5px;">Test Claim Millionaire Achievement</button>';
+            output.innerHTML += '<div id="claimResult" style="margin-top: 10px;"></div>';
+
+            window.testClaim = function() {
+                const resultDiv = document.getElementById('claimResult');
+                resultDiv.innerHTML = 'Claiming...';
+
+                fetch('/api/claim_idle_dice_achievement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        achievement_id: 'points1m'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        resultDiv.innerHTML = '<div style="color: #0f0; padding: 10px; background: #004400; border-radius: 5px;">✅ SUCCESS! Awarded ' + data.tokens_awarded + ' tokens. New balance: ' + data.new_balance + '</div>';
+                    } else {
+                        resultDiv.innerHTML = '<div style="color: #f00; padding: 10px; background: #440000; border-radius: 5px;">❌ ERROR: ' + data.error + '</div>';
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = '<div style="color: #f00; padding: 10px; background: #440000; border-radius: 5px;">❌ NETWORK ERROR: ' + error + '</div>';
+                });
+            };
+        </script>
+    </body>
+    </html>
+    '''
 
 @app.route('/api/leaderboard')
 @login_required
@@ -3767,10 +4348,13 @@ def end_lottery():
     log_transaction('creation', prize, winner, 'lottery_win')
 
     # Post to lounge
+    timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     lounge_messages.append({
         'from': 'system',
-        'text': f'🎰 LOTTERY WINNER: {winner} won {prize} tokens with {winner_tickets}/{total_tickets} tickets! 🎉',
-        'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        'message': f'🎰 LOTTERY WINNER: {winner} won {prize} tokens with {winner_tickets}/{total_tickets} tickets! 🎉',
+        'timestamp': timestamp,
+        'display_time': get_ny_time().strftime('%I:%M %p'),
+        'type': 'text'
     })
     save_json(LOUNGE_FILE, lounge_messages)
 
@@ -6969,5 +7553,307 @@ def blackjack_split(game_id):
     })
 
 
+# ===============================================================
+# LOUNGE WEBSOCKET EVENT HANDLERS
+# ===============================================================
+
+# Track users currently in lounge: {username: session_id}
+lounge_users = {}
+
+@socketio.on('join_chat')
+def handle_join_chat(data):
+    """User joins their personal chat room for receiving snap updates"""
+    try:
+        username = data.get('username') or session.get('username')
+        if not username:
+            return
+
+        # Join personal chat room for this user
+        room_name = f'chat_{username}'
+        join_room(room_name)
+        print(f"User {username} joined room: {room_name}")
+    except Exception as e:
+        print(f"Error in join_chat: {e}")
+
+@socketio.on('join_lounge')
+def handle_join_lounge():
+    """User joins the lounge room"""
+    try:
+        username = session.get('username')
+        if not username:
+            return
+
+        # Add user to lounge room
+        join_room('lounge')
+        lounge_users[username] = request.sid
+
+        # Get user's profile for broadcast
+        profile = profiles.get(username, {})
+        profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
+
+        # Broadcast to all in lounge that user joined
+        emit('user_joined', {
+            'username': username,
+            'profile_picture': profile_picture
+        }, room='lounge', skip_sid=request.sid)
+
+        # Build current online users list
+        online_users_list = []
+        for user, sid in lounge_users.items():
+            user_profile = profiles.get(user, {})
+            user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
+            user_rank = users.get(user, {}).get('rank')  # Purchased rank
+            online_users_list.append({
+                'username': user,
+                'profile_picture': user_pic,
+                'rank': user_rank
+            })
+
+        # Send updated online users list to EVERYONE in the room (including joiner)
+        emit('online_users_update', {'users': online_users_list}, room='lounge')
+
+        print(f"[LOUNGE] {username} joined. Total users: {len(lounge_users)}")
+
+    except Exception as e:
+        print(f"Error in join_lounge: {e}")
+
+
+@socketio.on('leave_lounge')
+def handle_leave_lounge():
+    """User leaves the lounge room"""
+    try:
+        username = session.get('username')
+        if not username:
+            return
+
+        # Remove from lounge room and tracking
+        leave_room('lounge')
+        if username in lounge_users:
+            del lounge_users[username]
+
+        # Broadcast to all that user left
+        emit('user_left', {
+            'username': username
+        }, room='lounge')
+
+        # Build updated online users list
+        online_users_list = []
+        for user, sid in lounge_users.items():
+            user_profile = profiles.get(user, {})
+            user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
+            user_rank = users.get(user, {}).get('rank')  # Purchased rank
+            online_users_list.append({
+                'username': user,
+                'profile_picture': user_pic,
+                'rank': user_rank
+            })
+
+        # Send updated online users list to everyone remaining
+        emit('online_users_update', {'users': online_users_list}, room='lounge')
+
+        print(f"[LOUNGE] {username} left. Total users: {len(lounge_users)}")
+
+    except Exception as e:
+        print(f"Error in leave_lounge: {e}")
+
+
+@socketio.on('send_lounge_message')
+def handle_send_message(data):
+    """User sends a message to the lounge"""
+    try:
+        username = session.get('username')
+        if not username or username not in lounge_users:
+            return
+
+        message_text = data.get('message', '').strip()
+        if not message_text:
+            return
+
+        # Create message object
+        timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        display_time = get_ny_time().strftime('%I:%M %p')
+
+        message = {
+            'from': username,
+            'message': message_text,
+            'timestamp': timestamp,
+            'display_time': display_time,
+            'type': 'text'
+        }
+
+        # Save to lounge messages
+        lounge_messages.append(message)
+        save_json(LOUNGE_FILE, lounge_messages)
+
+        # Get user's profile picture for broadcast
+        profile = profiles.get(username, {})
+        profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
+        user_rank = users.get(username, {}).get('rank')
+        message_for_broadcast = message.copy()
+        message_for_broadcast['index'] = len(lounge_messages) - 1
+
+        # Broadcast message to all in lounge
+        emit('new_lounge_message', {
+            'message': message_for_broadcast,
+            'profile_picture': profile_picture,
+            'user_rank': user_rank
+        }, room='lounge')
+
+        print(f"[LOUNGE] Message from {username}: {message_text[:50]}...")
+
+    except Exception as e:
+        print(f"Error in send_lounge_message: {e}")
+
+
+@socketio.on('lounge_typing')
+def handle_typing():
+    """User is typing in the lounge"""
+    try:
+        username = session.get('username')
+        if not username or username not in lounge_users:
+            return
+
+        # Broadcast typing indicator to all except sender
+        emit('user_typing', {
+            'username': username
+        }, room='lounge', skip_sid=request.sid)
+
+    except Exception as e:
+        print(f"Error in lounge_typing: {e}")
+
+
+@socketio.on('lounge_stop_typing')
+def handle_stop_typing():
+    """User stopped typing in the lounge"""
+    try:
+        username = session.get('username')
+        if not username or username not in lounge_users:
+            return
+
+        # Broadcast stop typing to all except sender
+        emit('user_stop_typing', {
+            'username': username
+        }, room='lounge', skip_sid=request.sid)
+
+    except Exception as e:
+        print(f"Error in lounge_stop_typing: {e}")
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle WebSocket disconnection"""
+    try:
+        username = session.get('username')
+        if username and username in lounge_users:
+            # Remove from lounge
+            del lounge_users[username]
+
+            # Broadcast user left
+            emit('user_left', {
+                'username': username
+            }, room='lounge')
+
+            # Build updated online users list
+            online_users_list = []
+            for user, sid in lounge_users.items():
+                user_profile = profiles.get(user, {})
+                user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
+                user_rank = users.get(user, {}).get('rank')  # Purchased rank
+                online_users_list.append({
+                    'username': user,
+                    'profile_picture': user_pic,
+                    'rank': user_rank
+                })
+
+            # Send updated online users list to everyone remaining
+            emit('online_users_update', {'users': online_users_list}, room='lounge')
+
+            print(f"[LOUNGE] {username} disconnected. Total users: {len(lounge_users)}")
+
+    except Exception as e:
+        print(f"Error in disconnect: {e}")
+
+
+# ===============================================================
+# GIF SUPPORT FOR LOUNGE
+# ===============================================================
+
+@app.route('/lounge/send_gif', methods=['POST'])
+@login_required
+def send_lounge_gif():
+    """Send a GIF to the lounge"""
+    try:
+        username = session['username']
+        data = request.json
+        gif_url = data.get('gif_url', '').strip()
+
+        if not gif_url:
+            return jsonify({'error': 'No GIF URL provided'}), 400
+
+        # Create GIF message
+        timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        display_time = get_ny_time().strftime('%I:%M %p')
+
+        message = {
+            'from': username,
+            'gif_url': gif_url,
+            'timestamp': timestamp,
+            'display_time': display_time,
+            'type': 'gif'
+        }
+
+        # Save to lounge messages
+        lounge_messages.append(message)
+        save_json(LOUNGE_FILE, lounge_messages)
+
+        # Broadcast via WebSocket if user is in lounge
+        if username in lounge_users:
+            profile = profiles.get(username, {})
+            profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
+            user_rank = users.get(username, {}).get('rank')
+            broadcast_message = message.copy()
+            broadcast_message['index'] = len(lounge_messages) - 1
+
+            socketio.emit('new_lounge_message', {
+                'message': broadcast_message,
+                'profile_picture': profile_picture,
+                'user_rank': user_rank
+            }, room='lounge')
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error sending GIF: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/lounge/delete_message/<int:message_index>', methods=['DELETE'])
+@login_required
+def delete_lounge_message(message_index):
+    """Delete a lounge message (admin, president, master moderator)"""
+    try:
+        username = session['username']
+        if not has_permission(username, 'delete_lounge_messages'):
+            return jsonify({'error': 'Unauthorized: Only admins, presidents, or master moderators can delete messages'}), 403
+
+        _, error = _delete_lounge_message_at_index(message_index)
+        if error:
+            return jsonify({'error': error}), 404
+
+        # Broadcast deletion to all users in lounge via WebSocket
+        socketio.emit('message_deleted', {
+            'message_index': message_index
+        }, room='lounge')
+
+        user_role = users.get(username, {}).get('role', 'member')
+        print(f"[LOUNGE] {username} ({user_role}) deleted message at index {message_index}")
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error deleting lounge message: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True, host='0.0.0.0', port=8080)

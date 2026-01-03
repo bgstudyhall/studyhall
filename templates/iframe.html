@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iFrame Viewer - StudyHall</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            overflow: hidden;
+        }
+
+        #header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #urlForm {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        #urlInput {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        #urlInput:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        #urlInput::placeholder {
+            color: #6e7681;
+        }
+
+        button {
+            background: #238636;
+            color: #ffffff;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        .home-btn {
+            background: #21262d;
+            border-color: #30363d;
+            color: #c9d1d9;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .home-btn:hover {
+            background: #30363d;
+        }
+
+        #loading {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            color: #8b949e;
+        }
+
+        #iframeContainer {
+            width: 100%;
+            height: calc(100vh - 52px);
+            background: #0d1117;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #welcomeMessage {
+            text-align: center;
+            color: #8b949e;
+        }
+
+        #welcomeMessage h2 {
+            color: #c9d1d9;
+            margin-bottom: 8px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        iframe.loaded {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <form id="urlForm">
+            <input
+                type="text"
+                id="urlInput"
+                placeholder="Enter URL (e.g., https://google.com)..."
+                autocomplete="off"
+                autofocus
+            />
+            <button type="submit">Load</button>
+        </form>
+        <a href="/main" class="home-btn">Home</a>
+    </div>
+
+    <div id="iframeContainer">
+        <div id="welcomeMessage">
+            <h2>iFrame Viewer</h2>
+            <p>Enter a URL above to load it in the iframe</p>
+        </div>
+        <div id="loading">Loading...</div>
+        <iframe id="contentFrame"></iframe>
+    </div>
+
+    <script>
+        const form = document.getElementById('urlForm');
+        const input = document.getElementById('urlInput');
+        const iframe = document.getElementById('contentFrame');
+        const loading = document.getElementById('loading');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let url = input.value.trim();
+
+            if (!url) return;
+
+            // Add https:// if no protocol
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            // Show loading state
+            iframe.classList.remove('loaded');
+            welcomeMessage.style.display = 'none';
+            loading.style.display = 'block';
+
+            // Load URL in iframe
+            iframe.src = url;
+
+            // Hide loading when iframe loads
+            iframe.onload = () => {
+                loading.style.display = 'none';
+                iframe.classList.add('loaded');
+            };
+
+            // Handle errors
+            iframe.onerror = () => {
+                loading.style.display = 'none';
+                alert('Failed to load URL. The site may not allow embedding in iframes.');
+            };
+        });
+    </script>
+</body>
+</html>

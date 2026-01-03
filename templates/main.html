@@ -778,8 +778,14 @@ body::after {
         }
 
         .play-btn.purchase {
-            background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
-            color: var(--text-dark);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-btn.purchase:hover:not(:disabled) {
+            background: linear-gradient(135deg, #FFED4E 0%, #FFB733 100%);
+            box-shadow: 0 10px 0 rgba(44, 44, 44, 0.9), 0 15px 35px rgba(255, 215, 0, 0.5);
         }
 
         .play-btn.disabled {
@@ -1218,8 +1224,8 @@ body::after {
 
 .rank-claim-btn {
     width: 100%;
-    background: linear-gradient(135deg, var(--winter-silver) 0%, var(--winter-silver-dark) 100%);
-    color: var(--text-dark);
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
     border: 5px solid var(--border-main);
     padding: 1.2rem 2rem;
     font-size: 1.1rem;
@@ -1230,11 +1236,13 @@ body::after {
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: var(--shadow-cartoon);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .rank-claim-btn:hover:not(:disabled) {
     transform: translateY(-4px);
-    box-shadow: 0 10px 0 rgba(44, 44, 44, 0.9), 0 15px 35px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #FFED4E 0%, #FFB733 100%);
+    box-shadow: 0 10px 0 rgba(44, 44, 44, 0.9), 0 15px 35px rgba(255, 215, 0, 0.5);
 }
 
 .rank-claim-btn:active:not(:disabled) {
@@ -1484,6 +1492,25 @@ body::after {
     border-top: 2px solid var(--winter-snow);
 }
 
+.breakfast-card {
+    background: var(--winter-white);
+    border: 4px solid var(--border-main);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.75rem;
+    box-shadow: var(--shadow-cartoon-sm);
+}
+
+.breakfast-label {
+    color: var(--text-light);
+}
+
+.breakfast-food {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
 /* ========================================
    CHAT NOTIFICATION
 ======================================== */
@@ -1659,7 +1686,140 @@ body::after {
         left: -50px;
         font-size: 2rem;
     }
-}</style>
+}
+
+/* ========================================
+   CUSTOM MODAL
+======================================== */
+.custom-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+.custom-modal-overlay.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(135, 206, 250, 0.3);
+    transform: scale(0.9);
+    animation: modalPop 0.3s ease forwards;
+    position: relative;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalPop {
+    to {
+        transform: scale(1);
+    }
+}
+
+.custom-modal-header {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.custom-modal-body {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.custom-modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-modal-btn {
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 120px;
+}
+
+.custom-modal-btn-confirm {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
+    box-shadow: 0 4px 0 rgba(255, 140, 0, 0.5);
+}
+
+.custom-modal-btn-confirm:hover {
+    background: linear-gradient(135deg, #FFED4E 0%, #FFB733 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(255, 140, 0, 0.5);
+}
+
+.custom-modal-btn-confirm:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(255, 140, 0, 0.5);
+}
+
+.custom-modal-btn-cancel {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    box-shadow: 0 4px 0 rgba(75, 85, 99, 0.5);
+}
+
+.custom-modal-btn-cancel:hover {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(75, 85, 99, 0.5);
+}
+
+.custom-modal-btn-cancel:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(75, 85, 99, 0.5);
+}
+
+.custom-modal-btn-ok {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 0 rgba(5, 150, 105, 0.5);
+}
+
+.custom-modal-btn-ok:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(5, 150, 105, 0.5);
+}
+
+.custom-modal-btn-ok:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(5, 150, 105, 0.5);
+}
+</style>
 </head>
 <body>
     <!-- Video Background -->
@@ -1671,6 +1831,71 @@ body::after {
 <audio id="bgMusic" loop>
     <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
 </audio>
+
+<!-- Custom Modal -->
+<div id="customModalOverlay" class="custom-modal-overlay">
+    <div class="custom-modal">
+        <div class="custom-modal-header" id="customModalHeader"></div>
+        <div class="custom-modal-body" id="customModalBody"></div>
+        <div class="custom-modal-buttons" id="customModalButtons"></div>
+    </div>
+</div>
+
+<script>
+// Custom Modal Functions
+function showCustomConfirm(message, onConfirm, title = 'Confirm') {
+    const overlay = document.getElementById('customModalOverlay');
+    const header = document.getElementById('customModalHeader');
+    const body = document.getElementById('customModalBody');
+    const buttons = document.getElementById('customModalButtons');
+
+    header.textContent = title;
+    body.textContent = message;
+    buttons.innerHTML = `
+        <button class="custom-modal-btn custom-modal-btn-cancel" onclick="hideCustomModal()">Cancel</button>
+        <button class="custom-modal-btn custom-modal-btn-confirm" onclick="confirmCustomModal()">Confirm</button>
+    `;
+
+    overlay.classList.add('show');
+
+    window.customModalCallback = onConfirm;
+}
+
+function showCustomAlert(message, title = 'Notice') {
+    const overlay = document.getElementById('customModalOverlay');
+    const header = document.getElementById('customModalHeader');
+    const body = document.getElementById('customModalBody');
+    const buttons = document.getElementById('customModalButtons');
+
+    header.textContent = title;
+    body.textContent = message;
+    buttons.innerHTML = `
+        <button class="custom-modal-btn custom-modal-btn-ok" onclick="hideCustomModal()">OK</button>
+    `;
+
+    overlay.classList.add('show');
+}
+
+function hideCustomModal() {
+    document.getElementById('customModalOverlay').classList.remove('show');
+    window.customModalCallback = null;
+}
+
+function confirmCustomModal() {
+    if (window.customModalCallback) {
+        window.customModalCallback();
+    }
+    hideCustomModal();
+}
+
+// Close modal on overlay click
+document.getElementById('customModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideCustomModal();
+    }
+});
+</script>
+
 <script>
 window.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('bgMusic');
@@ -1782,6 +2007,56 @@ window.addEventListener('DOMContentLoaded', function() {
         <input type="text" id="gameSearch" class="search-box" placeholder="Search games..." onkeyup="filterGames()">
     </div>
 
+    <!-- Limited Time Events Section -->
+    <div class="game-section">
+        <div class="section-header expanded" onclick="toggleSection('limited-events')">
+            <div class="section-header-left">
+                <div>
+                    <div class="section-title">Limited Time Events</div>
+                    <div class="section-count">Games listed here are BG StudyHall Events</div>
+                </div>
+            </div>
+            <div class="section-toggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+        </div>
+        <div class="games-grid-wrapper show" id="limited-events-games">
+            <div style="display: flex; gap: 20px; align-items: stretch; background: white; padding: 20px; border-radius: 12px; margin: 10px;">
+                <!-- Idle Dice Game Card (Left Side) -->
+                <div class="game-card" data-game-name="idle dice" style="position: relative; flex: 0 0 350px; margin: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('/static/IdleDice.png'); background-size: cover; background-position: center;">
+                    <!-- Stopwatch Icon Overlay -->
+                    <img src="https://i.ibb.co/XfB6KsN8/stopwatch.png" alt="Limited Time" style="position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+
+                    <div class="game-card-header">
+                        <h3 class="game-title">Idle Dice</h3>
+                        <span class="game-badge badge-free">Free</span>
+                    </div>
+                    <div class="game-card-footer">
+                        <a href="{{ url_for('play_game', game_id='idle_dice') }}" class="play-btn" target="_blank">Play</a>
+                    </div>
+                </div>
+
+                <!-- Event Information (Right Side) -->
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 25px 30px; background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f7 50%, #c5dff5 100%); border-radius: 12px; color: #2c3e50; border: 2px solid #b8d4e8;">
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.8em; font-weight: 700; color: #2c3e50;">
+                        Idle Dice Event
+                    </h3>
+                    <p style="margin: 0 0 12px 0; font-size: 1.05em; line-height: 1.6; color: #34495e;">
+                        Complete achievements in Idle Dice to earn StudyHall tokens! This is the <strong>first ever Limited Time Event</strong> on StudyHall.
+                    </p>
+                    <p style="margin: 0 0 18px 0; font-size: 1em; line-height: 1.6; color: #34495e;">
+                        <strong>Token rewards available only during January!</strong> The game remains playable year-round, but achievements only award tokens in January.
+                    </p>
+                    <a href="/idle_dice_rewards" class="play-btn" style="align-self: flex-start; background: #3498db; color: white; font-weight: 600; padding: 12px 24px; text-decoration: none; display: inline-block; border-radius: 6px; transition: background 0.3s ease;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                        View Achievements & Rewards →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Featured Games Section -->
     <div class="game-section">
         <div class="section-header expanded" onclick="toggleSection('featured')">
@@ -1800,8 +2075,8 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="games-grid-wrapper show" id="featured-games">
             <div class="games-grid" id="ownGamesGrid">
                 {% for game_id, game in games.items() %}
-                {% if game.get('is_own_game', False) %}
-                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+                {% if game.get('is_own_game', False) and game_id != 'idle_dice' %}
+                <div class="game-card {% if not game.get('available', True) %}unavailable{% endif %}" data-game-name="{{ game.name|lower }}" {% if game.get('background_image') %}style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('{{ game.background_image }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
                     <div class="game-card-header">
                         <h3 class="game-title">{{ game.name }}</h3>
                         {% if not game.get('available', True) %}
@@ -2233,6 +2508,14 @@ window.addEventListener('DOMContentLoaded', function() {
             fetch('/api/lunch_menu')
                 .then(response => response.json())
                 .then(data => {
+                    const buildBreakfast = (menu) => {
+                        if (!menu || !menu.breakfast) return '';
+                        return `<div class="breakfast-card">
+                                    <div class="lunch-label breakfast-label">Breakfast</div>
+                                    <div class="breakfast-food">${menu.breakfast}</div>
+                                </div>`;
+                    };
+
                     let html = `<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">${data.date}</p>`;
 
                     html += `<div class="lunch-today">
@@ -2245,11 +2528,15 @@ window.addEventListener('DOMContentLoaded', function() {
 
                     html += `</div>`;
 
+                    html += buildBreakfast(data.today);
+
                     if (data.tomorrow) {
                         html += `<div class="lunch-tomorrow">
                             <div class="lunch-label">Tomorrow</div>
                             <div class="lunch-food">${data.tomorrow.food}</div>
                         </div>`;
+
+                        html += buildBreakfast(data.tomorrow);
                     }
 
                     document.getElementById('lunchMenuContent').innerHTML = html;
@@ -2341,19 +2628,23 @@ window.addEventListener('DOMContentLoaded', function() {
     // GAME PURCHASE
     // ========================================
     function purchaseGame(gameId, price) {
-        if (confirm(`Purchase this game for ${price} tokens?`)) {
-            fetch(`/purchase_game/${gameId}`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`Purchase successful! New balance: ${formatNumber(data.new_balance)} tokens`);
-                    location.reload();
-                } else {
-                    alert(`Error: ${data.error}`);
-                }
-            })
-            .catch(error => alert('Error purchasing game'));
-        }
+        showCustomConfirm(
+            `Purchase this game for ${formatNumber(price)} tokens?`,
+            () => {
+                fetch(`/purchase_game/${gameId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showCustomAlert(`Purchase successful! New balance: ${formatNumber(data.new_balance)} tokens`, 'Success!');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showCustomAlert(`Error: ${data.error}`, 'Purchase Failed');
+                    }
+                })
+                .catch(error => showCustomAlert('Error purchasing game', 'Error'));
+            },
+            'Purchase Game'
+        );
     }
 
     // ========================================
@@ -2698,19 +2989,23 @@ window.addEventListener('DOMContentLoaded', function() {
 // RANK PURCHASE & INFO
 // ========================================
 function purchaseRank(rankId, price, rankName) {
-    if (confirm(`Purchase ${rankName} rank for ${price} tokens?`)) {
-        fetch('/purchase_rank/' + rankId, { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Success! You are now ${data.rank}!`);
-                location.reload();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => alert('Error purchasing rank'));
-    }
+    showCustomConfirm(
+        `Purchase ${rankName} rank for ${formatNumber(price)} tokens?`,
+        () => {
+            fetch('/purchase_rank/' + rankId, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showCustomAlert(`Success! You are now ${data.rank}!`, 'Rank Upgraded!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showCustomAlert('Error: ' + data.error, 'Purchase Failed');
+                }
+            })
+            .catch(error => showCustomAlert('Error purchasing rank', 'Error'));
+        },
+        'Purchase Rank'
+    );
 }
 
 const rankInfoData = {
