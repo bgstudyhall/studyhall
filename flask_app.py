@@ -8991,8 +8991,8 @@ def initialize_classroom():
 
     print("="*60 + "\n")
 
-if __name__ == '__main__':
-    # Initialize Google Classroom
-    initialize_classroom()
+# Initialize Google Classroom on module load (works with both gunicorn and direct run)
+initialize_classroom()
 
+if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)
