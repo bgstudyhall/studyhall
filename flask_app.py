@@ -23,6 +23,17 @@ from flask_compress import Compress
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import sys
 
+# Optional Google Classroom dependencies (only needed if using classroom feature)
+try:
+    import pickle
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.chrome.options import Options
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    print("⚠️  Selenium not available - Google Classroom feature will be disabled")
+
 # Force stdout/stderr to flush immediately for logging
 sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
 sys.stderr = io.TextIOWrapper(open(sys.stderr.fileno(), 'wb', 0), write_through=True)
@@ -171,10 +182,24 @@ BIRTHDAYS = {
     }
 }
 
+# ===============================================================
+# Google Classroom Configuration
+# ===============================================================
+CLASSROOM_COOKIES_FILE = 'google_cookies.pkl'
+CLASSROOM_ANNOUNCEMENTS_FILE = 'announcements_cache.json'
+CLASSROOM_CONFIG_FILE = 'classroom_config.json'
+CLASSROOM_ID = None  # Will be set after first login
+
+# Global cache for Google Classroom announcements
+classroom_announcements_cache = {
+    'announcements': [],
+    'last_updated': None,
+    'classroom_name': 'Loading...'
+}
 
 # Permission definitions
 PERMISSIONS = {
-    'create_users': ['admin', 'president', 'ambassador', 'master_moderator'],
+    'create_users': ['admin', 'president', 'ambassador', 'master_moderator', 'pr_director'],
     'ban_users': ['admin', 'president', 'master_moderator'],
     'change_passwords': ['admin', 'president', 'master_moderator'],
     'edit_tokens': ['admin'],
@@ -228,6 +253,7 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 GAMES_FILE = os.path.join(DATA_DIR, 'games.json')
 ANNOUNCEMENTS_FILE = os.path.join(DATA_DIR, 'announcements.json')
 FEEDBACK_FILE = os.path.join(DATA_DIR, 'feedback.json')
+WEBSITE_REQUESTS_FILE = os.path.join(DATA_DIR, 'website_requests.json')
 MESSAGES_FILE = os.path.join(DATA_DIR, 'messages.json')
 READ_RECEIPTS_FILE = os.path.join(DATA_DIR, 'read_receipts1.json')
 SNAP_VIEWS_FILE = os.path.join(DATA_DIR, 'snap_views.json')
@@ -490,15 +516,41 @@ users = load_json(USERS_FILE, default_users)
 games = load_json(GAMES_FILE, default_games)
 announcements = load_json(ANNOUNCEMENTS_FILE, [])
 feedback = load_json(FEEDBACK_FILE, [])
+website_requests = load_json(WEBSITE_REQUESTS_FILE, [])
 messages = load_json(MESSAGES_FILE, {})
 read_receipts = load_json(READ_RECEIPTS_FILE, {})
 # Snap views tracking: {chat_key: {message_index: {'opened_by': [users], 'replayed_by': [users]}}}
 snap_views = load_json(SNAP_VIEWS_FILE, {})
 user_activity = load_json(USER_ACTIVITY_FILE, {})
 lounge_messages = load_json(LOUNGE_FILE, [])
+
+# MIGRATION: Fix old message format (normalize 'from' field and remove legacy fields)
+messages_migrated = False
+for msg in lounge_messages:
+    # Fix old system messages that used 'username' instead of 'from'
+    if 'username' in msg and 'from' not in msg:
+        msg['from'] = msg['username'].lower()  # "System" -> "system"
+        del msg['username']
+        messages_migrated = True
+    # Remove legacy 'is_system' field (no longer needed)
+    if 'is_system' in msg:
+        del msg['is_system']
+        messages_migrated = True
+
+if messages_migrated:
+    print(f"[MIGRATION] Migrated old lounge messages to new format")
+    save_json(LOUNGE_FILE, lounge_messages)
+
 lounge_reactions = load_json(LOUNGE_REACTIONS_FILE, {})
 lounge_read_receipts = load_json(LOUNGE_READ_RECEIPTS_FILE, {})
 lounge_typing = load_json(LOUNGE_TYPING_FILE, {})
+
+LOUNGE_BADGE_ROLES = {'admin', 'ambassador', 'master_moderator'}
+
+def get_lounge_staff_tag(username):
+    """Return staff tag slug for lounge badges, or None if not eligible."""
+    role = users.get(username, {}).get('role')
+    return role if role in LOUNGE_BADGE_ROLES else None
 
 # Debug logging for lounge messages on startup
 print(f"[STARTUP DEBUG] ========================================")
@@ -570,11 +622,147 @@ idle_dice_achievements = load_json(IDLE_DICE_ACHIEVEMENTS_FILE, {
     'cards4_A': {'name': 'No Patience', 'description': 'Draw 4 Aces in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards4_A>=4'},
 
     # Expert Achievements (Roulette-based)
-    'roulette10': {'name': 'Roulette 10', 'description': 'Reach roulette level 10', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_roulette10>=10'},
-    'straight1k': {'name': 'Straight Master', 'description': 'Roll 1000 Straights', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_straight1k>=1000'},
-    'spinrun15': {'name': 'Expert Spinner', 'description': 'Spin the roulette 15 times in one run', 'tokens': 50, 'category': 'Expert', 'check': 'a_value_spinrun15>=15'},
+    'autoroll100': {'name': 'Autoroll 100', 'description': 'Reach autoroll milestone 100', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_autoroll100>=100'},
+    'spin5': {'name': 'Spin 5', 'description': 'Spin the roulette 5 times in total', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spin5>=5'},
+    'spin100': {'name': 'Spin 100', 'description': 'Spin the roulette 100 times in total', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spin100>=100'},
+    'spinRun5': {'name': 'Spinner', 'description': 'Spin the roulette 5 times in one run', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spinrun5>=5'},
+    'spinRun15': {'name': 'Expert Spinner', 'description': 'Spin the roulette 15 times in one run', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spinrun15>=15'},
+    'spinRun100': {'name': 'Fidget Spinner', 'description': 'Spin the roulette 100 times in one run', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spinrun100>=100'},
+    'spin10noLevel': {'name': 'Unlucky', 'description': 'Spin the roulette 10 times on level 0 without leveling up', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_spin10noLevel>=10'},
+    'roulette3': {'name': 'Roulette 3', 'description': 'Reach roulette level 3', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette3>=3'},
+    'roulette5': {'name': 'Roulette 5', 'description': 'Reach roulette level 5', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette5>=5'},
+    'roulette7': {'name': 'Roulette 7', 'description': 'Reach roulette level 7', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette7>=7'},
+    'roulette8': {'name': 'Roulette 8', 'description': 'Reach roulette level 8', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette8>=8'},
+    'roulette9': {'name': 'Roulette 9', 'description': 'Reach roulette level 9', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette9>=9'},
+    'roulette10': {'name': 'Roulette 10', 'description': 'Reach roulette level 10', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette10>=10'},
+    'roulette11': {'name': 'Roulette 11', 'description': 'Reach roulette level 11', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette11>=11'},
+    'roulette20': {'name': 'Roulette 20', 'description': 'Reach roulette level 20', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette20>=20'},
+    'roulette25': {'name': 'Roulette 25', 'description': 'Reach roulette level 25', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette25>=25'},
+    'roulette34': {'name': 'Roulette Max', 'description': 'Reach roulette level 34', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_roulette34>=34'},
+    'pair1000': {'name': 'Pair Master', 'description': 'Roll 1000 pairs', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_pair1000>=1000'},
+    'triplet1000': {'name': 'Triplet Master', 'description': 'Roll 1000 triplets', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_triplet1000>=1000'},
+    'twopair1000': {'name': 'Two Pair Master', 'description': 'Roll 1000 two pairs', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_twopair1000>=1000'},
+    'four1000': {'name': 'Four Master', 'description': 'Roll 1000 fours', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_four1000>=1000'},
+    'fullhouse1000': {'name': 'Full House Master', 'description': 'Roll 1000 full houses', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_fullhouse1000>=1000'},
+    'five1000': {'name': 'Five Master', 'description': 'Roll 1000 fives', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_five1000>=1000'},
+    'straight1000': {'name': 'Straight Master', 'description': 'Roll 1000 straights', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_straight1000>=1000'},
+    'straight1k': {'name': 'Straight Master (Legacy)', 'description': 'Roll 1000 straights', 'tokens': 10, 'category': 'Expert', 'check': 'a_value_straight1k>=1000'},
+
+    # Legendary Achievements (Golden cards and special milestones)
+    'gold_2': {'name': 'God of strategy', 'description': 'Have 4 golden 2s', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_gold_2>=4'},
+    'gold_3': {'name': 'Equality (Gold)', 'description': 'Have 4 golden 3s', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_gold_3>=4'},
+    'gold_4': {'name': 'Into the universe', 'description': 'Have 4 golden 4s', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_gold_4>=4'},
+    'gold_5': {'name': 'Combining galaxies', 'description': 'Have 4 golden 5s', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_gold_5>=4'},
+    'gold_A': {'name': 'Spinning Ace', 'description': 'Have 4 golden As', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_gold_A>=4'},
+    'golden52': {'name': 'Golden deck', 'description': 'Have 52 golden cards', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_golden52>=52'},
+    'noPrestige': {'name': 'No prestige needed', 'description': 'Convert a deck without prestiging', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_noPrestige>=1'},
+    'focus10': {'name': 'Meditation', 'description': 'Have a focus charge of 10', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_focus10>=10'},
+    'lucke100': {'name': 'Goose', 'description': 'Have 1e100 luck', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_lucke100>=1e100'},
+    'noRoll': {'name': 'Too slow', 'description': 'Do not roll the dice for 1 minute', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_noRoll>=1'},
+
+    # Godlike Achievements (Casinos and prestige milestones)
+    'roulette35': {'name': 'Roulette Prestige', 'description': 'Reach roulette level 35', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_roulette35>=35'},
+    'casino1': {'name': 'Investment Beginner', 'description': 'Have 1 casino', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino1>=1'},
+    'casino2': {'name': 'Roulette Investor', 'description': 'Have 2 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino2>=2'},
+    'casino3': {'name': 'Investor', 'description': 'Have 3 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino3>=3'},
+    'casino4': {'name': 'Investing into speed', 'description': 'Have 4 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino4>=4'},
+    'casino5': {'name': 'Chip Factory', 'description': 'Have 5 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino5>=5'},
+    'casino6': {'name': 'Swiss Bank Account', 'description': 'Have 6 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino6>=6'},
+    'casino7': {'name': 'Lucky Number', 'description': 'Have 7 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino7>=7'},
+    'casino8': {'name': 'Chip Mass Production', 'description': 'Have 8 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino8>=8'},
+    'casino9': {'name': 'Corruption', 'description': 'Have 9 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino9>=9'},
+    'casino10': {'name': 'Employees', 'description': 'Have 10 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino10>=10'},
+    'casino11': {'name': 'Can buy anything', 'description': 'Have 11 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino11>=11'},
+    'casino12': {'name': 'Getting Lazy', 'description': 'Have 12 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino12>=12'},
+    'casino13': {'name': 'Unlucky Number', 'description': 'Have 13 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino13>=13'},
+    'casino14': {'name': 'Particle Accelerator', 'description': 'Have 14 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino14>=14'},
+    'casino15': {'name': 'Greed', 'description': 'Have 15 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino15>=15'},
+    'casino16': {'name': 'Hexadecagonal Chips', 'description': 'Have 16 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino16>=16'},
+    'casino17': {'name': 'Happiness', 'description': 'Have 17 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino17>=17'},
+    'casino18': {'name': 'No flavor for this one', 'description': 'Have 18 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino18>=18'},
+    'casino19': {'name': 'Accelerator Farm', 'description': 'Have 19 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino19>=19'},
+    'casino20': {'name': 'Slaves', 'description': 'Have 20 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino20>=20'},
+    'casino21': {'name': 'Blackjack', 'description': 'Have 21 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino21>=21'},
+    'casino22': {'name': 'Interesting', 'description': 'Have 22 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino22>=22'},
+    'casino23': {'name': 'Sun Harvesting', 'description': 'Have 23 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino23>=23'},
+    'casino24': {'name': 'Gluttony', 'description': 'Have 24 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino24>=24'},
+    'casino25': {'name': 'Mega Chips', 'description': 'Have 25 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino25>=25'},
+    'casino26': {'name': 'Fulfillment', 'description': 'Have 26 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino26>=26'},
+    'casino27': {'name': 'Upgrade Machines', 'description': 'Have 27 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino27>=27'},
+    'casino28': {'name': 'Very Interesting', 'description': 'Have 28 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino28>=28'},
+    'casino29': {'name': 'Speed of light', 'description': 'Have 29 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino29>=29'},
+    'casino30': {'name': 'Lust', 'description': 'Have 30 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino30>=30'},
+    'casino33': {'name': 'God of Luck', 'description': 'Have 33 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino33>=33'},
+    'casino35': {'name': 'Giga Chips', 'description': 'Have 35 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino35>=35'},
+    'casino40': {'name': 'Gladstone Gander', 'description': 'Have 40 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino40>=40'},
+    'casino45': {'name': 'Upgrade Slaves', 'description': 'Have 45 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino45>=45'},
+    'casino50': {'name': 'Need more Names', 'description': 'Have 50 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino50>=50'},
+    'casino55': {'name': 'Hypnotizing', 'description': 'Have 55 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino55>=55'},
+    'casino60': {'name': 'Pride', 'description': 'Have 60 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino60>=60'},
+    'casino65': {'name': 'What will you do with all these Chips?', 'description': 'Have 65 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino65>=65'},
+    'casino70': {'name': 'Nothing bad will ever happen to you', 'description': 'Have 70 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino70>=70'},
+    'casino75': {'name': 'Upgrade Drones', 'description': 'Have 75 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino75>=75'},
+    'casino80': {'name': 'Seriously', 'description': 'Have 80 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino80>=80'},
+    'casino85': {'name': 'Can your Computer even handle this speed', 'description': 'Have 85 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino85>=85'},
+    'casino90': {'name': 'Envy', 'description': 'Have 90 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino90>=90'},
+    'casino95': {'name': 'Stop', 'description': 'Have 95 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino95>=95'},
+    'casino100': {'name': 'No need to play anymore', 'description': 'Have 100 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino100>=100'},
+    'casino200': {'name': 'Fine, go double as far as it was ever intended', 'description': 'Have 200 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino200>=200'},
 })
 idle_dice_claims = load_json(IDLE_DICE_CLAIMS_FILE, {})
+
+def _rebuild_idle_dice_achievements(data):
+    """Restrict Idle Dice achievements to the desired subset and adjust token values."""
+    allowed_basic = {
+        'firstSteps': {'name': 'First Steps', 'description': 'Start your journey', 'tokens': 10, 'category': 'Basic', 'check': 'a_value_firstSteps>=1'},
+        'roll20': {'name': 'Roll 20', 'description': 'Roll the dice 20 times', 'tokens': 10, 'category': 'Basic', 'check': 'a_value_roll20>=20'},
+        'playtime1': {'name': 'Playtime 1h', 'description': 'Play for 1 hour', 'tokens': 20, 'category': 'Basic', 'check': 'a_value_playtime1>=1'},
+        'points1m': {'name': 'Millionaire', 'description': 'Reach 1M points', 'tokens': 50, 'category': 'Basic', 'check': 'a_value_points1m>=1000000'},
+        'prestige2': {'name': 'Prestige 2', 'description': 'Prestige 2 times', 'tokens': 25, 'category': 'Basic', 'check': 'a_value_prestige2>=2'},
+        'points1b': {'name': 'Billionaire', 'description': 'Reach 1B points', 'tokens': 100, 'category': 'Basic', 'check': 'a_value_points1b>=1000000000'},
+        'roll1k': {'name': 'Roll 1000', 'description': 'Roll the dice 1000 times', 'tokens': 100, 'category': 'Basic', 'check': 'a_value_roll1k>=1000'},
+        'points1t': {'name': 'Trillionaire', 'description': 'Reach 1T points', 'tokens': 125, 'category': 'Basic', 'check': 'a_value_points1t>=1000000000000'},
+        'points1qa': {'name': 'Quadrillionaire', 'description': 'Reach 1Qa points', 'tokens': 150, 'category': 'Basic', 'check': 'a_value_points1qa>=1000000000000000'},
+        'points1qi': {'name': 'Quintillionaire', 'description': 'Reach 1Qi points', 'tokens': 180, 'category': 'Basic', 'check': 'a_value_points1qi>=1000000000000000000'}
+    }
+
+    allowed_advanced = {
+        'cards5': {'name': 'Full Hand', 'description': 'Draw 5 cards in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards5>=5'},
+        'cards4_A': {'name': 'No Patience', 'description': 'Draw 4 Aces in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards4_A>=4'},
+        'cards4_K': {'name': 'Patience', 'description': 'Draw 4 Kings in one run', 'tokens': 50, 'category': 'Advanced', 'check': 'a_value_cards4_K>=4'}
+    }
+
+    allowed_expert = {
+        'spinRun15': {'name': 'Expert Spinner', 'description': 'Spin the roulette 15 times in one run', 'tokens': 20, 'category': 'Expert', 'check': 'a_value_spinrun15>=15'},
+        'roulette10': {'name': 'Roulette 10', 'description': 'Reach roulette level 10', 'tokens': 35, 'category': 'Expert', 'check': 'a_value_roulette10>=10'},
+        'straight1000': {'name': 'Straight Master', 'description': 'Roll 1000 straights', 'tokens': 40, 'category': 'Expert', 'check': 'a_value_straight1000>=1000'}
+    }
+
+    allowed_legendary = {
+        'gold_2': {'name': 'God of strategy', 'description': 'Have 4 golden 2s', 'tokens': 35, 'category': 'Legendary', 'check': 'a_value_gold_2>=4'},
+        'gold_A': {'name': 'Spinning Ace', 'description': 'Have 4 golden As', 'tokens': 20, 'category': 'Legendary', 'check': 'a_value_gold_A>=4'},
+        'golden52': {'name': 'Golden deck', 'description': 'Have 52 golden cards', 'tokens': 50, 'category': 'Legendary', 'check': 'a_value_golden52>=52'},
+        'focus10': {'name': 'Meditation', 'description': 'Have a focus charge of 10', 'tokens': 10, 'category': 'Legendary', 'check': 'a_value_focus10>=10'},
+        'lucke100': {'name': 'Goose', 'description': 'Have 1e100 luck', 'tokens': 35, 'category': 'Legendary', 'check': 'a_value_lucke100>=1e100'}
+    }
+
+    allowed_godlike = {
+        'casino10': {'name': 'Employees', 'description': 'Have 10 casinos', 'tokens': 30, 'category': 'Godlike', 'check': 'a_value_casino10>=10'},
+        'casino25': {'name': 'Mega Chips', 'description': 'Have 25 casinos', 'tokens': 25, 'category': 'Godlike', 'check': 'a_value_casino25>=25'},
+        'casino50': {'name': 'Need more Names', 'description': 'Have 50 casinos', 'tokens': 10, 'category': 'Godlike', 'check': 'a_value_casino50>=50'},
+        'casino100': {'name': 'No need to play anymore', 'description': 'Have 100 casinos', 'tokens': 100, 'category': 'Godlike', 'check': 'a_value_casino100>=100'}
+    }
+
+    rebuilt = {}
+    rebuilt.update(allowed_basic)
+    rebuilt.update(allowed_advanced)
+    rebuilt.update(allowed_expert)
+    rebuilt.update(allowed_legendary)
+    rebuilt.update(allowed_godlike)
+
+    return rebuilt
+
+idle_dice_achievements = _rebuild_idle_dice_achievements(idle_dice_achievements)
 
 user_ranks = load_json(RANKS_FILE, {})
 purchases = load_json(PURCHASES_FILE, {})
@@ -716,7 +904,7 @@ def apply_group_interest():
 
                 group_messages[group_id].append({
                     'from': 'system',
-                    'text': f'💰 Weekly interest applied! Bank received {interest_amount} tokens ({interest_rate}% interest). New balance: {new_balance} tokens',
+                    'text': f'Weekly interest applied. Bank received {interest_amount} tokens ({interest_rate}% interest). New balance: {new_balance} tokens',
                     'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
                 })
 
@@ -975,6 +1163,196 @@ lunch_menu = {
     }
 }
 
+# ===============================================================
+# Google Classroom Helper Functions
+# ===============================================================
+
+# Define stub functions when Selenium is not available
+if not SELENIUM_AVAILABLE:
+    def get_classroom_driver(load_cookies=False, headless=True):
+        raise RuntimeError("Selenium not installed - Google Classroom feature unavailable")
+
+    def save_classroom_cookies(driver=None):
+        pass
+
+    def save_classroom_announcements_cache():
+        with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'w') as f:
+            json.dump(classroom_announcements_cache, f)
+
+    def load_classroom_announcements_cache():
+        global classroom_announcements_cache
+        if os.path.exists(CLASSROOM_ANNOUNCEMENTS_FILE):
+            with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'r') as f:
+                classroom_announcements_cache = json.load(f)
+
+    def scrape_classroom_announcements():
+        print("⚠️  Google Classroom scraping disabled - selenium not installed")
+        return
+
+    def background_classroom_scraper():
+        pass
+
+else:
+    # Selenium is available - define full functionality
+    def get_classroom_driver(load_cookies=False, headless=True):
+        """Create and configure Chrome driver for Google Classroom."""
+        options = Options()
+        if headless:
+            options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+
+        driver = webdriver.Chrome(options=options)
+
+        if load_cookies and os.path.exists(CLASSROOM_COOKIES_FILE):
+            driver.get('https://classroom.google.com')
+            with open(CLASSROOM_COOKIES_FILE, 'rb') as f:
+                cookies = pickle.load(f)
+                for cookie in cookies:
+                    try:
+                        driver.add_cookie(cookie)
+                    except:
+                        pass
+            driver.refresh()
+
+        return driver
+
+    def save_classroom_cookies(driver):
+        """Save browser cookies for future sessions."""
+        cookies = driver.get_cookies()
+        with open(CLASSROOM_COOKIES_FILE, 'wb') as f:
+            pickle.dump(cookies, f)
+
+    def save_classroom_announcements_cache():
+        """Save announcements to file."""
+        with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'w') as f:
+            json.dump(classroom_announcements_cache, f)
+
+    def load_classroom_announcements_cache():
+        """Load announcements from file."""
+        global classroom_announcements_cache
+        if os.path.exists(CLASSROOM_ANNOUNCEMENTS_FILE):
+            with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'r') as f:
+                classroom_announcements_cache = json.load(f)
+
+    def scrape_classroom_announcements():
+        """Scrape announcements from Google Classroom."""
+        global classroom_announcements_cache, CLASSROOM_ID
+
+        if not CLASSROOM_ID or not os.path.exists(CLASSROOM_COOKIES_FILE):
+            print("⚠️  No classroom configured or not logged in yet")
+            return
+
+        driver = None
+        try:
+            print(f"🔄 Scraping Google Classroom announcements... [{datetime.now().strftime('%H:%M:%S')}]")
+            driver = get_classroom_driver(load_cookies=True)
+            driver.get(f'https://classroom.google.com/u/0/c/{CLASSROOM_ID}')
+
+            time.sleep(3)
+
+            # Scroll down to load announcements
+            driver.execute_script("window.scrollTo(0, 1000);")
+            time.sleep(2)
+            driver.execute_script("window.scrollTo(0, 2000);")
+            time.sleep(2)
+
+            # Get classroom name
+            try:
+                name_elem = driver.find_element(By.CSS_SELECTOR, '.YVvGBb.z3vRcc, .fqWr5c')
+                classroom_announcements_cache['classroom_name'] = name_elem.text.strip()
+            except:
+                pass
+
+            announcements = []
+
+            # Find announcements using the data-stream-item-id attribute
+            announcement_elements = driver.find_elements(By.CSS_SELECTOR, '[data-stream-item-id]')
+            print(f"   Found {len(announcement_elements)} announcements")
+
+            for elem in announcement_elements:
+                try:
+                    full_text = elem.text.strip()
+
+                    if not full_text or len(full_text) < 20:
+                        continue
+
+                    lines = full_text.split('\n')
+
+                    # Find date
+                    date_text = ""
+                    for line in lines[:10]:
+                        if any(month in line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                            date_text = line.strip()
+                            break
+
+                    # Get announcement content - try multiple selectors
+                    announcement_text = ""
+                    try:
+                        # Try to get just the announcement content
+                        content_elem = elem.find_element(By.CSS_SELECTOR, '.pco8Kc, .n8F6Jd, .Xq1mf, .JzO0Vc')
+                        announcement_text = content_elem.text.strip()
+                    except:
+                        # Fallback: use full text and clean it
+                        announcement_text = full_text
+
+                    # Clean up the text
+                    lines_to_remove = [
+                        'Add comment', 'class comments', 'More options', 'more_vert',
+                        'Created', 'Post by', '(Edited', 'Edited'
+                    ]
+                    for removal in lines_to_remove:
+                        announcement_text = announcement_text.replace(removal, '')
+
+                    # Remove URLs and metadata
+                    text_lines = announcement_text.split('\n')
+                    cleaned_lines = []
+                    for line in text_lines:
+                        line = line.strip()
+                        # Skip empty lines, short lines, and URLs
+                        if line and len(line) > 3 and not line.startswith('http') and not line.startswith('Jan ') and not line.startswith('Feb '):
+                            # Skip date patterns and names that might be author info
+                            if line not in ['Emily Hall', 'Jan 8', 'Yesterday', 'Today']:
+                                cleaned_lines.append(line)
+
+                    announcement_text = '\n'.join(cleaned_lines).strip()
+
+                    if announcement_text and len(announcement_text) > 20:
+                        announcements.append({
+                            'id': str(len(announcements)),
+                            'text': announcement_text,
+                            'date': date_text or 'Recently',
+                            'materials': []
+                        })
+                        print(f"   ✅ Added: {announcement_text[:60]}...")
+
+                except Exception as e:
+                    print(f"   ⚠️  Error parsing announcement: {e}")
+                    continue
+
+            driver.quit()
+
+            classroom_announcements_cache['announcements'] = announcements
+            classroom_announcements_cache['last_updated'] = datetime.now().isoformat()
+
+            save_classroom_announcements_cache()
+
+            print(f"✅ Scraped {len(announcements)} announcements from Google Classroom")
+
+        except Exception as e:
+            print(f"❌ Classroom scraping error: {str(e)}")
+            if driver:
+                driver.quit()
+
+    def background_classroom_scraper():
+        """Background thread that periodically scrapes classroom announcements."""
+        while True:
+            scrape_classroom_announcements()
+            # Scrape every 10 minutes
+            time.sleep(600)
 
 # Routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -1082,9 +1460,8 @@ def force_password_change():
 @password_change_required
 def index():
     username = session['username']
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
     sorted_games = sorted(games.items(), key=lambda x: (
         not x[1].get('free_for_all', True),
@@ -1099,6 +1476,60 @@ def index():
             if rank['id'] == current_rank:
                 current_rank_index = i
                 break
+
+    # Get groups data for the Groups tab
+    groups_data = []
+    for group_id, group_data in groups.items():
+        is_member = username == group_data['leader'] or username in group_data.get('members', [])
+        unread = get_group_unread_count(username, group_id) if is_member else 0
+
+        # Get last message preview
+        last_message = None
+        if group_id in group_messages and group_messages[group_id]:
+            last_msg = group_messages[group_id][-1]
+            if last_msg.get('type') == 'snap':
+                preview = '📷 Snap'
+            elif last_msg.get('type') == 'voice':
+                preview = '🎤 Voice message'
+            else:
+                preview = last_msg.get('text', '')[:40] + ('...' if len(last_msg.get('text', '')) > 40 else '')
+            last_message = {
+                'preview': preview,
+                'timestamp': last_msg['timestamp'],
+                'from': last_msg['from']
+            }
+
+        groups_data.append({
+            'id': group_id,
+            'name': group_data['name'],
+            'leader': group_data['leader'],
+            'members': group_data.get('members', []),
+            'image': group_data.get('image'),
+            'is_member': is_member,
+            'unread': unread,
+            'last_message': last_message,
+            'member_count': len(group_data.get('members', [])) + 1,
+            'rank': group_data.get('rank', 0),
+            'rank_display': GROUP_RANKS[group_data.get('rank', 0)]['display'],
+            'bank': group_data.get('bank', 0)
+        })
+
+    # Sort by bank amount (highest first)
+    groups_data.sort(key=lambda x: x['bank'], reverse=True)
+
+    # Check if user already has a group they lead
+    user_has_group = any(g['leader'] == username for g in groups.values())
+
+    # Check if user should see Instagram connection prompt
+    show_instagram_prompt = False
+    if username in profiles:
+        profile = profiles[username]
+        # Show prompt if: setup_complete but no instagram_username and hasn't been shown before
+        if (profile.get('setup_complete', False) and
+            not profile.get('instagram_username') and
+            not profile.get('instagram_prompt_shown', False)):
+            show_instagram_prompt = True
+
     return render_template('main.html',
     games=sorted_games,
     announcements=announcements,
@@ -1112,7 +1543,11 @@ def index():
     STAFF_ROLES=STAFF_ROLES,
     current_rank_index=current_rank_index,
     session=session,
-    profiles=profiles
+    profiles=profiles,
+    groups=groups_data,
+    user_has_group=user_has_group,
+    user_tokens=users[username].get('tokens', 0),
+    show_instagram_prompt=show_instagram_prompt
 )
 
 # In app.py, add this route:
@@ -1241,15 +1676,27 @@ def submit_feedback():
         save_json(FEEDBACK_FILE, feedback)
     return redirect(url_for('index'))
 
+@app.route('/submit_website_request', methods=['POST'])
+@login_required
+def submit_website_request():
+    request_text = request.form.get('website_request')
+    if request_text:
+        website_requests.append({
+            'username': session['username'],
+            'text': request_text,
+            'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        })
+        save_json(WEBSITE_REQUESTS_FILE, website_requests)
+    return redirect(url_for('proxy'))
+
 @app.route('/casino')
 @maintenance_check
 @login_required
 def casino():
     username = session['username']
 
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
     return render_template('casino.html',
         user_tokens=users[username].get('tokens', 0),
@@ -1263,14 +1710,63 @@ def casino():
         STAFF_ROLES=STAFF_ROLES
     )
 
+# ===============================================================
+# Google Classroom Routes
+# ===============================================================
+
+@app.route('/classroom')
+@maintenance_check
+@login_required
+def classroom():
+    """Display Google Classroom announcements."""
+    username = session['username']
+
+    unread_count = get_unread_count(username)
+    group_unread_count = get_total_group_unread_count(username)
+    lounge_unread_count = get_lounge_unread_count(username)
+
+    return render_template('classroom.html',
+        username=username,
+        unread_count=unread_count,
+        group_unread_count=group_unread_count,
+        lounge_unread_count=lounge_unread_count,
+        user_role=users[username]['role'],
+        user_rank=users[username].get('rank'),
+        RANKS=RANKS,
+        STAFF_ROLES=STAFF_ROLES
+    )
+
+@app.route('/api/classroom/status')
+@login_required
+def get_classroom_status():
+    """Get classroom configuration status."""
+    return jsonify({
+        'configured': CLASSROOM_ID is not None,
+        'logged_in': os.path.exists(CLASSROOM_COOKIES_FILE),
+        'classroom_id': CLASSROOM_ID,
+        'classroom_name': classroom_announcements_cache.get('classroom_name', 'Not configured')
+    })
+
+@app.route('/api/classroom/announcements')
+@login_required
+def get_classroom_announcements():
+    """Get cached classroom announcements."""
+    return jsonify(classroom_announcements_cache)
+
+@app.route('/api/classroom/refresh', methods=['POST'])
+@login_required
+def manual_classroom_refresh():
+    """Manually trigger a classroom announcements refresh."""
+    scrape_classroom_announcements()
+    return jsonify({'success': True, 'message': 'Refreshed successfully'})
+
 @app.route('/profile', methods=['GET', 'POST'])
 @maintenance_check
 @login_required
 def profile():
     username = session['username']
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
 
     if username not in profiles:
@@ -1561,6 +2057,76 @@ def get_profile_data(username):
     })
 
 
+@app.route('/api/connect_instagram_prompt', methods=['POST'])
+@maintenance_check
+@login_required
+def connect_instagram_prompt():
+    username = session['username']
+    action = request.form.get('action')
+
+    # Ensure user has profile setup
+    if username not in profiles or not profiles[username].get('setup_complete', False):
+        return jsonify({'success': False, 'error': 'Profile not set up'}), 403
+
+    # Handle dismiss action
+    if action == 'dismiss':
+        profiles[username]['instagram_prompt_shown'] = True
+        save_json(PROFILES_FILE, profiles)
+        return jsonify({'success': True})
+
+    # Handle connect action
+    if action == 'connect':
+        instagram_username = request.form.get('instagram_username', '').strip()
+
+        if not instagram_username:
+            return jsonify({'success': False, 'error': 'Instagram username is required'})
+
+        # Validate Instagram username format
+        if not re.match(r'^[a-zA-Z0-9._]+$', instagram_username):
+            return jsonify({'success': False, 'error': 'Invalid Instagram username format'})
+
+        try:
+            # Fetch Instagram data using Instaloader
+            L = instaloader.Instaloader(
+                download_pictures=False,
+                save_metadata=False,
+                compress_json=False
+            )
+            profile = instaloader.Profile.from_username(L.context, instagram_username)
+
+            # Get profile picture
+            profile_pic_url = profile.profile_pic_url
+            response = requests.get(profile_pic_url, timeout=15)
+            response.raise_for_status()
+
+            # Convert image to base64
+            image_base64 = base64.b64encode(response.content).decode('utf-8')
+            profile_pic_data_uri = f"data:image/jpeg;base64,{image_base64}"
+
+            # Update profile with Instagram data
+            profiles[username]['instagram_username'] = instagram_username
+            profiles[username]['profile_picture'] = profile_pic_data_uri
+            profiles[username]['instagram_followers'] = profile.followers
+            profiles[username]['instagram_following'] = profile.followees
+            profiles[username]['instagram_full_name'] = profile.full_name
+            profiles[username]['instagram_prompt_shown'] = True
+            save_json(PROFILES_FILE, profiles)
+
+            return jsonify({'success': True})
+
+        except instaloader.exceptions.ProfileNotExistsException:
+            profiles[username]['instagram_prompt_shown'] = True
+            save_json(PROFILES_FILE, profiles)
+            return jsonify({'success': False, 'error': f"Instagram username '@{instagram_username}' not found."})
+
+        except Exception as e:
+            profiles[username]['instagram_prompt_shown'] = True
+            save_json(PROFILES_FILE, profiles)
+            return jsonify({'success': False, 'error': f"Failed to fetch Instagram data: {str(e)}"})
+
+    return jsonify({'success': False, 'error': 'Invalid action'}), 400
+
+
 @app.route('/api/tower_recent_wins')
 @login_required
 def tower_recent_wins_api():
@@ -1782,12 +2348,26 @@ def send_message(other_user):
 
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
+        reply_to_index = request.form.get('reply_to_index')
+        reply_to = None
+        if reply_to_index is not None and str(reply_to_index).strip() != '':
+            try:
+                reply_to = {
+                    'index': int(reply_to_index),
+                    'sender': request.form.get('reply_to_sender', ''),
+                    'preview': request.form.get('reply_to_preview', ''),
+                    'type': request.form.get('reply_to_type', 'text')
+                }
+            except ValueError:
+                reply_to = None
+
         messages[chat_key].append({
             'from': current_user,
             'to': other_user,
             'text': message_text,
             'timestamp': new_timestamp,
-            'read': False
+            'read': False,
+            'reply_to': reply_to
         })
         save_json(MESSAGES_FILE, messages)
 
@@ -1806,6 +2386,18 @@ def send_message(other_user):
             read_receipts[other_user][chat_key] = ""
 
         save_json(READ_RECEIPTS_FILE, read_receipts)
+
+        # Emit WebSocket event to notify the other user in real-time
+        new_message = {
+            'from': current_user,
+            'to': other_user,
+            'text': message_text,
+            'timestamp': new_timestamp,
+            'read': False,
+            'index': len(messages[chat_key]) - 1,
+            'reply_to': reply_to
+        }
+        socketio.emit('new_chat_message', new_message, room=f'chat_{other_user}')
 
         return jsonify({'success': True})
 
@@ -1986,7 +2578,7 @@ def send_voice(other_user):
 
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-        messages[chat_key].append({
+        voice_message = {
             'from': current_user,
             'to': other_user,
             'type': 'voice',
@@ -1994,7 +2586,9 @@ def send_voice(other_user):
             'duration': duration,
             'timestamp': new_timestamp,
             'read': False
-        })
+        }
+
+        messages[chat_key].append(voice_message)
         save_json(MESSAGES_FILE, messages)
 
         # ✅ Mark as read for yourself after sending
@@ -2002,6 +2596,13 @@ def send_voice(other_user):
             read_receipts[current_user] = {}
         read_receipts[current_user][chat_key] = new_timestamp
         save_json(READ_RECEIPTS_FILE, read_receipts)
+
+        # Broadcast new voice message to recipient via WebSocket
+        message_index = len(messages[chat_key]) - 1
+        socketio.emit('new_voice', {
+            'message': voice_message,
+            'message_index': message_index
+        }, room=f'chat_{other_user}')
 
         return jsonify({'success': True})
 
@@ -2166,16 +2767,22 @@ def send_tokens(other_user):
 
     new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
 
-    messages[chat_key].append({
+    token_gift_message = {
         'from': 'system',
         'to': other_user,
         'type': 'token_gift',
         'text': f'{current_user} sent {amount} tokens to {other_user}!️',
         'timestamp': new_timestamp,
         'read': False
-    })
+    }
+    messages[chat_key].append(token_gift_message)
     save_json(MESSAGES_FILE, messages)
 
+    # Emit WebSocket event to notify both users in real-time
+    message_data = token_gift_message.copy()
+    message_data['index'] = len(messages[chat_key]) - 1
+    socketio.emit('new_chat_message', message_data, room=f'chat_{other_user}')
+    socketio.emit('new_chat_message', message_data, room=f'chat_{current_user}')
 
     return jsonify({'success': True, 'new_balance': users[current_user]['tokens']})
 
@@ -2235,6 +2842,7 @@ def get_users_with_ranks():
 
     online_threshold = 30
     users_by_rank = {}
+    pr_director_user = None
 
     for username in users.keys():
         if username == current_user:
@@ -2275,19 +2883,59 @@ def get_users_with_ranks():
             last_msg = messages[chat_key][-1]
             last_message_timestamp = last_msg['timestamp']
 
-            if last_msg.get('type') == 'snap':
+            # Determine message type and snap state
+            msg_type = last_msg.get('type', 'text')
+            snap_opened = False
+            text_opened = False
+            gift_opened = False
+
+            if msg_type == 'snap':
                 preview = '📷 Snap'
-            elif last_msg.get('type') == 'voice':
+                # Check if snap was opened by checking snap_views
+                message_index = len(messages[chat_key]) - 1
+                if chat_key in snap_views and str(message_index) in snap_views[chat_key]:
+                    snap_data = snap_views[chat_key][str(message_index)]
+                    # Determine if snap is "opened" from current user's perspective
+                    if last_msg['from'] == current_user:
+                        # I sent it - check if recipient opened it
+                        recipient = last_msg['to']
+                        snap_opened = recipient in snap_data.get('opened_by', [])
+                    else:
+                        # I received it - check if I opened it
+                        snap_opened = current_user in snap_data.get('opened_by', [])
+            elif msg_type == 'voice':
                 preview = '🎤 Voice message'
-            elif last_msg.get('type') == 'token_gift':
+            elif msg_type == 'token_gift':
                 preview = '🎁 Token gift'
+                # Check if gift was read (opened)
+                if last_msg['from'] == current_user:
+                    # I sent it - check if recipient read it
+                    recipient = last_msg['to']
+                    recipient_last_read = read_receipts.get(recipient, {}).get(chat_key, '')
+                    gift_opened = recipient_last_read and last_msg['timestamp'] <= recipient_last_read
+                else:
+                    # I received it - check if I read it
+                    gift_opened = last_read and last_msg['timestamp'] <= last_read
             else:
                 preview = last_msg.get('text', '')[:50] + ('...' if len(last_msg.get('text', '')) > 50 else '')
+                # Check if text message was read
+                if last_msg['from'] == current_user:
+                    # I sent it - check if recipient read it
+                    recipient = last_msg['to']
+                    recipient_last_read = read_receipts.get(recipient, {}).get(chat_key, '')
+                    text_opened = recipient_last_read and last_msg['timestamp'] <= recipient_last_read
+                else:
+                    # I received it - check if I read it
+                    text_opened = last_read and last_msg['timestamp'] <= last_read
 
             last_message = {
                 'preview': preview,
                 'timestamp': last_msg['timestamp'],
-                'from_me': last_msg['from'] == current_user
+                'from_me': last_msg['from'] == current_user,
+                'type': msg_type,
+                'snap_opened': snap_opened,
+                'text_opened': text_opened,
+                'gift_opened': gift_opened
             }
 
         # Get Instagram full name if profile exists
@@ -2309,9 +2957,28 @@ def get_users_with_ranks():
             'has_glow': users[username].get('glow_effect', {}).get('enabled', False)
         })
 
+        if users[username].get('role') == 'pr_director':
+            pr_director_user = {**users_by_rank[rank_id][-1], 'rank_id': rank_id}
+
+    # Get current user's profile data for header
+    current_user_profile = None
+    current_user_rank = None
+    if current_user in profiles:
+        profile_pic = profiles[current_user].get('profile_picture')
+        # Only set profile picture if it's not None/empty
+        if profile_pic:
+            current_user_profile = profile_pic
+    if current_user in users:
+        current_user_rank = users[current_user].get('rank')
+
     # Update cache with user identifier to prevent cross-user cache pollution
     user_list_cache = {
         'users_by_rank': users_by_rank,
+        'current_user_data': {
+            'profile_picture': current_user_profile,
+            'rank': current_user_rank
+        },
+        'pr_director': pr_director_user,
         '_cached_for': current_user
     }
     user_list_cache_time = current_time
@@ -2428,6 +3095,21 @@ def send_lounge_message():
     current_user = session['username']
 
     if message_text:
+        # Handle /clear command for admins/master moderators via HTTP endpoint
+        if message_text.strip().lower() == '/clear':
+            user_role = users[current_user].get('role', 'user')
+            if user_role in ['admin', 'master_moderator']:
+                lounge_messages.clear()
+                lounge_reactions.clear()
+                lounge_read_receipts.clear()
+                save_json(LOUNGE_FILE, lounge_messages)
+                save_json(LOUNGE_REACTIONS_FILE, lounge_reactions)
+                save_json(LOUNGE_READ_RECEIPTS_FILE, lounge_read_receipts)
+                socketio.emit('lounge_cleared', room='lounge')
+                return jsonify({'success': True, 'cleared': True})
+            else:
+                return jsonify({'error': 'Unauthorized to clear lounge'}), 403
+
         new_timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
         display_time = get_ny_time().strftime('%I:%M %p')
 
@@ -2476,28 +3158,34 @@ def send_lounge_message():
 def get_lounge_messages():
     # ✅ DO NOT mark as read when polling - only when user explicitly marks
 
-    print(f"[LOUNGE DEBUG] GET /lounge/messages - Total messages in memory: {len(lounge_messages)}")
-    print(f"[LOUNGE DEBUG] LOUNGE_FILE path: {LOUNGE_FILE}")
+    limit = request.args.get('limit', default=10, type=int)
+    before = request.args.get('before', default=None, type=int)
+    limit = max(1, min(limit, 100))  # clamp to sane range
+    total_messages = len(lounge_messages)
 
-    # Check file on disk
-    if os.path.exists(LOUNGE_FILE):
-        file_size = os.path.getsize(LOUNGE_FILE)
-        print(f"[LOUNGE DEBUG] File exists! Size: {file_size} bytes")
+    end_index = total_messages if before is None else min(before, total_messages)
+    start_index = max(0, end_index - limit)
+    sliced_messages = lounge_messages[start_index:end_index]
 
-        # Read and verify file content
-        try:
-            with open(LOUNGE_FILE, 'r') as f:
-                file_content = json.load(f)
-                print(f"[LOUNGE DEBUG] Messages in file on disk: {len(file_content)}")
-        except Exception as e:
-            print(f"[LOUNGE DEBUG] Error reading file: {e}")
-    else:
-        print(f"[LOUNGE DEBUG] WARNING: File does not exist!")
+    staff_tags = {}
+    messages_payload = []
+    for offset, msg in enumerate(sliced_messages):
+        global_index = start_index + offset
+        message_copy = msg.copy()
+        message_copy['index'] = global_index
+        message_copy['reactions'] = lounge_reactions.get(str(global_index), {})
+        messages_payload.append(message_copy)
+        sender = msg.get('from')
+        if sender and sender not in staff_tags:
+            staff_tags[sender] = get_lounge_staff_tag(sender)
 
     return jsonify({
-        'messages': lounge_messages,
-        'reactions': lounge_reactions,
-        'user_role': users[session['username']]['role']
+        'messages': messages_payload,
+        'user_role': users[session['username']]['role'],
+        'staff_tags': staff_tags,
+        'has_more': start_index > 0,
+        'start_index': start_index,
+        'total': total_messages
     })
 
 @app.route('/lounge/react/<int:message_index>', methods=['POST'])
@@ -2585,14 +3273,15 @@ def send_lounge_snap():
         if current_user in lounge_users:
             profile = profiles.get(current_user, {})
             profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
-            user_rank = users.get(current_user, {}).get('rank')
+            staff_tag = get_lounge_staff_tag(current_user)
             broadcast_message = snap_message.copy()
             broadcast_message['index'] = len(lounge_messages) - 1
 
             socketio.emit('new_lounge_message', {
                 'message': broadcast_message,
                 'profile_picture': profile_picture,
-                'user_rank': user_rank
+                'user_rank': staff_tag,
+                'staff_tag': staff_tag
             }, room='lounge')
 
         return jsonify({'success': True})
@@ -2630,14 +3319,15 @@ def send_lounge_voice():
         if current_user in lounge_users:
             profile = profiles.get(current_user, {})
             profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
-            user_rank = users.get(current_user, {}).get('rank')
+            staff_tag = get_lounge_staff_tag(current_user)
             broadcast_message = voice_message.copy()
             broadcast_message['index'] = len(lounge_messages) - 1
 
             socketio.emit('new_lounge_message', {
                 'message': broadcast_message,
                 'profile_picture': profile_picture,
-                'user_rank': user_rank
+                'user_rank': staff_tag,
+                'staff_tag': staff_tag
             }, room='lounge')
 
         return jsonify({'success': True})
@@ -2678,9 +3368,8 @@ def clear_login_notifications():
 @login_required
 def proxy():
     username = session['username']
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
     return render_template('proxy.html',
         user_tokens=users[username].get('tokens', 0),
@@ -2692,11 +3381,14 @@ def proxy():
         site_access=site_access
     )
 
+@app.route('/transfer')
 @app.route('/transfer-saves')
 @maintenance_check
 @login_required
-def transfer_saves():
-    return render_template('transfer_saves.html')
+def transfer():
+    if request.path == '/transfer-saves':
+        return redirect(url_for('transfer'))
+    return render_template('transfer_import.html')
 
 @app.route('/proxy_test')
 def proxy_test():
@@ -2724,9 +3416,8 @@ def test_iframe():
 @login_required
 def bg():
     username = session['username']
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
     return render_template('bg.html',
         user_tokens=users[username].get('tokens', 0),
@@ -2887,7 +3578,10 @@ def play_game(game_id):
     if game.get('is_minecraft_game', False):
         return redirect(url_for('download', game_id=game_id))
 
-    if game.get('free_for_all', True):
+    # Free games: explicitly marked as free_for_all, have price of 0, or is idle_dice (limited time event)
+    is_free = game.get('free_for_all', True) or game.get('price', 0) == 0 or game_id == 'idle_dice'
+
+    if is_free:
         pass
     else:
         if username not in purchases:
@@ -2901,10 +3595,20 @@ def play_game(game_id):
     plays[username][game_id] += 1
     save_json(PLAYS_FILE, plays)
 
-    # Inject notification system into game HTML
+    # Inject notification system and presence tracking into game HTML
     notification_html = (
         '<div id="chatNotificationContainer"></div>'
-        '<script src="/static/notifications.js?v=2"></script>'
+        '<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>'
+        '<script>'
+        'const socket = io();'
+        'socket.on("connect", () => {'
+        '    socket.emit("presence_heartbeat");'
+        '});'
+        'setInterval(() => {'
+        '    socket.emit("presence_heartbeat");'
+        '}, 10000);'  # Send heartbeat every 10 seconds
+        '</script>'
+        '<script src="/static/notifications.js?v=3"></script>'
     )
 
     game_html = game['html_content']
@@ -3167,16 +3871,30 @@ def claim_idle_dice_achievement():
                        f"{achievement['name']} ({achievement_id})")
 
         # Send notification to lounge
-        notification_msg = f"🎮 {username} unlocked '{achievement['name']}' in Idle Dice and earned {tokens} tokens!"
         timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
-        lounge_messages.append({
+        achievement_message = {
             'from': 'system',
-            'message': notification_msg,
+            'message': f"{username} earned {tokens}🎟️ from unlocking {achievement['name']} in Idle Dice!",
             'timestamp': timestamp,
             'display_time': get_ny_time().strftime('%I:%M %p'),
-            'type': 'text'
-        })
+            'type': 'achievement',
+            'achievement_name': achievement['name'],
+            'tokens': tokens,
+            'username': username
+        }
+        lounge_messages.append(achievement_message)
         save_json(LOUNGE_FILE, lounge_messages)
+
+        # Broadcast achievement to lounge via WebSocket
+        message_for_broadcast = achievement_message.copy()
+        message_for_broadcast['index'] = len(lounge_messages) - 1
+        socketio.emit('new_lounge_message', {
+            'message': message_for_broadcast,
+            'profile_picture': None,
+            'user_rank': None
+        }, room='lounge')
+
+        # Notifications handled by polling in notifications.js
 
     return jsonify({
         'success': True,
@@ -3577,11 +4295,52 @@ def admin_panel():
     # Get pending paychecks count
     pending_paychecks = len(paychecks.get('pending', []))
 
+    # Calculate total messages and snaps in private chats (from Jan 3, 2026 9 PM NY time onwards)
+    ny_tz = pytz.timezone('America/New_York')
+    reset_date = datetime(2026, 1, 3, 21, 0, 0, tzinfo=ny_tz)  # January 3rd, 2026 at 9 PM NY time
+    total_messages = 0
+    total_snaps = 0
+    for chat_key, chat_messages in messages.items():
+        for msg in chat_messages:
+            # Only count messages after reset date
+            msg_timestamp = msg.get('timestamp')
+            should_count = False
+            if msg_timestamp:
+                try:
+                    msg_date = datetime.strptime(msg_timestamp, '%Y-%m-%d %H:%M:%S')
+                    # Make msg_date timezone-aware (assume it's in NY time)
+                    msg_date = ny_tz.localize(msg_date)
+                    if msg_date >= reset_date:
+                        should_count = True
+                except:
+                    # If parsing fails, don't count it
+                    should_count = False
+
+            if should_count:
+                if msg.get('type') == 'snap':
+                    total_snaps += 1
+                elif msg.get('type') != 'token_gift':  # Don't count system messages
+                    total_messages += 1
+
+    # Filter feedback and website requests based on role
+    filtered_feedback = feedback
+    filtered_website_requests = website_requests
+
+    if user_role == 'pr_director':
+        # PR Directors only see items that haven't been forwarded yet
+        filtered_feedback = [item for item in feedback if not item.get('forwarded', False)]
+        filtered_website_requests = [item for item in website_requests if not item.get('forwarded', False)]
+    elif user_role == 'admin':
+        # Admin sees all items, but we'll sort them (forwarded first)
+        filtered_feedback = sorted(feedback, key=lambda x: (not x.get('forwarded', False), x.get('timestamp', '')))
+        filtered_website_requests = sorted(website_requests, key=lambda x: (not x.get('forwarded', False), x.get('timestamp', '')))
+
     return render_template('admin.html',
         users=users,
         games=games_metadata,
         announcements=announcements,
-        feedback=feedback,
+        feedback=filtered_feedback,
+        website_requests=filtered_website_requests,
         user_role=user_role,
         user_permissions=user_permissions,
         purchases=purchases,
@@ -3594,8 +4353,46 @@ def admin_panel():
         STAFF_ROLES=STAFF_ROLES,
         pending_reports=pending_reports,
         pending_paychecks=pending_paychecks,
-        reported_messages=reported_messages
+        reported_messages=reported_messages,
+        total_messages=total_messages,
+        total_snaps=total_snaps
     )
+
+@app.route('/api/message_stats')
+@panel_access_required
+def get_message_stats():
+    """Get total messages and snaps counts (from Jan 3, 2026 9 PM NY time onwards)"""
+    ny_tz = pytz.timezone('America/New_York')
+    reset_date = datetime(2026, 1, 3, 21, 0, 0, tzinfo=ny_tz)  # January 3rd, 2026 at 9 PM NY time
+    total_messages = 0
+    total_snaps = 0
+    for chat_key, chat_messages in messages.items():
+        for msg in chat_messages:
+            # Only count messages after reset date
+            msg_timestamp = msg.get('timestamp')
+            should_count = False
+            if msg_timestamp:
+                try:
+                    msg_date = datetime.strptime(msg_timestamp, '%Y-%m-%d %H:%M:%S')
+                    # Make msg_date timezone-aware (assume it's in NY time)
+                    msg_date = ny_tz.localize(msg_date)
+                    if msg_date >= reset_date:
+                        should_count = True
+                except:
+                    # If parsing fails, don't count it
+                    should_count = False
+
+            if should_count:
+                if msg.get('type') == 'snap':
+                    total_snaps += 1
+                elif msg.get('type') != 'token_gift':  # Don't count system messages
+                    total_messages += 1
+
+    return jsonify({
+        'success': True,
+        'total_messages': total_messages,
+        'total_snaps': total_snaps
+    })
 
 @app.route('/api/get_game_html/<game_id>')
 @admin_required
@@ -3734,6 +4531,49 @@ def delete_feedback(index):
         feedback.pop(index)
         save_json(FEEDBACK_FILE, feedback)
     return redirect(url_for('admin_panel'))
+
+@app.route('/panel/forward_feedback/<int:index>', methods=['POST'])
+@panel_access_required
+def forward_feedback(index):
+    username = session['username']
+    if not has_permission(username, 'manage_feedback'):
+        return jsonify({'error': 'No permission'}), 403
+
+    if 0 <= index < len(feedback):
+        # Mark as forwarded by this user
+        feedback[index]['forwarded'] = True
+        feedback[index]['forwarded_by'] = username
+        feedback[index]['forwarded_at'] = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        save_json(FEEDBACK_FILE, feedback)
+        return jsonify({'success': True})
+    return jsonify({'error': 'Invalid index'}), 400
+
+@app.route('/panel/delete_website_request/<int:index>', methods=['GET', 'POST'])
+@panel_access_required
+def delete_website_request(index):
+    username = session['username']
+    if not has_permission(username, 'manage_feedback'):
+        return redirect(url_for('admin_panel'))
+    if 0 <= index < len(website_requests):
+        website_requests.pop(index)
+        save_json(WEBSITE_REQUESTS_FILE, website_requests)
+    return redirect(url_for('admin_panel'))
+
+@app.route('/panel/forward_website_request/<int:index>', methods=['POST'])
+@panel_access_required
+def forward_website_request(index):
+    username = session['username']
+    if not has_permission(username, 'manage_feedback'):
+        return jsonify({'error': 'No permission'}), 403
+
+    if 0 <= index < len(website_requests):
+        # Mark as forwarded by this user
+        website_requests[index]['forwarded'] = True
+        website_requests[index]['forwarded_by'] = username
+        website_requests[index]['forwarded_at'] = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
+        save_json(WEBSITE_REQUESTS_FILE, website_requests)
+        return jsonify({'success': True})
+    return jsonify({'error': 'Invalid index'}), 400
 
 @app.route('/panel/create_user', methods=['POST'])
 @panel_access_required
@@ -3971,8 +4811,12 @@ def delete_game(game_id):
 @admin_required
 def add_announcement():
     announcement_text = request.form.get('announcement')
+    announcement_title = request.form.get('title', '')
     if announcement_text:
+        import uuid
         announcements.append({
+            'id': str(uuid.uuid4()),
+            'title': announcement_title,
             'text': announcement_text,
             'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
         })
@@ -4993,9 +5837,8 @@ def get_total_group_unread_count(username):
 def groups_list():
     """Display list of all groups"""
     username = session['username']
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
 
     # Get groups with unread counts
@@ -5072,6 +5915,8 @@ def group_chat(group_id):
         group_read_receipts[username][group_id] = group_messages[group_id][-1]['timestamp']
         save_json(GROUP_READ_RECEIPTS_FILE, group_read_receipts)
 
+    can_manage_messages = username == group_data['leader']
+
     # Get reactions for this group
     reactions = group_reactions.get(group_id, {})
 
@@ -5082,6 +5927,7 @@ def group_chat(group_id):
         reactions=reactions,
         current_user=username,
         is_leader=username == group_data['leader'],
+        can_manage_messages=can_manage_messages,
         user_role=users[username]['role'],
         profiles=profiles,
         all_users=[u for u in users.keys() if u != username and u != group_data['leader'] and u not in group_data.get('members', [])],
@@ -5156,7 +6002,7 @@ def create_group():
     # Initialize messages
     group_messages[group_id] = [{
         'from': 'system',
-        'text': f'🎉 {username} created the group "{group_name}"',
+        'text': f'{username} created the group "{group_name}"',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     }]
 
@@ -5172,7 +6018,7 @@ def create_group():
             'from': 'system',
             'to': member,
             'type': 'group_invite',
-            'text': f'🎊 {username} added you to the group "{group_name}"!',
+            'text': f'{username} added you to the group "{group_name}"',
             'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
             'read': False
         })
@@ -5202,6 +6048,19 @@ def send_group_message(group_id):
     if not message_text:
         return jsonify({'error': 'Message cannot be empty'}), 400
 
+    reply_to_index = request.form.get('reply_to_index')
+    reply_to = None
+    if reply_to_index is not None and str(reply_to_index).strip() != '':
+        try:
+            reply_to = {
+                'index': int(reply_to_index),
+                'sender': request.form.get('reply_to_sender', ''),
+                'preview': request.form.get('reply_to_preview', ''),
+                'type': request.form.get('reply_to_type', 'text')
+            }
+        except ValueError:
+            reply_to = None
+
     if group_id not in group_messages:
         group_messages[group_id] = []
 
@@ -5210,7 +6069,8 @@ def send_group_message(group_id):
     group_messages[group_id].append({
         'from': username,
         'text': message_text,
-        'timestamp': new_timestamp
+        'timestamp': new_timestamp,
+        'reply_to': reply_to
     })
 
     save_json(GROUP_MESSAGES_FILE, group_messages)
@@ -5480,7 +6340,7 @@ def add_group_member(group_id):
         group_messages[group_id] = []
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'👋 {member_username} was added to the group by {username}',
+        'text': f'{member_username} was added to the group by {username}',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5560,7 +6420,7 @@ def leave_group(group_id):
     # Add system message
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'👋 {username} left the group',
+        'text': f'{username} left the group',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5670,7 +6530,7 @@ def deposit_to_group_bank(group_id):
 
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'💵 {username} deposited {amount} tokens to the group bank. Bank balance: {groups[group_id]["bank"]} tokens',
+        'text': f'{username} deposited {amount} tokens to the group bank. Bank balance: {groups[group_id]["bank"]} tokens',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5722,7 +6582,7 @@ def upgrade_group_rank(group_id):
 
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'🎉 {username} upgraded the group to {GROUP_RANKS[next_rank]["name"]}! Cost: {upgrade_cost} tokens. Bank balance: {groups[group_id]["bank"]} tokens. Member cap increased to {GROUP_RANKS[next_rank]["member_cap"]}.',
+        'text': f'{username} upgraded the group to {GROUP_RANKS[next_rank]["name"]}. Cost: {upgrade_cost} tokens. Bank balance: {groups[group_id]["bank"]} tokens. Member cap increased to {GROUP_RANKS[next_rank]["member_cap"]}.',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5783,7 +6643,7 @@ def send_from_group_bank(group_id):
 
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'💸 {username} sent {amount} tokens from the bank to {recipient}. Bank balance: {groups[group_id]["bank"]} tokens',
+        'text': f'{username} sent {amount} tokens from the bank to {recipient}. Bank balance: {groups[group_id]["bank"]} tokens',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -5807,16 +6667,51 @@ def get_groups_unread_count():
 @app.route('/api/chat/unread_count')
 @login_required
 def get_chat_unread_count():
-    """Get combined unread counts for chats and groups"""
+    """Get unread count for private chats only (not groups)"""
     username = session['username']
     chat_unread = get_unread_count(username)
-    group_unread = get_total_group_unread_count(username)
     return jsonify({
         'success': True,
         'chat_unread': chat_unread,
-        'group_unread': group_unread,
-        'total': chat_unread + group_unread
+        'total': chat_unread  # Only return chat unread, not groups
     })
+
+@app.route('/api/lounge/unread_count')
+@login_required
+def get_lounge_unread_count_api():
+    """Get unread count for lounge"""
+    username = session['username']
+    lounge_unread = get_lounge_unread_count(username)
+    return jsonify({
+        'success': True,
+        'count': lounge_unread
+    })
+
+@app.route('/api/lounge_notifications')
+@login_required
+def get_lounge_notifications():
+    """Get unread lounge notifications for polling"""
+    username = session['username']
+
+    if not lounge_messages:
+        return jsonify({'notifications': []})
+
+    last_read = lounge_read_receipts.get(username, '')
+
+    # Get unread messages from others
+    unread_messages = []
+    for msg in lounge_messages:
+        if msg.get('from') == username:
+            continue
+        if not last_read or msg['timestamp'] > last_read:
+            unread_messages.append({
+                'from': msg.get('from', 'Unknown'),
+                'message': msg.get('message', ''),
+                'timestamp': msg['timestamp'],
+                'type': msg.get('type', 'text')
+            })
+
+    return jsonify({'notifications': unread_messages})
 
 # ===============================================================
 # Admin Group Management Routes
@@ -5880,7 +6775,7 @@ def admin_rename_group(group_id):
         group_messages[group_id] = []
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'✏️ Group renamed from "{old_name}" to "{new_name}" by admin',
+        'text': f'Group renamed from "{old_name}" to "{new_name}" by admin',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
     save_json(GROUP_MESSAGES_FILE, group_messages)
@@ -5944,7 +6839,7 @@ def admin_kick_member(group_id, member):
         group_messages[group_id] = []
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'👢 {member} was removed from the group by admin',
+        'text': f'{member} was removed from the group by admin',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
     save_json(GROUP_MESSAGES_FILE, group_messages)
@@ -5993,7 +6888,7 @@ def admin_transfer_leadership(group_id, new_leader):
         group_messages[group_id] = []
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'👑 Leadership transferred from {old_leader} to {new_leader} by admin',
+        'text': f'Leadership transferred from {old_leader} to {new_leader} by admin',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
     save_json(GROUP_MESSAGES_FILE, group_messages)
@@ -6043,7 +6938,7 @@ def admin_add_member(group_id):
         group_messages[group_id] = []
     group_messages[group_id].append({
         'from': 'system',
-        'text': f'➕ {new_member} was added to the group by admin',
+        'text': f'{new_member} was added to the group by admin',
         'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
     })
     save_json(GROUP_MESSAGES_FILE, group_messages)
@@ -6053,37 +6948,188 @@ def admin_add_member(group_id):
 @app.route('/api/report_message', methods=['POST'])
 @login_required
 def report_message():
-    """Report a message in private chat"""
+    """Report a message in private chat or a group"""
     data = request.json
     chat_key = data.get('chat_key')
+    group_id = data.get('group_id')
     message_index = data.get('message_index')
     reason = data.get('reason', '')
+    sender_hint = data.get('sender')
+    preview_hint = data.get('preview', '')
+    timestamp_hint = data.get('timestamp', '')
 
-    if not chat_key or message_index is None:
+    if (not chat_key and not group_id) or message_index is None:
         return jsonify({'error': 'Invalid request'}), 400
 
-    # Get the message
-    if chat_key not in messages or message_index >= len(messages[chat_key]):
+    try:
+        message_index = int(message_index)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Invalid message index'}), 400
+
+    reporter = session['username']
+
+    # Group message reporting
+    if group_id:
+        group_id = str(group_id)
+        if group_id not in groups:
+            return jsonify({'error': 'Group not found'}), 404
+
+        group_data = groups[group_id]
+        if reporter != group_data['leader'] and reporter not in group_data.get('members', []):
+            return jsonify({'error': 'You are not a member of this group'}), 403
+
+        if group_id not in group_messages or message_index >= len(group_messages[group_id]):
+            return jsonify({'error': 'Message not found'}), 404
+
+        msg = group_messages[group_id][message_index]
+        key_for_report = f'group:{group_id}'
+
+        # Can't report your own messages
+        if msg.get('from') == reporter:
+            return jsonify({'error': 'Cannot report your own message'}), 400
+
+        for report in reported_messages:
+            if report['chat_key'] == key_for_report and report['message_index'] == message_index:
+                return jsonify({'error': 'Message already reported'}), 400
+
+        content_preview = msg.get('text', '[Media Message]')
+        msg_type = msg.get('type', 'text')
+        if msg_type == 'snap':
+            content_preview = '📸 [Snap Message]'
+        elif msg_type == 'voice':
+            content_preview = '🎤 [Voice Message]'
+
+        report = {
+            'id': len(reported_messages) + 1,
+            'chat_key': key_for_report,
+            'message_index': message_index,
+            'message_content': content_preview,
+            'message_type': msg_type,
+            'sender': msg.get('from'),
+            'reporter': reporter,
+            'reason': reason,
+            'status': 'pending',
+            'timestamp': get_ny_time().strftime('%Y-%m-%d %H:%M:%S'),
+            'resolved_by': None,
+            'resolved_at': None,
+            'resolution_note': None
+        }
+
+        reported_messages.insert(0, report)
+        save_json(REPORTED_MESSAGES_FILE, reported_messages)
+
+        return jsonify({'success': True, 'message': 'Report submitted'})
+
+    # Private chat messages
+    if chat_key not in messages:
         return jsonify({'error': 'Message not found'}), 404
 
-    msg = messages[chat_key][message_index]
-    reporter = session['username']
+    chat_msgs = messages[chat_key]
+    app.logger.info('[report_message] incoming', extra={
+        'chat_key': chat_key,
+        'len': len(chat_msgs),
+        'incoming_index': message_index,
+        'sender_hint': sender_hint,
+        'preview_hint': preview_hint,
+        'timestamp_hint': timestamp_hint,
+        'reporter': reporter
+    })
+
+    def normalize_text(val):
+        return str(val or '').strip().lower()
+
+    def build_preview_text(m):
+        mtype = m.get('type', 'text')
+        if mtype == 'snap':
+            return '📸 [Snap Message]'
+        if mtype == 'voice':
+            return '🎤 [Voice Message]'
+        return m.get('text', '[Message]')
+
+    # Validate provided index first
+    if not (0 <= message_index < len(chat_msgs)):
+        return jsonify({'error': 'Message not found'}), 404
+
+    normalized_hint = normalize_text(preview_hint)
+    hint_has_preview = normalized_hint not in ('', '[message]')
+    ts_hint = str(timestamp_hint or '').strip()
+
+    def preview_of(m):
+        mtype = m.get('type', 'text')
+        if mtype == 'snap':
+            return '📸 [Snap Message]'
+        if mtype == 'voice':
+            return '🎤 [Voice Message]'
+        if mtype == 'token_gift':
+            return m.get('text', '🎁 Token Gift')
+        return m.get('text', '[Message]')
+
+    def matches_all(m, require_sender=False, require_preview=False, require_timestamp=False):
+        if require_sender and sender_hint and m.get('from') != sender_hint:
+            return False
+        if require_timestamp and ts_hint:
+            if str(m.get('timestamp', '')).strip() != ts_hint:
+                return False
+        if require_preview and hint_has_preview:
+            if normalized_hint not in normalize_text(preview_of(m)):
+                return False
+        return True
+
+    def search_messages(require_sender=False, require_preview=False, require_timestamp=False):
+        for idx in range(len(chat_msgs) - 1, -1, -1):
+            cand = chat_msgs[idx]
+            if matches_all(cand, require_sender, require_preview, require_timestamp):
+                return idx, cand
+        return None, None
+
+    # Priority: exact timestamp+sender+preview -> timestamp+sender -> sender+preview -> timestamp -> sender -> preview -> provided index
+    chosen_idx, msg = (None, None)
+    search_order = [
+        (True, True, True),
+        (True, False, True),
+        (True, True, False),
+        (False, False, True),
+        (True, False, False),
+        (False, True, False),
+    ]
+    for req_sender, req_preview, req_ts in search_order:
+        if (req_sender and not sender_hint) or (req_preview and not hint_has_preview) or (req_ts and not ts_hint):
+            continue
+        chosen_idx, msg = search_messages(req_sender, req_preview, req_ts)
+        if msg:
+            break
+
+    # Fallback to provided index if no match found via hints
+    if not msg:
+        chosen_idx = message_index
+        msg = chat_msgs[message_index]
+
+    app.logger.info('[report_message] resolved', extra={
+        'resolved_index': chosen_idx,
+        'resolved_sender': msg.get('from'),
+        'resolved_type': msg.get('type'),
+        'resolved_preview': preview_of(msg),
+        'resolved_timestamp': msg.get('timestamp', '')
+    })
 
     # Can't report your own messages
     if msg.get('from') == reporter:
         return jsonify({'error': 'Cannot report your own message'}), 400
 
-    # Check if already reported
+    # Use resolved index for duplicate check
     for report in reported_messages:
-        if report['chat_key'] == chat_key and report['message_index'] == message_index:
+        if report['chat_key'] == chat_key and report['message_index'] == chosen_idx:
             return jsonify({'error': 'Message already reported'}), 400
+
+    msg_type = msg.get('type', 'text')
+    content_preview = preview_of(msg)
 
     report = {
         'id': len(reported_messages) + 1,
         'chat_key': chat_key,
-        'message_index': message_index,
-        'message_content': msg.get('text', '[Media Message]'),
-        'message_type': msg.get('type', 'text'),
+        'message_index': chosen_idx,
+        'message_content': content_preview,
+        'message_type': msg_type,
         'sender': msg.get('from'),
         'reporter': reporter,
         'reason': reason,
@@ -6211,8 +7257,8 @@ def get_paychecks():
         # Show only their own paycheck status
         my_pending = [p for p in paychecks.get('pending', []) if p['username'] == username]
         my_history = [p for p in paychecks.get('history', []) if p['username'] == username][:20]
-        response['my_pending'] = my_pending
-        response['my_history'] = my_history
+        response['pending'] = my_pending  # Changed from 'my_pending' to 'pending' for consistency
+        response['history'] = my_history  # Changed from 'my_history' to 'history' for consistency
         response['my_role'] = STAFF_ROLES.get(user_role, {})
         response['can_approve'] = False
     else:
@@ -6627,9 +7673,8 @@ def gmail_page():
             save_json(GMAIL_TOKENS_FILE, gmail_tokens)
         return redirect(url_for('proxy'))
 
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    unread_count += group_unread_count
+    unread_count = get_unread_count(username)  # Only count private chat messages
+    group_unread_count = get_total_group_unread_count(username)  # Track group messages separately
     lounge_unread_count = get_lounge_unread_count(username)
 
     # Check if user has Gmail connected
@@ -7560,6 +8605,26 @@ def blackjack_split(game_id):
 # Track users currently in lounge: {username: session_id}
 lounge_users = {}
 
+@socketio.on('connect')
+def handle_connect():
+    """Client connected to SocketIO"""
+    username = session.get('username', 'anonymous')
+    print(f"[SOCKETIO] Client connected: {username} (SID: {request.sid})")
+
+    # Update user activity on connect
+    if username and username != 'anonymous':
+        user_activity[username] = get_ny_time().timestamp()
+
+@socketio.on('presence_heartbeat')
+def handle_presence_heartbeat():
+    """Receive presence heartbeat from any page (including games)"""
+    try:
+        username = session.get('username')
+        if username:
+            user_activity[username] = get_ny_time().timestamp()
+    except Exception as e:
+        print(f"Error in presence_heartbeat: {e}")
+
 @socketio.on('join_chat')
 def handle_join_chat(data):
     """User joins their personal chat room for receiving snap updates"""
@@ -7602,11 +8667,13 @@ def handle_join_lounge():
         for user, sid in lounge_users.items():
             user_profile = profiles.get(user, {})
             user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
-            user_rank = users.get(user, {}).get('rank')  # Purchased rank
+            staff_tag = get_lounge_staff_tag(user)
+            rank = users.get(user, {}).get('rank')
             online_users_list.append({
                 'username': user,
                 'profile_picture': user_pic,
-                'rank': user_rank
+                'staff_tag': staff_tag,
+                'rank': rank
             })
 
         # Send updated online users list to EVERYONE in the room (including joiner)
@@ -7641,11 +8708,13 @@ def handle_leave_lounge():
         for user, sid in lounge_users.items():
             user_profile = profiles.get(user, {})
             user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
-            user_rank = users.get(user, {}).get('rank')  # Purchased rank
+            staff_tag = get_lounge_staff_tag(user)
+            rank = users.get(user, {}).get('rank')
             online_users_list.append({
                 'username': user,
                 'profile_picture': user_pic,
-                'rank': user_rank
+                'staff_tag': staff_tag,
+                'rank': rank
             })
 
         # Send updated online users list to everyone remaining
@@ -7669,6 +8738,21 @@ def handle_send_message(data):
         if not message_text:
             return
 
+        # Handle /clear command (admin/master moderator only)
+        user_role = users[username].get('role', 'user')
+        if message_text.lower() == '/clear':
+            if user_role in ['admin', 'master_moderator']:
+                lounge_messages.clear()
+                lounge_reactions.clear()
+                lounge_read_receipts.clear()
+                save_json(LOUNGE_FILE, lounge_messages)
+                save_json(LOUNGE_REACTIONS_FILE, lounge_reactions)
+                save_json(LOUNGE_READ_RECEIPTS_FILE, lounge_read_receipts)
+                emit('lounge_cleared', room='lounge')
+                return
+            else:
+                return
+
         # Create message object
         timestamp = get_ny_time().strftime('%Y-%m-%d %H:%M:%S')
         display_time = get_ny_time().strftime('%I:%M %p')
@@ -7685,10 +8769,10 @@ def handle_send_message(data):
         lounge_messages.append(message)
         save_json(LOUNGE_FILE, lounge_messages)
 
-        # Get user's profile picture for broadcast
+        # Get user's profile picture and staff tag for broadcast
         profile = profiles.get(username, {})
         profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
-        user_rank = users.get(username, {}).get('rank')
+        staff_tag = get_lounge_staff_tag(username)
         message_for_broadcast = message.copy()
         message_for_broadcast['index'] = len(lounge_messages) - 1
 
@@ -7696,9 +8780,11 @@ def handle_send_message(data):
         emit('new_lounge_message', {
             'message': message_for_broadcast,
             'profile_picture': profile_picture,
-            'user_rank': user_rank
+            'user_rank': staff_tag,  # kept for backwards compatibility
+            'staff_tag': staff_tag
         }, room='lounge')
 
+        # Notifications handled by polling in notifications.js
         print(f"[LOUNGE] Message from {username}: {message_text[:50]}...")
 
     except Exception as e:
@@ -7758,11 +8844,13 @@ def handle_disconnect():
             for user, sid in lounge_users.items():
                 user_profile = profiles.get(user, {})
                 user_pic = user_profile.get('profile_picture') if user_profile.get('setup_complete') else None
-                user_rank = users.get(user, {}).get('rank')  # Purchased rank
+                staff_tag = get_lounge_staff_tag(user)
+                rank = users.get(user, {}).get('rank')
                 online_users_list.append({
                     'username': user,
                     'profile_picture': user_pic,
-                    'rank': user_rank
+                    'staff_tag': staff_tag,
+                    'rank': rank
                 })
 
             # Send updated online users list to everyone remaining
@@ -7810,14 +8898,15 @@ def send_lounge_gif():
         if username in lounge_users:
             profile = profiles.get(username, {})
             profile_picture = profile.get('profile_picture') if profile.get('setup_complete') else None
-            user_rank = users.get(username, {}).get('rank')
+            staff_tag = get_lounge_staff_tag(username)
             broadcast_message = message.copy()
             broadcast_message['index'] = len(lounge_messages) - 1
 
             socketio.emit('new_lounge_message', {
                 'message': broadcast_message,
                 'profile_picture': profile_picture,
-                'user_rank': user_rank
+                'user_rank': staff_tag,
+                'staff_tag': staff_tag
             }, room='lounge')
 
         return jsonify({'success': True})
@@ -7855,5 +8944,55 @@ def delete_lounge_message(message_index):
         return jsonify({'error': str(e)}), 500
 
 
+# ===============================================================
+# Google Classroom Initialization
+# ===============================================================
+
+def initialize_classroom():
+    """Initialize Google Classroom scraper and background thread."""
+    global CLASSROOM_ID
+
+    print("\n" + "="*60)
+    print("Google Classroom Integration")
+    print("="*60)
+
+    # ALWAYS load cached announcements if they exist (even without Selenium)
+    load_classroom_announcements_cache()
+
+    if not SELENIUM_AVAILABLE:
+        print("⚠️  Selenium not installed - scraping disabled")
+        print("   However, cached announcements will still be displayed if available")
+        print("   To enable scraping, install: pip install selenium")
+        print("="*60 + "\n")
+        return
+
+    # Load classroom configuration if exists
+    if os.path.exists(CLASSROOM_CONFIG_FILE):
+        with open(CLASSROOM_CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+            CLASSROOM_ID = config.get('classroom_id')
+            print(f"✅ Classroom ID loaded: {CLASSROOM_ID}")
+    else:
+        print("⚠️  No classroom configured yet")
+        print("   To configure:")
+        print("   1. Create a file: classroom_config.json")
+        print("   2. Add: {\"classroom_id\": \"YOUR_CLASSROOM_ID\"}")
+        print("   3. Login to Google Classroom and save cookies as google_cookies.pkl")
+
+    # Start background scraper if configured
+    if CLASSROOM_ID and os.path.exists(CLASSROOM_COOKIES_FILE):
+        print("\n🔄 Performing initial classroom scrape...")
+        scrape_classroom_announcements()
+
+        # Start background scraper thread
+        scraper_thread = threading.Thread(target=background_classroom_scraper, daemon=True)
+        scraper_thread.start()
+        print("✅ Background classroom scraper started (updates every 10 minutes)")
+
+    print("="*60 + "\n")
+
 if __name__ == '__main__':
+    # Initialize Google Classroom
+    initialize_classroom()
+
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)

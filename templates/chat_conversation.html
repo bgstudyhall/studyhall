@@ -492,7 +492,7 @@
 
         /* Last snap in group - line should stop at bottom with rounded corner */
         .snap-message-container:has(+ .snap-message-container .snap-sender-label)::before,
-        .snap-message-container:has(+ .snap-text-message)::before,
+        .snap-message-container:has(+ .snap-text-message .snap-sender-label)::before,
         .snap-message-container:last-child::before {
             bottom: 4px; /* Stop before the padding */
             border-bottom-left-radius: 2px;
@@ -530,7 +530,7 @@
 
         /* Last message in group */
         .snap-text-message:has(+ .snap-text-message .snap-sender-label)::before,
-        .snap-text-message:has(+ .snap-message-container)::before,
+        .snap-text-message:has(+ .snap-message-container .snap-sender-label)::before,
         .snap-text-message:last-child::before {
             border-bottom-left-radius: 2px;
             border-bottom-right-radius: 2px;
@@ -612,53 +612,95 @@
 
         /* Voice Messages */
         .voice-message {
-            background: var(--snap-surface) !important;
+            background: white !important;
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 16px !important;
-            max-width: 280px;
+            max-width: 320px;
+            border-radius: 18px;
         }
 
         .voice-play-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: auto;
+            height: auto;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
             transition: opacity 0.2s;
             flex-shrink: 0;
-            color: var(--snap-text);
+            padding: 0;
         }
 
         .voice-play-btn:hover {
-            opacity: 0.7;
+            opacity: 0.8;
+        }
+
+        /* Red/blue waveform styling based on sender */
+        [style*="--message-line-color: #EF4444"] .voice-bar {
+            background: #F87171 !important;
+        }
+
+        .voice-play-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+            pointer-events: none;
+        }
+
+        .voice-play-btn svg path {
+            pointer-events: none;
+        }
+
+        .voice-play-btn img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            pointer-events: none;
         }
 
         .voice-waveform {
             flex: 1;
-            height: 24px;
+            height: 40px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 2px;
         }
 
         .voice-bar {
             width: 3px;
-            background: rgba(255, 255, 255, 0.4);
+            background: #00D4FF;
             border-radius: 2px;
+            transition: height 0.1s;
+        }
+
+        .voice-speed-btn {
+            background: #F0F0F0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .voice-speed-btn:hover {
+            background: #E0E0E0;
         }
 
         .voice-duration {
-            color: var(--snap-text);
-            font-size: 13px;
+            color: #999;
+            font-size: 14px;
             font-weight: 500;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         /* Typing Indicator */
@@ -1100,6 +1142,12 @@
 
         .snap-footer-btn .camera-icon {
             font-size: 20px;
+        }
+
+        .snap-footer-btn img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
         }
 
         .snap-footer-btn img {
@@ -1601,6 +1649,102 @@
     color: #10b981;
 }
 
+/* Reply & action menu */
+.reply-context {
+    background: var(--snap-surface);
+    border: 1px solid var(--snap-border);
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--snap-text);
+}
+
+.reply-context .reply-label {
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: var(--snap-text-muted);
+}
+
+.reply-preview {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--snap-surface);
+    border: 1px solid var(--snap-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 8px 16px 0;
+}
+
+.reply-preview-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.reply-preview-text .reply-to {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--snap-text-muted);
+}
+
+.reply-preview-text .reply-snippet {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--snap-text);
+}
+
+.reply-cancel-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--snap-text-muted);
+    padding: 4px;
+}
+
+.action-menu {
+    position: fixed;
+    display: none;
+    background: white;
+    border: 1px solid var(--snap-border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 20000;
+    min-width: 200px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.action-buttons button {
+    width: 100%;
+    border: 1px solid var(--snap-border);
+    background: var(--snap-surface);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.action-buttons button:hover {
+    background: #efefef;
+}
+
+.action-buttons .danger {
+    color: #dc2626;
+    border-color: #fca5a5;
+    background: #fff5f5;
+}
+
     </style>
 </head>
 <body>
@@ -1641,12 +1785,22 @@
                     {# Snapchat-style Snap message #}
                     <div class="snap-message-container"
                          data-snap-index="{{ loop.index0 }}"
+                         data-index="{{ loop.index0 }}"
+                         data-type="snap"
+                         data-preview="📸 Snap"
+                         data-timestamp="{{ msg.timestamp }}"
                          data-sender="{{ msg.from }}"
                          style="--message-line-color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
                         {% if show_sender %}
                             <div class="snap-sender-label" style="color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
                                 {{ 'Me' if msg.from == current_user else msg.from }}
                             </div>
+                        {% endif %}
+                        {% if msg.reply_to %}
+                        <div class="reply-context">
+                            <div class="reply-label">Reply to {{ msg.reply_to.get('sender', 'Unknown') }}</div>
+                            <div class="reply-snippet">{{ msg.reply_to.get('preview', '[Message]') }}</div>
+                        </div>
                         {% endif %}
                         <div class="snap-message-row">
                             <div class="snap-message-content">
@@ -1716,6 +1870,7 @@
                                     </div>
                                 {% else %}
                                     <div class="snap-message-box {% if is_opened %}snap-opened{% endif %}"
+                                         data-can-open="{{ 'true' if (not is_sender and not user_has_opened|default(False)) else 'false' }}"
                                          data-can-replay="{{ 'true' if can_replay and not is_sender else 'false' }}"
                                          data-replayed="{{ 'true' if replayed_by else 'false' }}">
                                         <div class="snap-status-icon">
@@ -1757,59 +1912,47 @@
                     </div>
                     {% set ns.last_sender = msg.from %}
                     {% elif msg.get('type') == 'voice' %}
-                    <div class="message {% if msg.from == current_user %}message-sent{% else %}message-received{% endif %}" data-timestamp="{{ msg.timestamp }}">
-                        {% if msg.from != current_user %}
-                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
-                        {% endif %}
-                        <div class="message-bubble-wrapper">
-                            {% if msg.from != current_user %}
-                            {% set has_glow = users[msg.from].get('glow_effect', {}).get('enabled', False) if msg.from in users else False %}
-                            <div class="message-sender-name">
-                                {{ msg.from }}
-                                {% if msg.from in users %}
-                                    {% set user_role = users[msg.from].get('role', 'user') %}
-                                    {% set user_rank = users[msg.from].get('rank', None) %}
+                    {# Check if we need to show sender name #}
+                    {% set show_sender = (ns.last_sender != msg.from) %}
 
-                                    <!-- Display staff role badge (takes priority over rank) -->
-                                    {% if user_role and user_role in STAFF_ROLES and user_role != 'user' %}
-                                        <span class="chat-role-badge" style="background-color: {{ STAFF_ROLES[user_role]['color'] }}22; color: {{ STAFF_ROLES[user_role]['color'] }}; border: 1.5px solid {{ STAFF_ROLES[user_role]['color'] }};">
-                                            {{ STAFF_ROLES[user_role]['icon'] }} {{ STAFF_ROLES[user_role]['name'] }}
-                                        </span>
-                                    {% elif user_rank %}
-                                        <!-- Display rank badge only if no staff role -->
-                                        {% for rank in RANKS %}
-                                            {% if rank['id'] == user_rank %}
-                                                <span class="chat-role-badge" style="background-color: {{ rank['color'] }}22; color: {{ rank['color'] }}; border: 1.5px solid {{ rank['color'] }};">
-                                                    {{ rank['name'] }}
-                                                </span>
-                                            {% endif %}
+                    {# Voice message with snap-style layout #}
+                    <div class="snap-message-container"
+                         data-voice-index="{{ loop.index0 }}"
+                         data-index="{{ loop.index0 }}"
+                         data-type="voice"
+                         data-preview="🎤 Voice message ({{ msg.duration }}s)"
+                         data-timestamp="{{ msg.timestamp }}"
+                         data-sender="{{ msg.from }}"
+                         style="--message-line-color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
+                        {% if show_sender %}
+                            <div class="snap-sender-label" style="color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
+                                {{ 'Me' if msg.from == current_user else msg.from }}
+                            </div>
+                        {% endif %}
+                        {% if msg.reply_to %}
+                        <div class="reply-context">
+                            <div class="reply-label">Reply to {{ msg.reply_to.get('sender', 'Unknown') }}</div>
+                            <div class="reply-snippet">{{ msg.reply_to.get('preview', '[Message]') }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="snap-message-row">
+                            <div class="snap-message-content">
+                                <div class="voice-message">
+                                    <button class="voice-play-btn" data-audio="{{ msg.audio }}" data-speed="1">
+                                        <img src="{{ url_for('static', filename='Me.jpeg' if msg.from == current_user else 'Other.jpeg') }}" alt="Play">
+                                    </button>
+                                    <div class="voice-waveform">
+                                        {% for i in range(30) %}
+                                        <div class="voice-bar" style="height: {{ [8, 12, 18, 24, 16, 20, 28, 32, 24, 16, 12, 20, 28, 24, 16, 8, 12, 20, 24, 28, 20, 16, 24, 28, 20, 12, 16, 8, 12, 16][loop.index0] }}px;"></div>
                                         {% endfor %}
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            <div class="message-bubble voice-message">
-                                <button class="voice-play-btn" data-audio="{{ msg.audio }}">▶️</button>
-                                <div class="voice-waveform">
-                                    {% for _ in range(15) %}
-                                    <div class="voice-bar" style="height: {{ 15 + (loop.index0 * 2) }}px;"></div>
-                                    {% endfor %}
+                                    </div>
+                                    <button class="voice-speed-btn" data-audio="{{ msg.audio }}">1x</button>
+                                    <div class="voice-duration">0:{{ '%02d' % msg.duration }}</div>
                                 </div>
-                                <div class="voice-duration">{{ msg.duration }}s</div>
-                            </div>
-                            <div class="message-footer" style="margin-top: 0.5rem;">
-                                <span class="message-time">{{ msg.timestamp.split(' ')[1:] | join(' ') if ' ' in msg.timestamp else msg.timestamp }}</span>
-                                {% if msg.from == current_user %}
-                                <span class="read-checkmarks" data-timestamp="{{ msg.timestamp }}">
-                                    <span class="checkmark-single">✓</span>
-                                </span>
-                                {% endif %}
                             </div>
                         </div>
-                        {% if msg.from == current_user %}
-                        <div class="message-avatar">{{ msg.from[0].upper() }}</div>
-                        {% endif %}
                     </div>
+                    {% set ns.last_sender = msg.from %}
                     {% elif msg.get('type') == 'token_gift' %}
                     <div class="message message-system" data-timestamp="{{ msg.timestamp }}">
                         <div class="message-bubble">
@@ -1834,11 +1977,23 @@
                     {% set show_sender = (ns.last_sender != msg.from) %}
 
                     {# Snapchat-style message #}
-                    <div class="snap-text-message" data-timestamp="{{ msg.timestamp }}" data-sender="{{ msg.from }}" style="--message-line-color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
+                    <div class="snap-text-message"
+                         data-timestamp="{{ msg.timestamp }}"
+                         data-index="{{ loop.index0 }}"
+                         data-type="text"
+                         data-preview="{{ msg.text|e }}"
+                         data-sender="{{ msg.from }}"
+                         style="--message-line-color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
                         {% if show_sender %}
                             <div class="snap-sender-label" style="color: {{ '#EF4444' if msg.from == current_user else '#0EA5E9' }};">
                                 {{ 'Me' if msg.from == current_user else msg.from }}
                             </div>
+                        {% endif %}
+                        {% if msg.reply_to %}
+                        <div class="reply-context">
+                            <div class="reply-label">Reply to {{ msg.reply_to.get('sender', 'Unknown') }}</div>
+                            <div class="reply-snippet">{{ msg.reply_to.get('preview', '[Message]') }}</div>
+                        </div>
                         {% endif %}
                         <div class="snap-message-row">
                             <div class="snap-message-content">
@@ -1862,6 +2017,14 @@
                         <div class="typing-dot"></div>
                     </div>
                 </div>
+            </div>
+
+            <div class="reply-preview" id="replyPreview">
+                <div class="reply-preview-text">
+                    <div class="reply-to" id="replyToUser"></div>
+                    <div class="reply-snippet" id="replySnippet"></div>
+                </div>
+                <button class="reply-cancel-btn" id="cancelReplyBtn" title="Cancel reply">✕</button>
             </div>
 
             <div class="message-input-container">
@@ -1935,7 +2098,7 @@
             <img id="snapImage" class="snap-view-image" src="" alt="Snap" data-snap-index="">
             <div class="snap-view-footer">
                 <button class="snap-footer-btn snap-camera-btn" id="snapViewCameraBtn">
-                    <span class="camera-icon">📷</span>
+                    <img src="{{ url_for('static', filename='IMG_0393.png') }}" alt="Camera">
                 </button>
                 <input type="text" class="snap-chat-input" id="snapChatInput" placeholder="Send a chat">
                 <button class="snap-footer-btn snap-save-btn" id="snapSaveBtn">
@@ -2061,6 +2224,15 @@
             console.log('✓ Removed event listeners from snap box');
         });
 
+        // NEW: Listen for new_chat_message event (regular messages and token gifts)
+        socket.on('new_chat_message', (data) => {
+            console.log('💬 NEW MESSAGE RECEIVED:', data);
+            // Add the message to the UI
+            const isOwn = data.from === currentUser;
+            addMessage(data, isOwn, data.index);
+            lastMessageCount++;
+        });
+
         // NEW: Listen for new_snap event (when someone sends you a snap in real-time)
         socket.on('new_snap', (data) => {
             console.log('📨 NEW SNAP RECEIVED:', data);
@@ -2069,18 +2241,31 @@
             lastMessageCount++;
         });
 
+        // NEW: Listen for new_voice event (when someone sends you a voice message in real-time)
+        socket.on('new_voice', (data) => {
+            console.log('🎤 NEW VOICE MESSAGE RECEIVED:', data);
+            // Add the voice message to the messages
+            addMessage(data.message, false, data.message_index);
+            lastMessageCount++;
+        });
+
         // NEW: Listen for snap_saved event (when someone saves/unsaves a snap)
         socket.on('snap_saved', (data) => {
-            console.log('💾 SNAP SAVED EVENT:', data);
+            console.log('💾 SNAP SAVED EVENT RECEIVED:', data);
             const container = document.querySelector(`.snap-message-container[data-snap-index="${data.message_index}"]`);
-            if (!container) return;
+            if (!container) {
+                console.error('❌ Container not found for snap index:', data.message_index);
+                return;
+            }
 
             if (data.action === 'saved') {
+                console.log('✓ Processing save action for snap:', data.message_index);
                 // Replace the entire snap box with the saved image
                 const snapMessageRow = container.querySelector('.snap-message-row');
                 const existingSnapImage = container.querySelector('.snap-saved-image');
 
                 if (!existingSnapImage && snapMessageRow) {
+                    console.log('✓ Replacing snap box with saved image');
                     // Show save message
                     const existingSaveMsg = container.querySelector('.snap-save-message');
                     if (!existingSaveMsg) {
@@ -2104,6 +2289,7 @@
                             ${canUnsave ? `<button class="snap-unsave-btn" data-snap-index="${data.message_index}">Unsave</button>` : ''}
                         </div>
                     `;
+                    console.log('✓ Snap box replaced with image successfully!');
 
                     // Add click handler to unsave button (only for the person who saved it)
                     if (canUnsave) {
@@ -2114,6 +2300,10 @@
                             await toggleSaveSnap(data.message_index);
                         });
                     }
+                } else if (existingSnapImage) {
+                    console.log('⚠️ Snap already saved and displayed');
+                } else {
+                    console.log('⚠️ snapMessageRow not found');
                 }
             } else if (data.action === 'unsaved') {
                 console.log('💾 Snap unsaved:', data.saved_by, 'Remaining:', data.saved_by_list);
@@ -2141,6 +2331,16 @@
         const messageForm = document.getElementById('messageForm');
         const messageInput = document.getElementById('messageInput');
         const typingBubble = document.getElementById('typingBubble');
+        let actionMenu = null;
+        let replyPreview = null;
+        let replyToUser = null;
+        let replySnippet = null;
+        let cancelReplyBtn = null;
+        let replyActionBtn = null;
+        let viewSnapActionBtn = null;
+        let reportActionBtn = null;
+        let actionTarget = null;
+        let replyContext = null;
 
         let lastMessageCount = {{ messages|length }};
         let isTyping = false;
@@ -2168,19 +2368,108 @@
 
         scrollToBottom();
 
+        function initActionMenuRefs() {
+            if (!actionMenu) actionMenu = document.getElementById('actionMenu');
+            if (!replyPreview) replyPreview = document.getElementById('replyPreview');
+            if (!replyToUser) replyToUser = document.getElementById('replyToUser');
+            if (!replySnippet) replySnippet = document.getElementById('replySnippet');
+            if (!cancelReplyBtn) cancelReplyBtn = document.getElementById('cancelReplyBtn');
+            if (!replyActionBtn) replyActionBtn = document.getElementById('replyAction');
+            if (!viewSnapActionBtn) viewSnapActionBtn = document.getElementById('viewSnapAction');
+            if (!reportActionBtn) reportActionBtn = document.getElementById('reportAction');
+
+            if (cancelReplyBtn && !cancelReplyBtn.dataset.bound) {
+                cancelReplyBtn.addEventListener('click', clearReplyContext);
+                cancelReplyBtn.dataset.bound = 'true';
+            }
+            if (replyActionBtn && !replyActionBtn.dataset.bound) {
+                replyActionBtn.addEventListener('click', () => {
+                    if (!actionTarget) return;
+                    const target = actionTarget;
+                    hideActionMenu();
+                    setReplyContext(target);
+                });
+                replyActionBtn.dataset.bound = 'true';
+            }
+            if (viewSnapActionBtn && !viewSnapActionBtn.dataset.bound) {
+                viewSnapActionBtn.addEventListener('click', () => {
+                    if (!actionTarget) return;
+                    const target = actionTarget;
+                    hideActionMenu();
+                    openSnap(parseInt(target.index), false);
+                });
+                viewSnapActionBtn.dataset.bound = 'true';
+            }
+            if (reportActionBtn && !reportActionBtn.dataset.bound) {
+                reportActionBtn.addEventListener('click', () => {
+                    console.log('[Report] Report button clicked via event listener', { actionTarget });
+                    if (!actionTarget) {
+                        console.error('[Report] No actionTarget when report clicked');
+                        return;
+                    }
+                    // Capture actionTarget BEFORE hiding menu (which resets it to null)
+                    const target = actionTarget;
+                    hideActionMenu();
+                    console.log('[Report] Calling openReportModal with target:', target);
+                    openReportModal(target);
+                });
+                reportActionBtn.dataset.bound = 'true';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initActionMenuRefs);
+
+        function decodeHtml(str) {
+            const div = document.createElement('div');
+            div.innerHTML = str || '';
+            return div.textContent;
+        }
+
         function formatTimestamp(timestamp) {
             try {
-                const parts = timestamp.split(' ');
-                if (parts.length === 2) {
-                    const timePart = parts[1];
-                    const [hours, minutes] = timePart.split(':');
-                    const hour = parseInt(hours);
-                    const ampm = hour >= 12 ? 'PM' : 'AM';
-                    const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+                let date;
+
+                // Handle ISO format (e.g., "2026-01-04T18:11:25.14Z")
+                if (timestamp.includes('T') && (timestamp.includes('Z') || timestamp.includes('+'))) {
+                    date = new Date(timestamp);
+                }
+                // Handle "YYYY-MM-DD HH:MM:SS" format
+                else if (timestamp.includes('-') && timestamp.includes(':')) {
+                    const parts = timestamp.split(' ');
+                    if (parts.length === 2) {
+                        const timePart = parts[1];
+                        const [hours, minutes] = timePart.split(':');
+                        const hour = parseInt(hours);
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+                        return `${displayHour}:${minutes} ${ampm}`;
+                    }
+                }
+                // Handle space-separated format
+                else {
+                    const parts = timestamp.split(' ');
+                    if (parts.length === 2) {
+                        const timePart = parts[1];
+                        const [hours, minutes] = timePart.split(':');
+                        const hour = parseInt(hours);
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+                        return `${displayHour}:${minutes} ${ampm}`;
+                    }
+                }
+
+                // If we created a Date object from ISO format
+                if (date && !isNaN(date.getTime())) {
+                    const hours = date.getHours();
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
                     return `${displayHour}:${minutes} ${ampm}`;
                 }
+
                 return timestamp;
             } catch (e) {
+                console.error('Error formatting timestamp:', e);
                 return timestamp;
             }
         }
@@ -2221,8 +2510,6 @@
 
             const messageDiv = document.createElement('div');
 
-            const reportBtn = !isOwn ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, \`${escapeHtml(msg.text).replace(/`/g, '\\`')}\`, 'text')">⚠️ Report</button>` : '';
-
             if (msg.type === 'token_gift') {
                 messageDiv.className = 'message message-system';
                 messageDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -2242,6 +2529,7 @@
 
             messageDiv.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
             messageDiv.setAttribute('data-timestamp', msg.timestamp);
+            messageDiv.setAttribute('data-index', messageIndex);
 
             const time = formatTimestamp(msg.timestamp);
             const senderName = msg.from;
@@ -2252,10 +2540,15 @@
                 messageDiv.className = 'snap-message-container';
                 messageDiv.setAttribute('data-snap-index', snapIndex);
                 messageDiv.setAttribute('data-sender', msg.from);
+                messageDiv.setAttribute('data-index', messageIndex);
+                messageDiv.setAttribute('data-type', 'snap');
+                messageDiv.setAttribute('data-preview', '📸 Snap');
+                messageDiv.setAttribute('data-timestamp', msg.timestamp || '');
 
-                // Check if we need to show sender (different from last message)
-                const lastSnapMsg = Array.from(messagesContainer.querySelectorAll('.snap-message-container')).pop();
-                const lastSender = lastSnapMsg ? lastSnapMsg.getAttribute('data-sender') : null;
+                // Check if we need to show sender (different from last message of ANY type)
+                const allMessages = Array.from(messagesContainer.querySelectorAll('[data-sender]'));
+                const lastMsg = allMessages[allMessages.length - 1];
+                const lastSender = lastMsg ? lastMsg.getAttribute('data-sender') : null;
                 const showSender = lastSender !== msg.from;
 
                 const senderColor = isOwn ? '#EF4444' : '#0EA5E9';
@@ -2311,9 +2604,11 @@
 
                 messageDiv.innerHTML = `
                     ${showSender ? `<div class="snap-sender-label" style="color: ${senderColor};">${senderLabel}</div>` : ''}
+                    ${msg.reply_to ? `<div class="reply-context"><div class="reply-label">Reply to ${msg.reply_to.sender || 'Unknown'}</div><div class="reply-snippet">${msg.reply_to.preview || '[Message]'}</div></div>` : ''}
                     <div class="snap-message-row">
                         <div class="snap-message-content">
                             <div class="snap-message-box ${isOpened ? 'snap-opened' : ''}"
+                                 data-can-open="${!isOwn && !isOpened ? 'true' : 'false'}"
                                  data-can-replay="${canReplay ? 'true' : 'false'}"
                                  data-replayed="${replayedBy ? 'true' : 'false'}">
                                 <div class="snap-status-icon">
@@ -2330,9 +2625,7 @@
                 `;
 
                 const snapBox = messageDiv.querySelector('.snap-message-box');
-                if (!isOpened && !openedSnaps.has(snapIndex)) {
-                    snapBox.addEventListener('click', () => openSnap(snapIndex, false));
-                } else if (isOpened && canReplay && !replayedBy) {
+                if (snapBox && isOpened && canReplay && !replayedBy) {
                     // Hold to replay functionality
                     let holdTimer;
                     snapBox.addEventListener('mousedown', () => {
@@ -2350,40 +2643,61 @@
                     snapBox.addEventListener('touchend', () => clearTimeout(holdTimer));
                 }
             } else if (msg.type === 'voice') {
-                const waveformBars = Array.from({length: 15}, () => Math.random() * 40 + 10)
+                // Voice message with snap-style layout
+                const waveformBars = [8, 12, 18, 24, 16, 20, 28, 32, 24, 16, 12, 20, 28, 24, 16, 8, 12, 20, 24, 28, 20, 16, 24, 28, 20, 12, 16, 8, 12, 16]
                     .map(height => `<div class="voice-bar" style="height: ${height}px;"></div>`)
                     .join('');
 
-                const avatarHtml = `<div class="message-avatar">${avatarLetter}</div>`;
-                const senderNameHtml = !isOwn ? `<div class="message-sender-name">${senderName}</div>` : '';
+                messageDiv.className = 'snap-message-container';
+                messageDiv.setAttribute('data-index', messageIndex);
+                messageDiv.setAttribute('data-type', 'voice');
+                messageDiv.setAttribute('data-preview', `🎤 Voice message (${msg.duration}s)`);
+                messageDiv.setAttribute('data-timestamp', msg.timestamp || '');
 
-                        const messageIndex = lastMessageCount - 1;
-        const reportBtn = !isOwn ? `<button class="message-report-btn" onclick="openReportModal(${messageIndex}, '', 'voice')">⚠️ Report</button>` : '';
+                // Check if we need to show sender (different from last message of ANY type)
+                const allMessages = Array.from(messagesContainer.querySelectorAll('[data-sender]'));
+                const lastMsg = allMessages[allMessages.length - 1];
+                const lastSender = lastMsg ? lastMsg.getAttribute('data-sender') : null;
+                const showSender = lastSender !== msg.from;
 
-messageDiv.innerHTML = `
-            ${!isOwn ? avatarHtml : ''}
-            <div class="message-bubble-wrapper">
-                ${senderNameHtml}
-                <div class="message-bubble voice-message">
-                    <button class="voice-play-btn" data-audio="${msg.audio}">▶️</button>
-                    <div class="voice-waveform">${waveformBars}</div>
-                    <div class="voice-duration">${msg.duration}s</div>
-                </div>
-                <div class="message-footer" style="margin-top: 0.5rem;">
-                    ${reportBtn}
-                    <span class="message-time">${time}</span>
-                    ${isOwn ? `<span class="read-checkmarks" data-timestamp="${msg.timestamp}"><span class="checkmark-single">✓</span></span>` : ''}
-                </div>
-            </div>
-            ${isOwn ? avatarHtml : ''}
-        `;
+                messageDiv.setAttribute('data-sender', msg.from);
+                messageDiv.setAttribute('data-voice-index', messageIndex);
+
+                const senderColor = isOwn ? '#EF4444' : '#0EA5E9';
+                const senderLabel = isOwn ? 'Me' : senderName;
+
+                messageDiv.style.setProperty('--message-line-color', senderColor);
+
+                const playIconSrc = isOwn ? '/static/Me.jpeg' : '/static/Other.jpeg';
+
+                messageDiv.innerHTML = `
+                    ${showSender ? `<div class="snap-sender-label" style="color: ${senderColor};">${senderLabel}</div>` : ''}
+                    ${msg.reply_to ? `<div class="reply-context"><div class="reply-label">Reply to ${msg.reply_to.sender || 'Unknown'}</div><div class="reply-snippet">${msg.reply_to.preview || '[Message]'}</div></div>` : ''}
+                    <div class="snap-message-row">
+                        <div class="snap-message-content">
+                            <div class="voice-message">
+                                <button class="voice-play-btn" data-audio="${msg.audio}" data-speed="1">
+                                    <img src="${playIconSrc}" alt="Play">
+                                </button>
+                                <div class="voice-waveform">${waveformBars}</div>
+                                <button class="voice-speed-btn" data-audio="${msg.audio}">1x</button>
+                                <div class="voice-duration">0:${String(msg.duration).padStart(2, '0')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
                 // Snapchat-style text message
                 messageDiv.className = 'snap-text-message';
+                messageDiv.setAttribute('data-type', 'text');
+                messageDiv.setAttribute('data-preview', msg.text || '[Message]');
+                messageDiv.setAttribute('data-index', messageIndex);
+                messageDiv.setAttribute('data-timestamp', msg.timestamp || '');
 
-                // Check if we need to show sender (different from last message)
-                const lastTextMsg = Array.from(messagesContainer.querySelectorAll('.snap-text-message')).pop();
-                const lastSender = lastTextMsg ? lastTextMsg.getAttribute('data-sender') : null;
+                // Check if we need to show sender (different from last message of ANY type)
+                const allMessages = Array.from(messagesContainer.querySelectorAll('[data-sender]'));
+                const lastMsg = allMessages[allMessages.length - 1];
+                const lastSender = lastMsg ? lastMsg.getAttribute('data-sender') : null;
                 const showSender = lastSender !== msg.from;
 
                 messageDiv.setAttribute('data-sender', msg.from);
@@ -2396,6 +2710,7 @@ messageDiv.innerHTML = `
 
                 messageDiv.innerHTML = `
                     ${showSender ? `<div class="snap-sender-label" style="color: ${senderColor};">${senderLabel}</div>` : ''}
+                    ${msg.reply_to ? `<div class="reply-context"><div class="reply-label">Reply to ${msg.reply_to.sender || 'Unknown'}</div><div class="reply-snippet">${msg.reply_to.preview || '[Message]'}</div></div>` : ''}
                     <div class="snap-message-row">
                         <div class="snap-message-content">
                             <div class="snap-message-text">${escapeHtml(msg.text)}</div>
@@ -2518,6 +2833,140 @@ messageDiv.innerHTML = `
             }
         });
 
+        // Reply & action menu
+        function hideActionMenu() {
+            if (!actionMenu) actionMenu = document.getElementById('actionMenu');
+            if (!actionMenu) return;
+            actionMenu.style.display = 'none';
+            actionTarget = null;
+        }
+
+        function setReplyContext(target) {
+            replyContext = target;
+            if (replyPreview && replyToUser && replySnippet) {
+                replyPreview.style.display = 'flex';
+                replyToUser.textContent = `Replying to ${target.sender || 'Unknown'}`;
+                replySnippet.textContent = target.preview || '[Message]';
+            }
+        }
+
+        function clearReplyContext() {
+            replyContext = null;
+            if (replyPreview && replyToUser && replySnippet) {
+                replyPreview.style.display = 'none';
+                replyToUser.textContent = '';
+                replySnippet.textContent = '';
+            }
+        }
+
+        function derivePreviewFromElement(el, type) {
+            if (!el) return '[Message]';
+            if (type === 'snap') return '📸 [Snap Message]';
+            if (type === 'voice') {
+                const dur = el.querySelector('.voice-duration')?.textContent?.trim();
+                return dur ? `🎤 Voice message (${dur})` : '🎤 Voice message';
+            }
+            const attrPreview = decodeHtml(el.getAttribute('data-preview') || '');
+            if (attrPreview && attrPreview !== '[Message]') return attrPreview;
+            const textEl = el.querySelector('.snap-message-text');
+            const statusEl = el.querySelector('.snap-status-primary');
+            const replyEl = el.querySelector('.reply-snippet');
+            const text = (textEl?.textContent || statusEl?.textContent || replyEl?.textContent || '').trim();
+            return text || '[Message]';
+        }
+
+        document.addEventListener('click', (e) => {
+            initActionMenuRefs();
+            if (!actionMenu) actionMenu = document.getElementById('actionMenu');
+            if (!actionMenu) return;
+            if (actionMenu.contains(e.target)) {
+                // Fallback handling if button listeners were not bound
+                console.log('[ActionMenu] Menu clicked', { targetId: e.target.id, actionTarget });
+                if (e.target.id === 'reportAction' && actionTarget) {
+                    console.log('[Report] Report button clicked via fallback handler', { actionTarget });
+                    const target = actionTarget;
+                    hideActionMenu();
+                    console.log('[Report] Calling openReportModal from fallback');
+                    openReportModal(target);
+                } else if (e.target.id === 'replyAction' && actionTarget) {
+                    const target = actionTarget;
+                    hideActionMenu();
+                    setReplyContext(target);
+                } else if (e.target.id === 'viewSnapAction' && actionTarget) {
+                    const target = actionTarget;
+                    hideActionMenu();
+                    openSnap(parseInt(target.index), false);
+                }
+                return;
+            }
+
+            const messageEl = e.target.closest('.snap-message-container, .snap-text-message');
+            if (messageEl &&
+                !e.target.closest('.voice-play-btn') &&
+                !e.target.closest('.voice-speed-btn') &&
+                !e.target.closest('.snap-save-btn') &&
+                !e.target.closest('.snap-footer-btn')) {
+
+                let indexStr = messageEl.getAttribute('data-index');
+                let index = Number.isInteger(Number(indexStr)) && indexStr !== null && indexStr !== ''
+                    ? Number(indexStr)
+                    : NaN;
+
+                if (!Number.isInteger(index)) {
+                    const allMessages = Array.from(document.querySelectorAll('.snap-message-container, .snap-text-message'));
+                    index = allMessages.indexOf(messageEl);
+                    indexStr = index >= 0 ? String(index) : null;
+                    if (Number.isInteger(index) && index >= 0) {
+                        messageEl.setAttribute('data-index', indexStr);
+                    }
+                }
+
+                if (!Number.isInteger(index) || index < 0) {
+                    hideActionMenu();
+                    console.warn('[ActionMenu] No valid index found for message', { messageEl });
+                    return;
+                }
+
+                const type = messageEl.getAttribute('data-type') || 'text';
+                const sender = messageEl.getAttribute('data-sender') || 'Unknown';
+                const timestamp = messageEl.getAttribute('data-timestamp') || '';
+                const preview = derivePreviewFromElement(messageEl, type);
+                const canOpenSnap = type === 'snap' && (messageEl.querySelector('.snap-message-box')?.getAttribute('data-can-open') === 'true');
+
+                actionTarget = { index, type, sender, preview, timestamp };
+                console.log('[ActionMenu] Target set', {
+                    actionTarget,
+                    dataset: messageEl.dataset,
+                    currentUser: currentUser,
+                    senderEqualsCurrentUser: sender === currentUser
+                });
+
+                if (viewSnapActionBtn) {
+                    viewSnapActionBtn.style.display = canOpenSnap ? 'block' : 'none';
+                }
+                if (reportActionBtn) {
+                    const shouldHideReport = sender === currentUser || sender === 'system';
+                    reportActionBtn.style.display = shouldHideReport ? 'none' : 'block';
+                    console.log('[ActionMenu] Report button display', {
+                        sender,
+                        currentUser,
+                        shouldHideReport,
+                        display: reportActionBtn.style.display
+                    });
+                }
+
+                const rect = messageEl.getBoundingClientRect();
+                actionMenu.style.display = 'block';
+                const menuHeight = actionMenu.offsetHeight || 0;
+                const menuY = rect.top + window.scrollY - menuHeight - 8;
+                actionMenu.style.left = `${e.clientX}px`;
+                actionMenu.style.top = `${Math.max(menuY, 20)}px`;
+                return;
+            }
+
+            hideActionMenu();
+        });
+
         // Performance optimization: Reduced polling frequency
         setInterval(pollMessages, 3000);        // 1s → 3s
         setInterval(pollReadReceipts, 5000);    // 2s → 5s
@@ -2537,9 +2986,34 @@ messageDiv.innerHTML = `
             const message = messageInput.value.trim();
             if (!message) return;
 
+            // Clear input immediately for better UX
+            messageInput.value = '';
+
+            // Optimistically add message to UI immediately
+            const tempMessage = {
+                from: currentUser,
+                to: otherUser,
+                text: message,
+                timestamp: new Date().toISOString(),
+                read: false,
+                reply_to: replyContext ? {
+                    sender: replyContext.sender || 'Unknown',
+                    preview: replyContext.preview || '[Message]',
+                    type: replyContext.type || 'text'
+                } : null
+            };
+            addMessage(tempMessage, true, lastMessageCount);
+            lastMessageCount++;
+
             try {
                 const formData = new FormData();
                 formData.append('message', message);
+                if (replyContext) {
+                    formData.append('reply_to_index', replyContext.index);
+                    formData.append('reply_to_sender', replyContext.sender || '');
+                    formData.append('reply_to_preview', replyContext.preview || '');
+                    formData.append('reply_to_type', replyContext.type || 'text');
+                }
 
                 const response = await fetch(`/chat/${otherUser}/send`, {
                     method: 'POST',
@@ -2547,9 +3021,14 @@ messageDiv.innerHTML = `
                 });
 
                 if (response.ok) {
-                    messageInput.value = '';
                     await markAsReadNow();
-                    pollMessages();
+                    clearReplyContext();
+                    // Still poll to get the actual server timestamp and sync
+                    setTimeout(() => pollMessages(), 100);
+                } else {
+                    // If send failed, we should remove the optimistic message
+                    // But for simplicity, let polling handle it
+                    console.error('Failed to send message');
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -2561,6 +3040,15 @@ messageDiv.innerHTML = `
         // Input event handled by typing indicator
 
         // Camera functionality - Snap Emoji Button
+        // Check if coming from camera button in chat list
+        if (sessionStorage.getItem('snapTargetUser') === otherUser) {
+            sessionStorage.removeItem('snapTargetUser');
+            // Auto-open camera modal
+            setTimeout(() => {
+                snapEmojiBtn.click();
+            }, 500);
+        }
+
         snapEmojiBtn.addEventListener('click', async () => {
             cameraModal.classList.add('active');
             try {
@@ -2602,6 +3090,22 @@ messageDiv.innerHTML = `
         sendSnapBtn.addEventListener('click', async () => {
             const photoData = capturedCanvas.toDataURL('image/jpeg', 0.8);
 
+            // Close modal immediately for better UX
+            closeCameraModal();
+
+            // Optimistically add snap to UI immediately
+            const tempSnap = {
+                from: currentUser,
+                to: otherUser,
+                type: 'snap',
+                photo: photoData,
+                opened: false,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            addMessage(tempSnap, true, lastMessageCount);
+            lastMessageCount++;
+
             try {
                 const response = await fetch(`/chat/${otherUser}/send_snap`, {
                     method: 'POST',
@@ -2612,8 +3116,10 @@ messageDiv.innerHTML = `
                 });
 
                 if (response.ok) {
-                    closeCameraModal();
-                    pollMessages();
+                    // Poll to get the actual server timestamp and sync
+                    setTimeout(() => pollMessages(), 100);
+                } else {
+                    console.error('Failed to send snap');
                 }
             } catch (error) {
                 console.error('Error sending snap:', error);
@@ -2748,7 +3254,12 @@ messageDiv.innerHTML = `
             const snapIndex = snapImage.getAttribute('data-snap-index');
 
             if (snapIndex) {
+                console.log('💾 Save button clicked for snap:', snapIndex);
                 await toggleSaveSnap(snapIndex);
+                // Close modal after saving so user can see the snap box replaced with image
+                setTimeout(() => {
+                    closeSnapModal();
+                }, 500);
             }
         });
 
@@ -2782,6 +3293,12 @@ messageDiv.innerHTML = `
         async function replaySnap(index) {
             console.log(`🔄 Attempting to replay snap ${index}`);
 
+            // FIRST CHECK: Client-side replay tracking (prevents multiple replay attempts)
+            if (replayedSnaps.has(index)) {
+                console.warn(`🚫 Cannot replay snap ${index}: already replayed (client-side check)`);
+                return;
+            }
+
             // Check if already replayed
             const container = document.querySelector(`.snap-message-container[data-snap-index="${index}"]`);
             if (!container) {
@@ -2805,6 +3322,10 @@ messageDiv.innerHTML = `
                 console.warn(`🚫 Cannot replay snap ${index}: already replayed or replay not allowed`);
                 return;
             }
+
+            // Mark as replayed immediately (before server response)
+            replayedSnaps.add(index);
+            console.log(`✓ Marked snap ${index} as replayed in client-side Set`);
 
             console.log(`✓ Proceeding with replay for snap ${index}`);
 
@@ -2835,6 +3356,9 @@ messageDiv.innerHTML = `
 
         // Track which snaps already have event listeners
         const snapListenersAdded = new Set();
+
+        // Track which snaps have been replayed (client-side enforcement)
+        const replayedSnaps = new Set();
 
         // Setup click handlers for unsave buttons
         function setupUnsaveButtonListeners() {
@@ -2871,12 +3395,17 @@ messageDiv.innerHTML = `
                 snapListenersAdded.add(listenerKey);
 
                 if (!isOpened && !openedSnaps.has(snapIndex)) {
-                    box.addEventListener('click', () => openSnap(snapIndex, false));
+                    // Opening handled via action menu
                 } else if (isOpened && canReplay && !replayed) {
                     // Hold to replay
                     console.log(`🔄 Adding replay listener for snap ${snapIndex}`);
                     let holdTimer;
                     box.addEventListener('mousedown', () => {
+                        // FIRST: Check client-side replay Set
+                        if (replayedSnaps.has(snapIndex)) {
+                            console.log(`🚫 Replay blocked for snap ${snapIndex}: already in replayedSnaps Set`);
+                            return;
+                        }
                         // Double-check attributes before replay
                         const currentReplayed = box.getAttribute('data-replayed') === 'true';
                         const currentCanReplay = box.getAttribute('data-can-replay') === 'true';
@@ -2892,6 +3421,11 @@ messageDiv.innerHTML = `
                     box.addEventListener('mouseleave', () => clearTimeout(holdTimer));
                     box.addEventListener('touchstart', (e) => {
                         e.preventDefault();
+                        // FIRST: Check client-side replay Set
+                        if (replayedSnaps.has(snapIndex)) {
+                            console.log(`🚫 Replay blocked for snap ${snapIndex}: already in replayedSnaps Set`);
+                            return;
+                        }
                         // Double-check attributes before replay
                         const currentReplayed = box.getAttribute('data-replayed') === 'true';
                         const currentCanReplay = box.getAttribute('data-can-replay') === 'true';
@@ -3028,7 +3562,19 @@ messageDiv.innerHTML = `
                 }
 
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(audioStream);
+
+                // Try to use a more compatible audio format
+                let options = { mimeType: 'audio/webm' };
+                if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    options = { mimeType: 'audio/mp4' };
+                } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    options = { mimeType: 'audio/webm;codecs=opus' };
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    options = { mimeType: 'audio/ogg;codecs=opus' };
+                }
+
+                console.log('Recording with MIME type:', options.mimeType);
+                mediaRecorder = new MediaRecorder(audioStream, options);
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = (event) => {
@@ -3096,7 +3642,10 @@ messageDiv.innerHTML = `
 
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            // Use the same MIME type that was used for recording
+            const mimeType = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : 'audio/webm';
+            console.log('Creating blob with MIME type:', mimeType);
+            const audioBlob = new Blob(audioChunks, { type: mimeType });
             const reader = new FileReader();
 
             reader.onloadend = async () => {
@@ -3118,63 +3667,140 @@ messageDiv.innerHTML = `
                     if (response.ok) {
                         voiceModal.style.display = 'none';
                         voiceBtn.classList.remove('recording');
-                        pollMessages();
 
-                        // Resume background music after sending voice message
-                        if (bgMusic && bgMusic.paused) {
-                            bgMusic.play().catch(() => {});
-                        }
+                        // Add the voice message to the UI immediately
+                        const voiceMessage = {
+                            from: currentUser,
+                            to: otherUser,
+                            type: 'voice',
+                            audio: base64Audio,
+                            duration: duration,
+                            timestamp: new Date().toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2')
+                        };
+
+                        addMessage(voiceMessage, true, lastMessageCount);
+                        lastMessageCount++;
+
+                        pollMessages();
                     } else {
                         alert('Failed to send voice message');
-                        // Resume music even if send fails
-                        if (bgMusic && bgMusic.paused) {
-                            bgMusic.play().catch(() => {});
-                        }
                     }
                 } catch (error) {
                     console.error('Error sending voice message:', error);
                     alert('Failed to send voice message');
-                    // Resume music on error
-                    if (bgMusic && bgMusic.paused) {
-                        bgMusic.play().catch(() => {});
-                    }
                 }
             };
 
             reader.readAsDataURL(audioBlob);
         }
 
+        // Voice message playback with speed control
+        let currentVoiceAudio = null;
+        let currentPlayButton = null;
+
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('voice-play-btn')) {
-                const audioData = e.target.getAttribute('data-audio');
-                const playBtn = e.target;
+            console.log('Click detected on:', e.target);
 
-                const audio = new Audio(audioData);
+            // Handle play button clicks
+            const playBtn = e.target.closest('.voice-play-btn');
+            if (playBtn) {
+                console.log('Voice play button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
 
-                // Pause background music during voice playback
-                if (bgMusic && !bgMusic.paused) {
-                    bgMusic.pause();
+                const audioData = playBtn.getAttribute('data-audio');
+                console.log('Audio data length:', audioData ? audioData.length : 'null');
+
+                if (!audioData) {
+                    console.error('No audio data found on button');
+                    return;
                 }
 
-                playBtn.textContent = '⏸';
+                // Stop any currently playing audio
+                if (currentVoiceAudio && !currentVoiceAudio.paused) {
+                    console.log('Stopping other audio');
+                    currentVoiceAudio.pause();
+                    currentVoiceAudio.currentTime = 0;
+                }
+
+                console.log('Creating new Audio object');
+                const audio = new Audio();
+
+                // Set the source and handle format compatibility
+                audio.src = audioData;
+
+                const currentSpeed = parseFloat(playBtn.getAttribute('data-speed')) || 1;
+                audio.playbackRate = currentSpeed;
+
+                currentVoiceAudio = audio;
+                currentPlayButton = playBtn;
 
                 audio.onended = () => {
-                    playBtn.textContent = '▶️';
-                    // Resume background music after voice playback ends
-                    if (bgMusic && bgMusic.paused) {
-                        bgMusic.play().catch(() => {});
-                    }
+                    console.log('Audio ended');
+                    currentVoiceAudio = null;
+                    currentPlayButton = null;
                 };
 
-                audio.onerror = () => {
-                    playBtn.textContent = '▶️';
-                    // Resume music on playback error
-                    if (bgMusic && bgMusic.paused) {
-                        bgMusic.play().catch(() => {});
+                audio.onerror = (err) => {
+                    console.error('Audio playback error:', err, audio.error);
+
+                    // Provide specific error messages
+                    let errorMsg = 'Failed to play audio';
+                    if (audio.error) {
+                        switch(audio.error.code) {
+                            case audio.error.MEDIA_ERR_ABORTED:
+                                errorMsg = 'Audio playback was aborted';
+                                break;
+                            case audio.error.MEDIA_ERR_NETWORK:
+                                errorMsg = 'Network error while loading audio';
+                                break;
+                            case audio.error.MEDIA_ERR_DECODE:
+                                errorMsg = 'Audio format not supported by your browser';
+                                break;
+                            case audio.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                                errorMsg = 'Audio format or codec not supported';
+                                break;
+                        }
                     }
+                    console.error('Error details:', errorMsg);
+                    currentVoiceAudio = null;
+                    currentPlayButton = null;
                 };
 
-                audio.play();
+                console.log('Starting audio playback');
+                audio.play().then(() => {
+                    console.log('Audio playing successfully');
+                }).catch(err => {
+                    console.error('Audio play failed:', err);
+                    currentVoiceAudio = null;
+                    currentPlayButton = null;
+                });
+            }
+
+            // Handle speed button clicks
+            if (e.target.classList.contains('voice-speed-btn')) {
+                const speedBtn = e.target;
+                const playBtn = speedBtn.parentElement.querySelector('.voice-play-btn');
+                const speeds = [0.5, 0.75, 1, 1.5, 2];
+                const currentSpeed = parseFloat(playBtn.getAttribute('data-speed')) || 1;
+                const currentIndex = speeds.indexOf(currentSpeed);
+                const nextSpeed = speeds[(currentIndex + 1) % speeds.length];
+
+                playBtn.setAttribute('data-speed', nextSpeed);
+                speedBtn.textContent = nextSpeed + 'x';
+
+                // Update speed of currently playing audio if this is it
+                if (currentVoiceAudio && currentPlayButton === playBtn) {
+                    currentVoiceAudio.playbackRate = nextSpeed;
+                }
             }
         });
 
@@ -3184,30 +3810,81 @@ const chatWrapper = document.getElementById('chatWrapper');
 // Report functionality variables
         let currentReportChatKey = null;
         let currentReportMessageIndex = null;
+        let currentReportSender = null;
+        let currentReportPreview = '';
+        let currentReportTimestamp = '';
 
         // Set the chat key for reports
         const chatKeyForReports = [currentUser, otherUser].sort().join('-');
 
         // Report Modal Functions
-        function openReportModal(messageIndex, messageText, messageType) {
+        function openReportModal(targetOrIndex, messageText, messageType) {
+            console.log('[Report] openReportModal called', {
+                targetOrIndex,
+                messageText,
+                messageType,
+                typeOfTarget: typeof targetOrIndex
+            });
+
             const reportModal = document.getElementById('reportModal');
             const reportMessagePreview = document.getElementById('reportMessagePreview');
             const reportReason = document.getElementById('reportReason');
             const reportFeedback = document.getElementById('reportFeedback');
 
+            if (!reportModal) {
+                console.error('[Report] reportModal element not found!');
+                return;
+            }
+
+            const target = (targetOrIndex && typeof targetOrIndex === 'object')
+                ? targetOrIndex
+                : { index: targetOrIndex, type: messageType || 'text', preview: messageText };
+
             currentReportChatKey = chatKeyForReports;
-            currentReportMessageIndex = messageIndex;
+            currentReportSender = target.sender || null;
+            currentReportTimestamp = target.timestamp || '';
+            console.log('[Report] Processing target', {
+                target,
+                chatKey: currentReportChatKey,
+                sender: currentReportSender,
+                ts: currentReportTimestamp
+            });
+
+            const idxRaw = target.index;
+            const idx = typeof idxRaw === 'number' ? idxRaw : parseInt(idxRaw, 10);
+            console.log('[Report] Index validation', {
+                idxRaw,
+                idx,
+                isInteger: Number.isInteger(idx),
+                isValid: Number.isInteger(idx) && idx >= 0
+            });
+
+            if (!Number.isInteger(idx) || idx < 0) {
+                console.error('[Report] Invalid index, not showing modal', { idx, idxRaw });
+                alert('Error: No message selected to report. Please try clicking on the message again.');
+                return;
+            }
+            currentReportMessageIndex = idx;
 
             // Set message preview
-            if (messageType === 'snap') {
-                reportMessagePreview.textContent = '📸 [Snap Message]';
-            } else if (messageType === 'voice') {
-                reportMessagePreview.textContent = '🎤 [Voice Message]';
-            } else if (messageType === 'token_gift') {
-                reportMessagePreview.textContent = '🎁 [Token Gift]';
-            } else {
-                reportMessagePreview.textContent = messageText || '[Message]';
+            const type = target.type || 'text';
+            let previewText = target.preview || messageText || '';
+            if (!previewText || previewText === '[Message]') {
+                const domMessage = document.querySelector(`[data-index="${idx}"]`);
+                if (domMessage && !currentReportTimestamp) {
+                    currentReportTimestamp = domMessage.getAttribute('data-timestamp') || '';
+                }
+                previewText = derivePreviewFromElement(domMessage, type);
             }
+            if (type === 'snap') {
+                previewText = '📸 [Snap Message]';
+            } else if (type === 'voice') {
+                previewText = '🎤 [Voice Message]';
+            } else if (type === 'token_gift') {
+                previewText = '🎁 [Token Gift]';
+            }
+            currentReportPreview = previewText;
+            reportMessagePreview.textContent = previewText;
 
             // Clear previous values
             reportReason.value = '';
@@ -3224,6 +3901,9 @@ const chatWrapper = document.getElementById('chatWrapper');
 
             currentReportChatKey = null;
             currentReportMessageIndex = null;
+            currentReportSender = null;
+            currentReportPreview = '';
+            currentReportTimestamp = '';
         }
 
         async function submitReport() {
@@ -3241,16 +3921,21 @@ const chatWrapper = document.getElementById('chatWrapper');
             reportSendBtn.disabled = true;
 
             try {
+                const payload = {
+                    chat_key: currentReportChatKey,
+                    message_index: currentReportMessageIndex,
+                    sender: currentReportSender,
+                    preview: currentReportPreview,
+                    timestamp: currentReportTimestamp,
+                    reason: reason
+                };
+                console.log('[Report] Submit payload', payload);
                 const response = await fetch('/api/report_message', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        chat_key: currentReportChatKey,
-                        message_index: currentReportMessageIndex,
-                        reason: reason
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -3421,6 +4106,14 @@ const chatWrapper = document.getElementById('chatWrapper');
     checkChatNotifications();
     checkGroupNotifications();
     </script>
+    <!-- Message Action Menu -->
+    <div id="actionMenu" class="action-menu">
+        <div class="action-buttons">
+            <button type="button" id="replyAction">↩️ Reply</button>
+            <button type="button" id="viewSnapAction" style="display: none;">📸 View Snap</button>
+            <button type="button" id="reportAction" class="danger">⚠️ Report</button>
+        </div>
+    </div>
         <!-- Report Message Modal -->
     <div class="report-modal" id="reportModal">
         <div class="report-modal-content">
@@ -3451,43 +4144,7 @@ const chatWrapper = document.getElementById('chatWrapper');
         </div>
     </div>
 
-<!-- Background Music (Persistent) -->
-<audio id="bgMusic" loop>
-    <source src="{{ url_for('static', filename='studyhall.mp3') }}" type="audio/mpeg">
-</audio>
-<script>
-(function() {
-    const audio = document.getElementById('bgMusic');
-    audio.volume = 0.8;
-
-    // Resume from saved position
-    const savedTime = sessionStorage.getItem('musicTime');
-    if (savedTime) {
-        audio.currentTime = parseFloat(savedTime);
-    }
-
-    // Auto-play (will work since user already interacted on main page)
-    audio.play().catch(() => {
-        // Fallback: play on first click
-        const playOnce = () => {
-            audio.play();
-            document.removeEventListener('click', playOnce);
-        };
-        document.addEventListener('click', playOnce);
-    });
-
-    // Save position every second
-    setInterval(() => {
-        if (!audio.paused) {
-            sessionStorage.setItem('musicTime', audio.currentTime);
-        }
-    }, 1000);
-
-    // Save position before leaving
-    window.addEventListener('beforeunload', () => {
-        sessionStorage.setItem('musicTime', audio.currentTime);
-    });
-})();
+<!-- Background Music Removed -->
 </script>
 </body>
 </html>

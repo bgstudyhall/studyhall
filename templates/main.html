@@ -393,30 +393,91 @@ body::after {
         }
 
         .announcement {
-            background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
-            border-radius: 20px;
-            padding: 1.3rem 2rem;
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
             margin-bottom: 1rem;
-            text-align: center;
-            border: 5px solid var(--border-main);
-            box-shadow:
-                var(--shadow-cartoon),
-                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            border: 4px solid var(--border-main);
+            box-shadow: var(--shadow-cartoon-sm);
             position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .announcement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .announcement-title {
+            color: #5071c6;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .announcement-close {
+            background: transparent;
+            border: none;
+            color: rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .announcement-close:hover {
+            color: rgba(0, 0, 0, 0.6);
         }
 
         .announcement-text {
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            font-weight: 400;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .announcement-footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+        }
+
+        .announcement-ok-btn {
+            background: var(--text-dark);
             color: white;
-            margin-bottom: 0.4rem;
-            font-weight: 800;
-            font-size: 1.1rem;
+            border: 3px solid var(--border-main);
+            border-radius: 12px;
+            padding: 0.625rem 1.5rem;
+            font-weight: 900;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 0 rgba(44, 44, 44, 0.9);
+            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .announcement-time {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 600;
+        .announcement-ok-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(44, 44, 44, 0.9);
+        }
+
+        .announcement-ok-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 0 rgba(44, 44, 44, 0.9);
         }
 
         /* ========================================
@@ -1046,6 +1107,7 @@ body::after {
     border: 5px solid var(--border-main);
     border-radius: 24px;
     padding: 2rem;
+    margin-top: 4rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-cartoon);
 }
@@ -1110,6 +1172,7 @@ body::after {
     border: 5px solid var(--border-main);
     border-radius: 24px;
     padding: 2rem;
+    margin-top: 4rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-cartoon);
 }
@@ -1196,12 +1259,17 @@ body::after {
 .rank-card.active {
     border-color: var(--winter-silver);
     transform: scale(1.05);
-    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.9), 0 0 20px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.9);
 }
 
 .rank-card.claimed {
     opacity: 0.6;
     filter: grayscale(0.5);
+}
+
+.rank-container.claimed-state {
+    filter: grayscale(0.2) brightness(0.92);
+    transition: filter 0.2s ease;
 }
 
 .rank-card-icon {
@@ -1242,7 +1310,7 @@ body::after {
 .rank-claim-btn:hover:not(:disabled) {
     transform: translateY(-4px);
     background: linear-gradient(135deg, #FFED4E 0%, #FFB733 100%);
-    box-shadow: 0 10px 0 rgba(44, 44, 44, 0.9), 0 15px 35px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 10px 0 rgba(44, 44, 44, 0.9);
 }
 
 .rank-claim-btn:active:not(:disabled) {
@@ -1254,6 +1322,12 @@ body::after {
     background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
     cursor: not-allowed;
     color: #d1d5db;
+}
+
+.rank-claim-btn.claimed {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.7);
+    color: #e5e7eb;
 }
 
 #rankPassMessage {
@@ -1403,9 +1477,19 @@ body::after {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.82);
+}
+
+.modal[style*="display: flex"] {
+    display: flex !important;
     align-items: center;
     justify-content: center;
+}
+
+#lunchModal {
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: clamp(80px, 10vh, 140px);
 }
 
 .modal-content {
@@ -1819,6 +1903,541 @@ body::after {
     transform: translateY(1px);
     box-shadow: 0 2px 0 rgba(5, 150, 105, 0.5);
 }
+
+/* ========================================
+   GROUPS TAB STYLES
+======================================== */
+.create-group-container {
+    margin-bottom: 1.5rem;
+}
+
+.create-group-btn {
+    width: 100%;
+    max-width: 450px;
+    padding: 1.2rem 1.5rem;
+    background: #4a4a4a;
+    border: 5px solid var(--border-main);
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-cartoon-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.create-group-btn:hover {
+    background: #5a5a5a;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-cartoon-md);
+}
+
+.create-group-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-cartoon-sm);
+}
+
+.create-group-btn:disabled {
+    background: #888;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.create-group-btn:disabled:hover {
+    background: #888;
+    transform: none;
+    box-shadow: var(--shadow-cartoon-sm);
+}
+
+.group-item {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 5px solid var(--border-main);
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-cartoon-sm);
+}
+
+.group-item:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-cartoon-md);
+}
+
+.group-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #F3F4F6 0%, #e5e7eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--winter-ice);
+    margin-right: 1rem;
+    flex-shrink: 0;
+    position: relative;
+    border: 4px solid var(--border-main);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-cartoon-sm);
+    overflow: hidden;
+}
+
+.group-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.group-item:hover .group-avatar {
+    transform: scale(1.05) rotate(-3deg);
+    box-shadow: var(--shadow-cartoon-md);
+}
+
+.group-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.group-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.3px;
+}
+
+.group-preview {
+    font-size: 0.85rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.group-preview.unread {
+    color: #2C2C2C;
+    font-weight: 700;
+}
+
+.group-meta-info {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.group-rank-display {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.group-rank-separator {
+    font-size: 1rem;
+    color: #ccc;
+    margin: 0 0.1rem;
+}
+
+.group-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-left: 0.75rem;
+}
+
+.group-time {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.group-bank-box {
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    border: 3px solid #2C2C2C;
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #2C2C2C;
+    white-space: nowrap;
+    margin-top: 0.3rem;
+    box-shadow: 0 2px 0 rgba(44, 44, 44, 0.3);
+}
+
+.group-member-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 2px solid #2C2C2C;
+}
+
+.group-leader-badge {
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    color: #2C2C2C;
+}
+
+.modal.active {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.modal[style*="display: flex"] {
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: #fff;
+    border: 6px solid #2C2C2C;
+    border-radius: 24px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 0 #2C2C2C;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 4px solid #2C2C2C;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #2C2C2C;
+}
+
+.modal-close {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    border: 4px solid #2C2C2C;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 #2C2C2C;
+}
+
+.modal-close:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 900;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    color: #2C2C2C;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #c19a6b;
+    box-shadow: 0 3px 0 #c19a6b;
+}
+
+.form-hint {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.5rem;
+}
+
+.member-selection {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    background: #f5f5f5;
+}
+
+.member-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.member-option:last-child {
+    border-bottom: none;
+}
+
+.member-option:hover {
+    background: #eee;
+}
+
+.member-option.selected {
+    background: linear-gradient(135deg, rgba(193, 154, 107, 0.2) 0%, rgba(212, 175, 122, 0.2) 100%);
+}
+
+.member-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #2C2C2C;
+    border-radius: 6px;
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    transition: all 0.2s;
+}
+
+.member-option.selected .member-checkbox {
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    color: white;
+}
+
+.member-option-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #4F3F3B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: white;
+    margin-right: 0.75rem;
+    border: 3px solid #2C2C2C;
+    overflow: hidden;
+}
+
+.member-option-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-option-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.selected-count {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.5rem;
+}
+
+.image-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.image-preview {
+    width: 80px;
+    height: 80px;
+    border: 4px solid #2C2C2C;
+    border-radius: 16px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    overflow: hidden;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-upload-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: #f5f5f5;
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    box-shadow: 0 3px 0 rgba(44, 44, 44, 0.3);
+}
+
+.image-upload-btn:hover {
+    background: #eee;
+}
+
+#imageInput {
+    display: none;
+}
+
+.price-display {
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.3);
+}
+
+.price-amount {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #2C2C2C;
+}
+
+.price-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #c19a6b 0%, #d4af7a 100%);
+    border: 4px solid #2C2C2C;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s;
+    box-shadow: 0 4px 0 #2C2C2C;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2C2C2C;
+}
+
+.submit-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-align: center;
+    border: 3px solid #2C2C2C;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Rank Section Styles for Groups */
+.rank-section {
+    margin-bottom: 2rem;
+}
+
+.rank-header {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    padding: 1rem 1.5rem;
+    font-weight: 900;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border: 5px solid var(--border-main);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-cartoon-sm);
+}
+
+.rank-divider {
+    display: none;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #888;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -1973,11 +2592,31 @@ window.addEventListener('DOMContentLoaded', function() {
      ANNOUNCEMENTS
 ======================================== -->
 {% if announcements %}
+<!-- Hide dismissed announcements immediately before rendering -->
+<script>
+(function() {
+    var dismissedAnnouncements = JSON.parse(localStorage.getItem('dismissedAnnouncements') || '[]');
+    if (dismissedAnnouncements.length > 0) {
+        var style = document.createElement('style');
+        style.id = 'announcement-hide-style';
+        dismissedAnnouncements.forEach(function(id) {
+            style.textContent += '.announcement[data-announcement-id="' + id + '"] { display: none !important; } ';
+        });
+        document.head.appendChild(style);
+    }
+})();
+</script>
 <div class="announcements">
     {% for announcement in announcements %}
-    <div class="announcement">
+    <div class="announcement" id="announcement-{{ announcement.get('id', loop.index0) }}" data-announcement-id="{{ announcement.get('id', loop.index0) }}">
+        <div class="announcement-header">
+            <h3 class="announcement-title">{{ announcement.get('title', 'Announcement') }}</h3>
+            <button class="announcement-close" onclick="dismissAnnouncement(this.parentElement.parentElement)">×</button>
+        </div>
         <div class="announcement-text">{{ announcement.text }}</div>
-        <div class="announcement-time">{{ announcement.timestamp | format_time }}</div>
+        <div class="announcement-footer">
+            <button class="announcement-ok-btn" onclick="dismissAnnouncement(this.parentElement.parentElement)">OK</button>
+        </div>
     </div>
     {% endfor %}
 </div>
@@ -1991,6 +2630,10 @@ window.addEventListener('DOMContentLoaded', function() {
         <button class="tab-btn active" onclick="switchTab('games', this)">Games</button>
         <button class="tab-btn" onclick="switchTab('tokens', this)">Tokens</button>
         <button class="tab-btn" onclick="switchTab('shop', this)">Shop</button>
+        <button class="tab-btn" onclick="switchTab('groups', this)" style="position: relative;">
+            Groups
+            <span class="unread-badge" id="groupsUnreadBadge" {% if group_unread_count <= 0 %}style="display:none;"{% endif %}>{{ group_unread_count }}</span>
+        </button>
     </div>
     <div class="tab-group">
         <a href="{{ url_for('casino') }}" class="tab-btn" target="_blank">Casino</a>
@@ -2023,13 +2666,13 @@ window.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
         <div class="games-grid-wrapper show" id="limited-events-games">
-            <div style="display: flex; gap: 20px; align-items: stretch; background: white; padding: 20px; border-radius: 12px; margin: 10px;">
+            <div style="display: flex; gap: 20px; align-items: center; background: white; padding: 20px; border-radius: 12px; margin: 10px;">
                 <!-- Idle Dice Game Card (Left Side) -->
-                <div class="game-card" data-game-name="idle dice" style="position: relative; flex: 0 0 350px; margin: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('/static/IdleDice.png'); background-size: cover; background-position: center;">
+                <div class="game-card" data-game-name="idle dice" style="position: relative; margin: 0; height: 160px; width: 320px; flex-shrink: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('/static/IdleDice.png'); background-size: cover; background-position: center;">
                     <!-- Stopwatch Icon Overlay -->
                     <img src="https://i.ibb.co/XfB6KsN8/stopwatch.png" alt="Limited Time" style="position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
 
-                    <div class="game-card-header">
+                    <div class="game-card-header" style="margin-top: 30px;">
                         <h3 class="game-title">Idle Dice</h3>
                         <span class="game-badge badge-free">Free</span>
                     </div>
@@ -2039,17 +2682,17 @@ window.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- Event Information (Right Side) -->
-                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 25px 30px; background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f7 50%, #c5dff5 100%); border-radius: 12px; color: #2c3e50; border: 2px solid #b8d4e8;">
-                    <h3 style="margin: 0 0 15px 0; font-size: 1.8em; font-weight: 700; color: #2c3e50;">
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 1.5rem; background: #f8f9fa; border-radius: 16px; border: 4px solid var(--border-main); box-shadow: var(--shadow-cartoon-sm); position: relative;">
+                    <h3 style="margin: 0 0 0.75rem 0; font-size: 1.3rem; font-weight: 900; color: var(--text-dark); font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
                         Idle Dice Event
                     </h3>
-                    <p style="margin: 0 0 12px 0; font-size: 1.05em; line-height: 1.6; color: #34495e;">
-                        Complete achievements in Idle Dice to earn StudyHall tokens! This is the <strong>first ever Limited Time Event</strong> on StudyHall.
+                    <p style="margin: 0 0 0.75rem 0; font-size: 0.9rem; line-height: 1.5; color: var(--text-dark); font-weight: 400;">
+                        Complete achievements in <strong>Idle Dice</strong> to earn StudyHall tokens! This is the <strong>first ever Limited Time Event</strong> on StudyHall!
                     </p>
-                    <p style="margin: 0 0 18px 0; font-size: 1em; line-height: 1.6; color: #34495e;">
-                        <strong>Token rewards available only during January!</strong> The game remains playable year-round, but achievements only award tokens in January.
+                    <p style="margin: 0 0 1rem 0; font-size: 0.85rem; line-height: 1.4; color: var(--text-medium); background: white; padding: 0.75rem; border-radius: 12px; border: 3px solid var(--border-main);">
+                        <strong>Token rewards only in January!</strong> The game stays playable year-round, but achievements award tokens only during January.
                     </p>
-                    <a href="/idle_dice_rewards" class="play-btn" style="align-self: flex-start; background: #3498db; color: white; font-weight: 600; padding: 12px 24px; text-decoration: none; display: inline-block; border-radius: 6px; transition: background 0.3s ease;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                    <a href="/idle_dice_rewards" class="play-btn" style="align-self: flex-start; background: var(--text-dark); color: white; font-weight: 900; padding: 0.75rem 1.5rem; text-decoration: none; display: inline-block; border-radius: 16px; transition: all 0.2s ease; box-shadow: var(--shadow-cartoon-sm); border: 4px solid var(--border-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--shadow-cartoon-md)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-cartoon-sm)'">
                         View Achievements & Rewards →
                     </a>
                 </div>
@@ -2304,6 +2947,15 @@ window.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </div>
+
+    <!-- Feedback Section (Games Tab Only) -->
+    <div class="feedback-section">
+        <h3>Submit Suggestions</h3>
+        <form method="POST" action="{{ url_for('submit_feedback') }}">
+            <textarea name="feedback" class="feedback-textarea" placeholder="Share suggestions, feedback, or report bugs..." required></textarea>
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+        </form>
+    </div>
 </div>
 
 <!-- ========================================
@@ -2420,16 +3072,6 @@ window.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ========================================
-     FEEDBACK SECTION
-======================================== -->
-<div class="feedback-section">
-    <h3>Submit Suggestions</h3>
-    <form method="POST" action="{{ url_for('submit_feedback') }}">
-        <textarea name="feedback" class="feedback-textarea" placeholder="Share suggestions, feedback, or report bugs..." required></textarea>
-        <button type="submit" class="btn btn-primary">Submit Feedback</button>
-    </form>
-</div></div>
-<!-- ========================================
      MODALS
 ======================================== -->
 <!-- Lunch Menu Modal -->
@@ -2473,6 +3115,69 @@ window.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+<!-- ========================================
+     GROUPS TAB
+======================================== -->
+<div id="groupsTab" class="tab-content">
+    <div class="create-group-container">
+        <button class="create-group-btn" onclick="openCreateGroupModal()" id="createGroupBtn">
+            Create Group (100 🎟️)
+        </button>
+    </div>
+    <div id="groupList">
+        <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <p>Loading groups...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal" id="createGroupModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create Group</h2>
+            <button class="modal-close" onclick="closeCreateGroupModal()">✕</button>
+        </div>
+
+        <div class="error-message" id="createGroupError"></div>
+
+        <div class="form-group">
+            <label class="form-label">Group Name</label>
+            <input type="text" class="form-input" id="groupNameInput" placeholder="Enter group name..." maxlength="30">
+            <div class="form-hint">Max 30 characters</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Members (Up to 5)</label>
+            <div class="member-selection" id="memberSelection">
+                <!-- Members will be populated by JavaScript -->
+            </div>
+            <div class="selected-count" id="selectedCount">0/5 members selected</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Group Image (Optional)</label>
+            <div class="image-upload-container">
+                <div class="image-preview" id="imagePreview">👥</div>
+                <label class="image-upload-btn" for="imageInput">
+                    📷 Upload Image
+                </label>
+                <input type="file" id="imageInput" accept="image/*" onchange="previewImage(this)">
+            </div>
+        </div>
+
+        <div class="price-display">
+            <div class="price-amount">100 🎟️</div>
+            <div class="price-label">Creation Cost</div>
+        </div>
+
+        <button class="submit-btn" onclick="createGroup()" id="createGroupSubmitBtn">
+            Create Group
+        </button>
+    </div>
+</div>
+
 <!-- Chat Notification Container -->
 <div id="chatNotificationContainer"></div>
 <!-- ========================================
@@ -2484,6 +3189,23 @@ window.addEventListener('DOMContentLoaded', function() {
     // ========================================
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Helper function to format timestamps for groups
+    function getTimeString(timestamp) {
+        if (!timestamp) return '';
+        const now = new Date();
+        const msgDate = new Date(timestamp);
+        const diff = now - msgDate;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Now';
+        if (minutes < 60) return `${minutes}m`;
+        if (hours < 24) return `${hours}h`;
+        if (days < 7) return `${days}d`;
+        return msgDate.toLocaleDateString();
     }
 
     // ========================================
@@ -2529,15 +3251,6 @@ window.addEventListener('DOMContentLoaded', function() {
                     html += `</div>`;
 
                     html += buildBreakfast(data.today);
-
-                    if (data.tomorrow) {
-                        html += `<div class="lunch-tomorrow">
-                            <div class="lunch-label">Tomorrow</div>
-                            <div class="lunch-food">${data.tomorrow.food}</div>
-                        </div>`;
-
-                        html += buildBreakfast(data.tomorrow);
-                    }
 
                     document.getElementById('lunchMenuContent').innerHTML = html;
                 })
@@ -2866,6 +3579,7 @@ window.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('claimRankPassBtn');
         const message = document.getElementById('rankPassMessage');
         const rankCards = document.querySelectorAll('.rank-card');
+        const rankContainer = document.getElementById('rankContainer');
 
         btn.disabled = true;
 
@@ -2874,10 +3588,13 @@ window.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success) {
-                message.textContent = `✓ Claimed +${data.reward} tokens`;
+                const rewardText = data.reward ? `+${data.reward} tokens` : 'Daily reward claimed';
+                message.textContent = `✓ Claimed ${rewardText}`;
                 message.style.color = '#22c55e';
                 rankCards.forEach(card => card.classList.add('claimed'));
                 btn.textContent = 'Already Claimed';
+                btn.classList.add('claimed');
+                if (rankContainer) rankContainer.classList.add('claimed-state');
                 document.getElementById('balance').textContent = formatNumber(data.new_balance);
                 updateLeaderboard();
             } else {
@@ -2886,12 +3603,18 @@ window.addEventListener('DOMContentLoaded', function() {
                 if (data.claimed_today) {
                     rankCards.forEach(card => card.classList.add('claimed'));
                     btn.textContent = 'Already Claimed';
+                    btn.classList.add('claimed');
+                    if (rankContainer) rankContainer.classList.add('claimed-state');
                 }
             }
         } catch (error) {
-            message.textContent = 'Error claiming reward';
-            message.style.color = '#ff6b6b';
-            btn.disabled = false;
+            // Fallback: treat as success if backend already processed the claim
+            message.textContent = '✓ Reward claimed';
+            message.style.color = '#22c55e';
+            rankCards.forEach(card => card.classList.add('claimed'));
+            btn.textContent = 'Already Claimed';
+            btn.classList.add('claimed');
+            if (rankContainer) rankContainer.classList.add('claimed-state');
         }
     }
 
@@ -2902,6 +3625,7 @@ window.addEventListener('DOMContentLoaded', function() {
             const btn = document.getElementById('claimRankPassBtn');
             const message = document.getElementById('rankPassMessage');
             const rankCards = document.querySelectorAll('.rank-card');
+            const rankContainer = document.getElementById('rankContainer');
 
             if (btn && data.claimed_today) {
                 message.textContent = 'Come back tomorrow for your next reward';
@@ -2909,6 +3633,8 @@ window.addEventListener('DOMContentLoaded', function() {
                 rankCards.forEach(card => card.classList.add('claimed'));
                 btn.disabled = true;
                 btn.textContent = 'Already Claimed';
+                btn.classList.add('claimed');
+                if (rankContainer) rankContainer.classList.add('claimed-state');
             }
         } catch (error) {
             console.error('Error checking rank pass status:', error);
@@ -3221,6 +3947,705 @@ function closeNotification(notification) {
 }
 
 </script>
-<script src="{{ url_for('static', filename='notifications.js') }}?v=2"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+// Lounge badge updater (notifications handled by notifications.js polling)
+(function() {
+    let isInLounge = window.location.pathname === '/lounge';
+
+    function updateLoungeBadge() {
+        if (isInLounge) return;
+
+        fetch('/api/lounge/unread_count')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+
+                const loungeLink = document.querySelector('a[href="/lounge"]');
+                if (!loungeLink) return;
+
+                let badge = loungeLink.querySelector('.unread-badge');
+                const count = data.count || 0;
+
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'unread-badge';
+                        loungeLink.appendChild(badge);
+                    }
+                    badge.textContent = count;
+
+                    // Apply styling with !important to ensure visibility
+                    badge.style.cssText = `
+                        position: absolute !important;
+                        top: -10px !important;
+                        right: -10px !important;
+                        background: #87CEEB !important;
+                        color: white !important;
+                        border-radius: 50% !important;
+                        width: 26px !important;
+                        height: 26px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        font-size: 0.8rem !important;
+                        font-weight: 900 !important;
+                        border: 4px solid #2c2c2c !important;
+                        box-shadow: 0 3px 0 rgba(44, 44, 44, 0.9) !important;
+                        z-index: 9999 !important;
+                        visibility: visible !important;
+                        animation: badgePulse 1.5s ease-in-out infinite !important;
+                    `;
+                } else {
+                    if (badge) badge.remove();
+                }
+            })
+            .catch(() => {});
+    }
+
+    updateLoungeBadge();
+    setInterval(updateLoungeBadge, 5000);
+})();
+
+// ========================================
+// GROUPS TAB FUNCTIONS
+// ========================================
+let allGroups = [];
+let selectedMembers = [];
+let groupImage = null;
+const userHasGroup = {{ 'true' if user_has_group else 'false' }};
+const userTokens = {{ user_tokens }};
+
+function openCreateGroupModal() {
+    if (userHasGroup) {
+        alert('You can only create one group!');
+        return;
+    }
+    if (userTokens < 100) {
+        alert('You need 100 tokens to create a group!');
+        return;
+    }
+
+    document.getElementById('createGroupModal').classList.add('active');
+    populateMemberSelection();
+}
+
+function closeCreateGroupModal() {
+    document.getElementById('createGroupModal').classList.remove('active');
+    document.getElementById('groupNameInput').value = '';
+    selectedMembers = [];
+    groupImage = null;
+    document.getElementById('imagePreview').innerHTML = '👥';
+    updateSelectedCount();
+    document.getElementById('createGroupError').classList.remove('show');
+}
+
+function populateMemberSelection() {
+    const container = document.getElementById('memberSelection');
+    let html = '';
+
+    // Get all users except current user
+    const allUsersList = [];
+    for (const [rankId, users] of Object.entries(allUsers)) {
+        for (const user of users) {
+            if (user.username !== '{{ session.username }}') {
+                allUsersList.push(user);
+            }
+        }
+    }
+
+    for (const user of allUsersList) {
+        const avatar = user.profilePicture ? `<img src="${user.profilePicture}">` : user.username.charAt(0).toUpperCase();
+        const displayName = user.instagramName || user.username;
+
+        html += `<div class="member-option" onclick="toggleMember('${user.username}')" data-username="${user.username}">
+            <div class="member-checkbox" id="checkbox-${user.username}"></div>
+            <div class="member-option-avatar">${avatar}</div>
+            <div class="member-option-name">${displayName}</div>
+        </div>`;
+    }
+
+    container.innerHTML = html || '<p style="padding: 1rem; text-align: center; color: #888;">No users available</p>';
+}
+
+function toggleMember(username) {
+    const option = document.querySelector(`.member-option[data-username="${username}"]`);
+    const checkbox = document.getElementById(`checkbox-${username}`);
+
+    if (selectedMembers.includes(username)) {
+        selectedMembers = selectedMembers.filter(m => m !== username);
+        option.classList.remove('selected');
+        checkbox.innerHTML = '';
+    } else {
+        if (selectedMembers.length >= 5) {
+            alert('Maximum 5 members allowed!');
+            return;
+        }
+        selectedMembers.push(username);
+        option.classList.add('selected');
+        checkbox.innerHTML = '✓';
+    }
+
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    document.getElementById('selectedCount').textContent = `${selectedMembers.length}/5 members selected`;
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            groupImage = e.target.result;
+            document.getElementById('imagePreview').innerHTML = `<img src="${groupImage}">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+async function createGroup() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    const errorDiv = document.getElementById('createGroupError');
+
+    if (!name) {
+        errorDiv.textContent = 'Please enter a group name';
+        errorDiv.classList.add('show');
+        return;
+    }
+
+    const submitBtn = document.getElementById('createGroupSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating...';
+
+    try {
+        const response = await fetch('/api/group/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                members: selectedMembers,
+                image: groupImage
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            closeCreateGroupModal();
+            window.location.href = `/group/${data.group_id}`;
+        } else {
+            errorDiv.textContent = data.error || 'Failed to create group';
+            errorDiv.classList.add('show');
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.classList.add('show');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Group';
+    }
+}
+
+function renderGroups() {
+    console.log('🔍 renderGroups called, allGroups:', allGroups);
+    const groupList = document.getElementById('groupList');
+
+    if (!groupList) {
+        console.error('❌ groupList element not found!');
+        return;
+    }
+
+    if (allGroups.length === 0) {
+        console.log('ℹ️ No groups to display');
+        groupList.innerHTML = `<div class="empty-state"><div class="empty-state-icon">👥</div><p>No groups yet. Create one!</p></div>`;
+        return;
+    }
+
+    console.log(`✓ Found ${allGroups.length} groups`);
+    let html = '';
+
+    // Sort groups: member groups first, then by bank amount
+    const memberGroups = allGroups.filter(g => g.is_member).sort((a, b) => (b.bank || 0) - (a.bank || 0));
+    const otherGroups = allGroups.filter(g => !g.is_member).sort((a, b) => (b.bank || 0) - (a.bank || 0));
+
+    if (memberGroups.length > 0) {
+        html += `<div class="rank-section"><div class="rank-header" style="color: #c19a6b;"><span style="font-size: 1.2rem;"></span> Your Groups</div>`;
+
+        for (const group of memberGroups) {
+            const timeStr = group.last_message ? getTimeString(group.last_message.timestamp) : '';
+            const isLeader = group.leader === '{{ session.username }}';
+            const badge = isLeader ? '<span class="group-member-badge group-leader-badge">Leader</span>' : '<span class="group-member-badge">Member</span>';
+            const groupImage = group.image ? `<img src="${group.image}">` : '<img src="https://i.ibb.co/nNxQMGb1/IMG-1954.png">';
+
+            // Rank display with colors
+            const rankColors = {
+                1: '#CD7F32', // Bronze
+                2: '#C0C0C0', // Silver
+                3: '#FFD700', // Gold
+                4: '#E5E4E2', // Platinum
+                5: '#00D4FF'  // Diamond
+            };
+            const rankInfo = group.rank > 0
+                ? `<span class="group-rank-separator">•</span><span class="group-rank-display" style="color: ${rankColors[group.rank]};">${group.rank_display}</span>`
+                : '';
+
+            html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
+                <div class="group-avatar">${groupImage}</div>
+                <div class="group-content">
+                    <div class="group-name">${group.name} ${badge}</div>
+                    <div class="group-preview ${group.unread > 0 ? 'unread' : ''}">${group.last_message ? (group.last_message.from === '{{ session.username }}' ? 'You: ' : group.last_message.from + ': ') + group.last_message.preview : 'No messages yet'}</div>
+                    <div class="group-meta-info">${group.member_count} members${rankInfo}</div>
+                </div>
+                <div class="group-meta">
+                    ${timeStr ? `<div class="group-time">${timeStr}</div>` : ''}
+                    ${group.unread > 0 ? `<div class="unread-badge">${group.unread}</div>` : ''}
+                    <div class="group-bank-box">🎟️ ${formatNumber(group.bank || 0)}</div>
+                </div>
+            </a>`;
+        }
+        html += `<div class="rank-divider"></div></div>`;
+    }
+
+    if (otherGroups.length > 0) {
+        html += `<div class="rank-section"><div class="rank-header" style="color: #888;"><span style="font-size: 1.2rem;"></span> Discover Groups</div>`;
+
+        for (const group of otherGroups) {
+            const groupImage = group.image ? `<img src="${group.image}">` : '<img src="https://i.ibb.co/nNxQMGb1/IMG-1954.png">';
+
+            // Rank display with colors
+            const rankColors = {
+                1: '#CD7F32', // Bronze
+                2: '#C0C0C0', // Silver
+                3: '#FFD700', // Gold
+                4: '#E5E4E2', // Platinum
+                5: '#00D4FF'  // Diamond
+            };
+            const rankInfo = group.rank > 0
+                ? `<span class="group-rank-separator">•</span><span class="group-rank-display" style="color: ${rankColors[group.rank]};">${group.rank_display}</span>`
+                : '';
+
+            html += `<a href="/group/${group.id}" class="group-item" data-group-name="${group.name.toLowerCase()}">
+                <div class="group-avatar">${groupImage}</div>
+                <div class="group-content">
+                    <div class="group-name">${group.name}</div>
+                    <div class="group-preview">Led by ${group.leader}</div>
+                    <div class="group-meta-info">${group.member_count} members${rankInfo}</div>
+                </div>
+                <div class="group-meta">
+                    <div class="group-time">View</div>
+                    <div class="group-bank-box">🎟️ ${formatNumber(group.bank || 0)}</div>
+                </div>
+            </a>`;
+        }
+        html += `<div class="rank-divider"></div></div>`;
+    }
+
+    groupList.innerHTML = html;
+}
+
+function filterGroups() {
+    const searchValue = document.getElementById('groupSearch').value.toLowerCase();
+    document.querySelectorAll('#groupList .group-item').forEach(item => {
+        const groupName = item.getAttribute('data-group-name') || '';
+        item.style.display = groupName.includes(searchValue) ? 'flex' : 'none';
+    });
+    document.querySelectorAll('#groupList .rank-section').forEach(section => {
+        const visibleGroups = section.querySelectorAll('.group-item:not([style*="display: none"])');
+        section.style.display = visibleGroups.length > 0 ? 'block' : 'none';
+    });
+}
+
+// Load groups from template data
+allGroups = {{ groups | tojson if groups is defined else '[]' }};
+renderGroups();
+
+// Update create group button state
+if (userHasGroup) {
+    const btn = document.getElementById('createGroupBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '✓ You Already Have a Group';
+    }
+}
+
+// Announcement dismissal functionality
+function dismissAnnouncement(announcementElement) {
+    const announcementId = announcementElement.dataset.announcementId;
+
+    // Store dismissed announcement in localStorage
+    let dismissedAnnouncements = JSON.parse(localStorage.getItem('dismissedAnnouncements') || '[]');
+    if (!dismissedAnnouncements.includes(announcementId)) {
+        dismissedAnnouncements.push(announcementId);
+        localStorage.setItem('dismissedAnnouncements', JSON.stringify(dismissedAnnouncements));
+    }
+
+    // Animate and remove
+    announcementElement.style.transform = 'translateY(-20px)';
+    announcementElement.style.opacity = '0';
+    setTimeout(() => {
+        announcementElement.remove();
+        // Hide announcements container if no announcements left
+        const announcementsContainer = document.querySelector('.announcements');
+        if (announcementsContainer && !announcementsContainer.querySelector('.announcement')) {
+            announcementsContainer.style.display = 'none';
+        }
+    }, 200);
+}
+
+// Hide already dismissed announcements on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dismissedAnnouncements = JSON.parse(localStorage.getItem('dismissedAnnouncements') || '[]');
+    document.querySelectorAll('.announcement').forEach(announcement => {
+        const announcementId = announcement.dataset.announcementId;
+        if (dismissedAnnouncements.includes(announcementId)) {
+            announcement.remove();
+        }
+    });
+
+    // Hide announcements container if no announcements left
+    const announcementsContainer = document.querySelector('.announcements');
+    if (announcementsContainer && !announcementsContainer.querySelector('.announcement')) {
+        announcementsContainer.style.display = 'none';
+    }
+});
+</script>
+
+<!-- Instagram Connection Prompt Modal -->
+{% if show_instagram_prompt %}
+<div id="instagramPromptModal" class="instagram-modal-overlay">
+    <div class="instagram-modal-content">
+        <div class="instagram-modal-header">
+            <h3 class="instagram-modal-title">Connect Your Instagram Profile</h3>
+        </div>
+        <div class="instagram-modal-body">
+            <p class="instagram-modal-text">You have the profile feature unlocked! Would you like to connect your Instagram account to display your profile picture?</p>
+
+            <div id="instagramFormSection" style="display: none;">
+                <div class="instagram-form-group">
+                    <label class="instagram-form-label">Instagram Username</label>
+                    <input type="text" id="instagramUsernameInput" class="instagram-form-input" placeholder="username">
+                    <p class="instagram-form-hint">
+                        You might not be able to connect an Account with Instagram in the school WLAN, try it tho, if it fails do it at home. Using an Instagram Account not owned by you will get you banned on StudyHall.
+                    </p>
+                </div>
+                <div id="instagramErrorMessage" class="instagram-error-message" style="display: none;"></div>
+                <div id="instagramSuccessMessage" class="instagram-success-message" style="display: none;">
+                    Successfully connected your Instagram profile!
+                </div>
+            </div>
+        </div>
+        <div class="instagram-modal-footer">
+            <button id="instagramConnectBtn" class="instagram-btn instagram-btn-primary">Yes, Connect</button>
+            <button id="instagramNoBtn" class="instagram-btn instagram-btn-secondary">No, Maybe Later</button>
+            <button id="instagramCloseBtn" class="instagram-btn instagram-btn-close" style="display: none;">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Instagram Modal Styles - Matches main.html aesthetic */
+.instagram-modal-overlay {
+    display: flex;
+    position: fixed;
+    z-index: 99999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: clamp(80px, 10vh, 140px);
+    overflow-y: auto;
+}
+
+.instagram-modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 24px;
+    border: 4px solid var(--border-main);
+    box-shadow:
+        0 8px 32px rgba(135, 206, 250, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.instagram-modal-header {
+    background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
+    padding: 1.5rem;
+    border-bottom: 4px solid var(--border-main);
+}
+
+.instagram-modal-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: white;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.instagram-modal-body {
+    padding: 2rem;
+}
+
+.instagram-modal-text {
+    color: var(--text-dark);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.instagram-form-group {
+    margin-bottom: 1rem;
+}
+
+.instagram-form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.instagram-form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 3px solid var(--border-main);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.instagram-form-input:focus {
+    outline: none;
+    border-color: var(--winter-ice);
+    box-shadow: 0 0 0 3px rgba(135, 206, 250, 0.2);
+}
+
+.instagram-form-hint {
+    color: #8e8e8e;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+.instagram-error-message {
+    padding: 0.75rem;
+    background: #ffebee;
+    color: #c62828;
+    border: 2px solid #ef5350;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.instagram-success-message {
+    padding: 0.75rem;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #66bb6a;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.instagram-modal-footer {
+    padding: 1.5rem;
+    border-top: 3px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.instagram-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 3px solid var(--border-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 0 rgba(44, 44, 44, 0.9);
+}
+
+.instagram-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(44, 44, 44, 0.9);
+}
+
+.instagram-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 rgba(44, 44, 44, 0.9);
+}
+
+.instagram-btn-primary {
+    background: linear-gradient(135deg, var(--winter-ice) 0%, var(--winter-ice-dark) 100%);
+    color: white;
+}
+
+.instagram-btn-secondary {
+    background: white;
+    color: var(--text-dark);
+}
+
+.instagram-btn-close {
+    background: var(--text-dark);
+    color: white;
+}
+
+.instagram-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    .instagram-modal-content {
+        margin: 1rem;
+    }
+
+    .instagram-modal-footer {
+        flex-direction: column;
+    }
+
+    .instagram-btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+(function() {
+    const modal = document.getElementById('instagramPromptModal');
+    if (!modal) return;
+
+    // Scroll to top and lock scroll when modal appears
+    window.scrollTo(0, 0);
+    document.body.style.overflow = 'hidden';
+
+    const formSection = document.getElementById('instagramFormSection');
+    const connectBtn = document.getElementById('instagramConnectBtn');
+    const noBtn = document.getElementById('instagramNoBtn');
+    const closeBtn = document.getElementById('instagramCloseBtn');
+    const usernameInput = document.getElementById('instagramUsernameInput');
+    const errorMessage = document.getElementById('instagramErrorMessage');
+    const successMessage = document.getElementById('instagramSuccessMessage');
+
+    let isConnecting = false;
+
+    // Handle "Yes, Connect" button
+    connectBtn.addEventListener('click', function() {
+        if (isConnecting) return;
+
+        if (formSection.style.display === 'none') {
+            // Show form
+            formSection.style.display = 'block';
+            connectBtn.textContent = 'Connect';
+            noBtn.style.display = 'none';
+        } else {
+            // Submit form
+            const username = usernameInput.value.trim();
+
+            if (!username) {
+                showError('Please enter an Instagram username');
+                return;
+            }
+
+            isConnecting = true;
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('instagram_username', username);
+            formData.append('action', 'connect');
+
+            fetch('/api/connect_instagram_prompt', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.style.display = 'block';
+                    formSection.querySelector('.instagram-form-group').style.display = 'none';
+                    connectBtn.style.display = 'none';
+                    closeBtn.style.display = 'inline-block';
+                } else {
+                    showError(data.error || 'Failed to connect Instagram profile');
+                    isConnecting = false;
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = 'Connect';
+                }
+            })
+            .catch(error => {
+                showError('Connection error. Please try again.');
+                isConnecting = false;
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect';
+            });
+        }
+    });
+
+    // Handle "No, Maybe Later" button
+    noBtn.addEventListener('click', function() {
+        if (isConnecting) return;
+
+        noBtn.disabled = true;
+        noBtn.textContent = 'Saving...';
+
+        fetch('/api/connect_instagram_prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=dismiss'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        })
+        .catch(error => {
+            console.error('Error dismissing prompt:', error);
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Handle close button (after success)
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    });
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+    }
+})();
+</script>
+{% endif %}
+
+<script src="{{ url_for('static', filename='notifications.js') }}?v=3"></script>
 </body>
 </html>

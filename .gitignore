@@ -1,4 +1,7 @@
 data/
 __pycache__/
-__pycache__/
-data/
+
+# Google Classroom - Keep credentials private (but NOT the cache)
+google_cookies.pkl
+classroom_config.json
+# Note: announcements_cache.json is NOT ignored - it should be committed and deployed

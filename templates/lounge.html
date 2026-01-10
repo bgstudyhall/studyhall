@@ -143,6 +143,43 @@
             background: var(--snap-bg-gray);
         }
 
+        /* Notification Toggle Switch */
+        .notification-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ff4444;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #00C851;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+
         /* ========================================
            MESSAGES CONTAINER - TAKES ALL SPACE
         ======================================== */
@@ -262,6 +299,19 @@
             background: linear-gradient(135deg, #FF0000, #CC0000);
         }
 
+        /* Staff badges (only shown for select roles) */
+        .message-avatar.no-image.role-admin {
+            background: linear-gradient(135deg, #ff6b6b, #c0392b);
+        }
+
+        .message-avatar.no-image.role-ambassador {
+            background: linear-gradient(135deg, #2ecc71, #1e8449);
+        }
+
+        .message-avatar.no-image.role-master_moderator {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
         /* No rank - default gray */
         .message-avatar.no-image {
             background: linear-gradient(135deg, #6B7280, #4B5563);
@@ -293,6 +343,28 @@
             background: var(--snap-bubble-received);
             color: var(--snap-text);
             border-bottom-left-radius: 4px;
+        }
+
+        /* Achievement message styling */
+        .message-achievement {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 3px solid #1a1a1a;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .achievement-badge {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
         }
 
         .message-timestamp {
@@ -656,6 +728,22 @@
         .online-user-avatar.no-image.rank-minister {
             background: linear-gradient(135deg, #FF0000, #CC0000);
             border-color: #FF0000;
+        }
+
+        /* Staff badges (only shown for select roles) */
+        .online-user-avatar.no-image.role-admin {
+            background: linear-gradient(135deg, #ff6b6b, #c0392b);
+            border-color: #c0392b;
+        }
+
+        .online-user-avatar.no-image.role-ambassador {
+            background: linear-gradient(135deg, #2ecc71, #1e8449);
+            border-color: #1e8449;
+        }
+
+        .online-user-avatar.no-image.role-master_moderator {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border-color: #8e44ad;
         }
 
         /* No rank - default gray */
@@ -1230,6 +1318,11 @@
                 <div class="header-title">Study Hall</div>
             </div>
             <div class="header-right">
+                <div class="notification-toggle-container">
+                    <div class="toggle-switch active" id="notificationToggle" title="Toggle lounge notifications">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
                 <button class="header-menu-btn" onclick="alert('Menu coming soon!')">⋮</button>
             </div>
         </div>
@@ -1355,14 +1448,36 @@
         let currentReactionMessageId = null;
 
         const profilePictureCache = {};
-        const profileRankCache = {};
+        const staffTagCache = {};
         const typingUsers = new Set();
+        const renderedMessageIndices = new Set();
+        let oldestIndexLoaded = null;
+        let hasMoreMessages = true;
+        let isLoadingMessages = false;
+        const MESSAGES_PAGE_SIZE = 10;
+        const STAFF_TAGS = ['admin', 'ambassador', 'master_moderator'];
+        const STAFF_TAG_LABELS = {
+            admin: 'ADMIN',
+            ambassador: 'AMBASSADOR',
+            master_moderator: 'MASTER MODERATOR'
+        };
+        // Notification toggle state
+        const NOTIFICATION_TOGGLE_KEY = 'loungeNotificationsEnabled';
+
+        const STAFF_TAG_GRADIENTS = {
+            admin: 'linear-gradient(135deg, #ff6b6b, #c0392b)',
+            ambassador: 'linear-gradient(135deg, #2ecc71, #1e8449)',
+            master_moderator: 'linear-gradient(135deg, #9b59b6, #8e44ad)'
+        };
+
+        function normalizeStaffTag(tag) {
+            return STAFF_TAGS.includes(tag) ? tag : null;
+        }
 
         async function getProfileMeta(username) {
-            if (profilePictureCache[username] !== undefined && profileRankCache[username] !== undefined) {
+            if (profilePictureCache[username] !== undefined) {
                 return {
-                    profilePicture: profilePictureCache[username],
-                    rank: profileRankCache[username]
+                    profilePicture: profilePictureCache[username]
                 };
             }
 
@@ -1371,16 +1486,13 @@
                 const profileData = await profileResponse.json();
 
                 const picture = profileData.profile_picture || null;
-                const rank = profileData.rank || 'member';
 
                 profilePictureCache[username] = picture;
-                profileRankCache[username] = rank;
 
-                return { profilePicture: picture, rank: rank };
+                return { profilePicture: picture };
             } catch (error) {
                 profilePictureCache[username] = null;
-                profileRankCache[username] = 'member';
-                return { profilePicture: null, rank: 'member' };
+                return { profilePicture: null };
             }
         }
 
@@ -1394,7 +1506,7 @@
         // New message received
         socket.on('new_lounge_message', async (data) => {
             let profilePicture = data.profile_picture || null;
-            let userRank = data.user_rank || null;
+            let staffTag = normalizeStaffTag(data.staff_tag || data.user_rank);
 
             if (data.message.from !== currentUser) {
                 // Cache provided data
@@ -1404,17 +1516,16 @@
                     profilePicture = profilePictureCache[data.message.from];
                 }
 
-                if (userRank) {
-                    profileRankCache[data.message.from] = userRank;
-                } else if (profileRankCache[data.message.from] !== undefined) {
-                    userRank = profileRankCache[data.message.from];
+                if (staffTag) {
+                    staffTagCache[data.message.from] = staffTag;
+                } else if (staffTagCache[data.message.from] !== undefined) {
+                    staffTag = staffTagCache[data.message.from];
                 }
 
                 // Fetch missing profile meta when needed
-                if (profilePicture === null || !userRank) {
+                if (profilePicture === null) {
                     const meta = await getProfileMeta(data.message.from);
                     if (profilePicture === null) profilePicture = meta.profilePicture;
-                    if (!userRank) userRank = meta.rank;
                 }
             }
 
@@ -1423,8 +1534,19 @@
                 data.message.index = document.getElementById('messagesContainer').children.length;
             }
 
-            appendMessage(data.message, profilePicture, userRank);
+            if (!renderedMessageIndices.has(data.message.index)) {
+                renderedMessageIndices.add(data.message.index);
+                appendMessage(data.message, profilePicture, staffTag);
+            }
             scrollToBottom();
+        });
+
+        socket.on('lounge_cleared', () => {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            renderedMessageIndices.clear();
+            oldestIndexLoaded = null;
+            hasMoreMessages = false;
         });
 
         // User joined
@@ -1461,7 +1583,7 @@
         socket.on('message_deleted', (data) => {
             console.log('Message deleted at index:', data.message_index);
             // Reload messages to reflect deletion
-            loadMessages();
+            loadMessages({ initial: true });
         });
 
         // Leave lounge on page unload
@@ -1473,7 +1595,7 @@
         // MESSAGE RENDERING
         // ========================================
 
-        function appendMessage(message, profilePicture = null, userRank = null) {
+        function appendMessage(message, profilePicture = null, staffTag = null, prepend = false) {
             const container = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${message.from === currentUser ? 'own' : 'other'}`;
@@ -1492,9 +1614,9 @@
                     avatar.appendChild(img);
                 } else {
                     avatar.classList.add('no-image');
-                    // Add rank class based on user role
-                    if (userRank && userRank !== 'member') {
-                        avatar.classList.add(`rank-${userRank}`);
+                    // Add staff badge coloring when applicable
+                    if (staffTag) {
+                        avatar.classList.add(`role-${staffTag}`);
                     }
                     avatar.textContent = message.from.charAt(0).toUpperCase();
                 }
@@ -1505,6 +1627,27 @@
                 authorSpan.className = 'message-author';
                 authorSpan.textContent = message.from;
                 headerDiv.appendChild(authorSpan);
+
+                // Add staff tag if user has one
+                if (staffTag) {
+                    const tagLabel = STAFF_TAG_LABELS[staffTag] || staffTag.toUpperCase();
+                    const tagBackground = STAFF_TAG_GRADIENTS[staffTag] || 'linear-gradient(135deg, #FFD700, #FFA500)';
+                    const rankTag = document.createElement('span');
+                    rankTag.className = 'rank-tag';
+                    rankTag.textContent = tagLabel;
+                    rankTag.style.cssText = `
+                        background: ${tagBackground};
+                        color: white;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        margin-left: 8px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    `;
+                    headerDiv.appendChild(rankTag);
+                }
             }
 
             messageDiv.appendChild(headerDiv);
@@ -1578,13 +1721,33 @@
                 gifDiv.appendChild(img);
 
                 messageDiv.appendChild(gifDiv);
+            } else if (message.type === 'achievement') {
+                // Achievement notification with golden background
+                const achievementDiv = document.createElement('div');
+                achievementDiv.className = 'message-achievement';
+
+                // Badge icon
+                const badgeImg = document.createElement('img');
+                badgeImg.src = '/static/badgeNEW.png';
+                badgeImg.className = 'achievement-badge';
+                achievementDiv.appendChild(badgeImg);
+
+                // Message text
+                const textSpan = document.createElement('span');
+                textSpan.textContent = message.message;
+                achievementDiv.appendChild(textSpan);
+
+                messageDiv.appendChild(achievementDiv);
             } else {
                 // Regular text message
+                console.log('[LOUNGE DEBUG] Creating text bubble for message:', message);
+                console.log('[LOUNGE DEBUG] message.message value:', message.message);
                 const bubble = document.createElement('div');
                 bubble.className = 'message-bubble';
                 bubble.textContent = message.message;
-                bubble.ondblclick = () => showReactionPicker(event, message.id);
+                bubble.ondblclick = (evt) => showReactionPicker(evt, message.index);
                 messageDiv.appendChild(bubble);
+                console.log('[LOUNGE DEBUG] Bubble created with text:', bubble.textContent);
             }
 
             // Timestamp
@@ -1601,7 +1764,7 @@
                 for (const [emoji, users] of Object.entries(message.reactions)) {
                     const reactionDiv = document.createElement('div');
                     reactionDiv.className = `reaction ${users.includes(currentUser) ? 'own' : ''}`;
-                    reactionDiv.onclick = () => toggleReaction(message.id, emoji);
+                    reactionDiv.onclick = () => toggleReaction(message.index, emoji);
 
                     const emojiSpan = document.createElement('span');
                     emojiSpan.className = 'reaction-emoji';
@@ -1632,12 +1795,21 @@
                 messageDiv.appendChild(deleteBtn);
             }
 
-            container.appendChild(messageDiv);
+            if (prepend) {
+                container.insertBefore(messageDiv, container.firstChild);
+            } else {
+                container.appendChild(messageDiv);
+            }
         }
 
-        function scrollToBottom() {
+        function scrollToBottom(force = false) {
             const container = document.getElementById('messagesContainer');
             container.scrollTop = container.scrollHeight;
+            if (force) {
+                requestAnimationFrame(() => {
+                    container.scrollTop = container.scrollHeight;
+                });
+            }
         }
 
         // ========================================
@@ -1653,21 +1825,21 @@
                 userDiv.className = 'online-user';
                 userDiv.dataset.username = user.username;
 
-                const avatar = document.createElement('div');
-                avatar.className = 'online-user-avatar';
+            const avatar = document.createElement('div');
+            avatar.className = 'online-user-avatar';
 
-                if (user.profile_picture) {
-                    const img = document.createElement('img');
-                    img.src = user.profile_picture;
-                    avatar.appendChild(img);
-                } else {
-                    avatar.classList.add('no-image');
-                    // Add rank class based on user role
-                    if (user.rank && user.rank !== 'member') {
-                        avatar.classList.add(`rank-${user.rank}`);
-                    }
-                    avatar.textContent = user.username.charAt(0).toUpperCase();
+            if (user.profile_picture) {
+                const img = document.createElement('img');
+                img.src = user.profile_picture;
+                avatar.appendChild(img);
+            } else {
+                avatar.classList.add('no-image');
+                const rank = user.rank;
+                if (rank) {
+                    avatar.classList.add(`rank-${rank}`);
                 }
+                avatar.textContent = user.username.charAt(0).toUpperCase();
+            }
 
                 const name = document.createElement('div');
                 name.className = 'online-user-name';
@@ -2195,7 +2367,7 @@
 
                 if (data.success) {
                     // Reload messages to reflect deletion
-                    await loadMessages();
+                    await loadMessages({ initial: true });
                 } else {
                     alert(data.error || 'Failed to delete message.');
                 }
@@ -2265,13 +2437,12 @@
         });
 
         function toggleReaction(messageId, emoji) {
-            fetch('/lounge/react', {
+            fetch(`/lounge/react/${messageId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message_id: messageId,
                     emoji: emoji
                 })
             })
@@ -2279,7 +2450,7 @@
             .then(data => {
                 if (data.success) {
                     // Reload messages to show updated reactions
-                    loadMessages();
+                    loadMessages({ initial: true });
                 }
             })
             .catch(error => {
@@ -2299,38 +2470,138 @@
         // LOAD INITIAL MESSAGES
         // ========================================
 
-        async function loadMessages() {
+        async function loadMessages({ initial = false, before = null } = {}) {
+            if (isLoadingMessages) return;
+            isLoadingMessages = true;
+
             try {
-                const response = await fetch('/lounge/messages');
-                const data = await response.json();
-
-                const container = document.getElementById('messagesContainer');
-                container.innerHTML = '';
-
-                for (let i = 0; i < data.messages.length; i++) {
-                    const message = data.messages[i];
-                    message.index = i; // Add index for snap viewing
-
-                    let profilePic = null;
-                    let userRank = null;
-
-                    if (message.from !== currentUser) {
-                        const meta = await getProfileMeta(message.from);
-                        profilePic = meta.profilePicture;
-                        userRank = meta.rank;
-                    }
-
-                    appendMessage(message, profilePic, userRank);
+                const params = new URLSearchParams({ limit: MESSAGES_PAGE_SIZE });
+                if (!initial && before !== null) {
+                    params.append('before', before);
                 }
 
-                scrollToBottom();
+                const response = await fetch(`/lounge/messages?${params.toString()}`);
+                const data = await response.json();
+                const staffTags = data.staff_tags || {};
+                const messages = data.messages || [];
+                const startIndex = data.start_index || 0;
+                const container = document.getElementById('messagesContainer');
+                const prependMode = !initial && before !== null;
+                const previousHeight = container.scrollHeight;
+                const previousScrollTop = container.scrollTop;
+
+                if (initial) {
+                    container.innerHTML = '';
+                    renderedMessageIndices.clear();
+                    oldestIndexLoaded = null;
+                    hasMoreMessages = true;
+                }
+
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    const globalIndex = startIndex + i;
+                    if (renderedMessageIndices.has(globalIndex)) continue;
+
+                    message.index = globalIndex;
+                    message.reactions = message.reactions || {};
+
+                    let staffTag = normalizeStaffTag(staffTags[message.from]);
+                    if (staffTag) {
+                        staffTagCache[message.from] = staffTag;
+                    } else if (staffTagCache[message.from] !== undefined) {
+                        staffTag = staffTagCache[message.from];
+                    }
+
+                    let profilePic = null;
+                    if (message.from !== currentUser) {
+                        if (profilePictureCache[message.from] !== undefined) {
+                            profilePic = profilePictureCache[message.from];
+                        } else {
+                            const meta = await getProfileMeta(message.from);
+                            profilePic = meta.profilePicture;
+                            profilePictureCache[message.from] = profilePic;
+                        }
+                    }
+
+                    appendMessage(message, profilePic, staffTag, prependMode);
+                    renderedMessageIndices.add(globalIndex);
+                }
+
+                if (messages.length > 0) {
+                    oldestIndexLoaded = startIndex;
+                }
+                hasMoreMessages = data.has_more;
+
+                if (initial) {
+                    scrollToBottom(true);
+                    // Double-check after render in case media affects height
+                    setTimeout(() => scrollToBottom(true), 50);
+                } else if (messages.length > 0) {
+                    const newHeight = container.scrollHeight;
+                    container.scrollTop = (newHeight - previousHeight) + previousScrollTop;
+                }
             } catch (error) {
                 console.error('Error loading messages:', error);
+            } finally {
+                isLoadingMessages = false;
             }
         }
 
         // Load messages on page load
-        loadMessages();
+        loadMessages({ initial: true });
+
+        const messagesContainerEl = document.getElementById('messagesContainer');
+        messagesContainerEl.addEventListener('scroll', async () => {
+            if (messagesContainerEl.scrollTop < 60 && hasMoreMessages && !isLoadingMessages && oldestIndexLoaded !== null) {
+                await loadMessages({ before: oldestIndexLoaded });
+            }
+        });
+
+        // ========================================
+        // NOTIFICATION TOGGLE FUNCTIONALITY
+        // ========================================
+        const notificationToggle = document.getElementById('notificationToggle');
+
+        // Load saved state from localStorage (default: enabled)
+        function loadNotificationToggleState() {
+            const savedState = localStorage.getItem(NOTIFICATION_TOGGLE_KEY);
+            const isEnabled = savedState === null ? true : savedState === 'true';
+
+            if (isEnabled) {
+                notificationToggle.classList.add('active');
+            } else {
+                notificationToggle.classList.remove('active');
+            }
+
+            return isEnabled;
+        }
+
+        // Save state to localStorage
+        function saveNotificationToggleState(isEnabled) {
+            localStorage.setItem(NOTIFICATION_TOGGLE_KEY, isEnabled.toString());
+        }
+
+        // Get current state
+        function isNotificationsEnabled() {
+            return notificationToggle.classList.contains('active');
+        }
+
+        // Toggle click handler
+        notificationToggle.addEventListener('click', () => {
+            const currentState = isNotificationsEnabled();
+            const newState = !currentState;
+
+            if (newState) {
+                notificationToggle.classList.add('active');
+            } else {
+                notificationToggle.classList.remove('active');
+            }
+
+            saveNotificationToggleState(newState);
+        });
+
+        // Initialize toggle state on page load
+        loadNotificationToggleState();
 
         // ========================================
         // HEARTBEAT (for general activity tracking)

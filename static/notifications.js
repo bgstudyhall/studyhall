@@ -145,6 +145,42 @@
       .catch(() => {});
   }
 
+  function pollLounge() {
+    // Don't poll if we're currently in the lounge
+    if (window.location.pathname === '/lounge') return;
+
+    // Check if lounge notifications are enabled (default: true)
+    const notificationsEnabled = localStorage.getItem('loungeNotificationsEnabled');
+    if (notificationsEnabled === 'false') return;
+
+    fetch('/api/lounge_notifications')
+      .then((r) => r.json())
+      .then((data) => {
+        (data.notifications || []).forEach((notif) => {
+          const key = `lounge-${notif.from}-${notif.timestamp}`;
+          if (shown.has(key) || notif.timestamp <= lastTimestamp) return;
+          shown.add(key);
+          lastTimestamp = notif.timestamp;
+
+          let icon = '💬';
+          let title = 'New Lounge Message';
+          if (notif.type === 'achievement') {
+            icon = '🏆';
+            title = 'Achievement Unlocked!';
+          }
+
+          showNotification({
+            title: title,
+            icon: icon,
+            user: notif.from,
+            action: notif.message.substring(0, 50),
+            onClick: () => (window.location.href = '/lounge'),
+          });
+        });
+      })
+      .catch(() => {});
+  }
+
   function mapType(type) {
     switch (type) {
       case 'rps_invite': return { title: 'RPS Challenge!', icon: '🎮', action: 'challenged you to Rock Paper Scissors' };
@@ -185,9 +221,11 @@
     ensureContainer();
     pollChat();
     pollGroups();
+    pollLounge();
     refreshBadge();
     setInterval(pollChat, POLL_INTERVAL);
     setInterval(pollGroups, POLL_INTERVAL);
+    setInterval(pollLounge, POLL_INTERVAL);
     setInterval(refreshBadge, BADGE_REFRESH_INTERVAL);
   }
 

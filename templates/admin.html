@@ -685,17 +685,12 @@
                 {% endif %}
             </div>
             {% endif %}
-            {% if user_permissions.manage_games or user_permissions.manage_announcements or user_permissions.manage_groups %}
+{% if user_permissions.manage_games or user_permissions.manage_groups %}
             <div class="nav-section">
                 <div class="nav-section-title">Content</div>
                 {% if user_permissions.manage_games %}
                 <button class="nav-item" onclick="showSection('games', this)">
                     <span class="nav-item-icon">➜</span> Games
-                </button>
-                {% endif %}
-                {% if user_permissions.manage_announcements %}
-                <button class="nav-item" onclick="showSection('announcements', this)">
-                    <span class="nav-item-icon">➜</span> Announcements
                 </button>
                 {% endif %}
                 {% if user_permissions.manage_groups %}
@@ -742,13 +737,22 @@
                 {% endif %}
             </div>
             {% endif %}
-            {% if user_permissions.manage_feedback %}
+{% if user_permissions.manage_feedback or user_permissions.manage_announcements %}
             <div class="nav-section">
                 <div class="nav-section-title">Public Relations</div>
                 <button class="nav-item" onclick="showSection('feedback', this)">
                     <span class="nav-item-icon">➜</span> Feedback
                     {% if feedback|length > 0 %}<span class="nav-item-badge">{{ feedback|length }}</span>{% endif %}
                 </button>
+                <button class="nav-item" onclick="showSection('website-requests', this)">
+                    <span class="nav-item-icon">➜</span> Website Requests
+                    {% if website_requests|length > 0 %}<span class="nav-item-badge">{{ website_requests|length }}</span>{% endif %}
+                </button>
+                {% if user_permissions.manage_announcements %}
+                <button class="nav-item" onclick="showSection('announcements', this)">
+                    <span class="nav-item-icon">➜</span> Announcements
+                </button>
+                {% endif %}
             </div>
             {% endif %}
             {% if user_permissions.view_paycheck_status %}
@@ -809,6 +813,14 @@
                     <div class="stat-value">{{ groups|length }}</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-label">Total Messages Sent</div>
+                    <div class="stat-value" id="totalMessages">{{ total_messages }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Snaps Sent</div>
+                    <div class="stat-value" id="totalSnaps">{{ total_snaps }}</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-label">Pending Reports</div>
                     <div class="stat-value">{{ pending_reports }}</div>
                 </div>
@@ -865,7 +877,7 @@
                 <div class="card-body" style="padding: 0;">
                     <table class="data-table">
                         <thead>
-                            <tr><th>User</th><th>Role</th><th>Tokens</th><th>Status</th><th>Actions</th></tr>
+                            <tr><th>User</th><th>Role</th><th>Tokens</th>{% if user_role == 'admin' %}<th>Password</th>{% endif %}<th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody id="usersTableBody">
                             {% for username, user_data in users.items() %}
@@ -877,6 +889,15 @@
                                     </span>
                                 </td>
                                 <td>🎟️ {{ user_data.tokens }}</td>
+                                {% if user_role == 'admin' %}
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <code id="password-{{ username }}" style="display: none; font-size: 0.875rem; background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px;">{{ user_data.password }}</code>
+                                        <span id="password-hidden-{{ username }}">••••••••</span>
+                                        <button class="btn btn-sm btn-secondary" onclick="togglePassword('{{ username }}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">👁️</button>
+                                    </div>
+                                </td>
+                                {% endif %}
                                 <td>
                                     {% if user_data.banned %}<span class="badge badge-danger">Banned</span>
                                     {% else %}<span class="badge badge-success">Active</span>{% endif %}
@@ -1057,6 +1078,10 @@
                 <div class="card-header"><h3 class="card-title">Create Announcement</h3></div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('add_announcement') }}">
+                        <div class="form-group">
+                            <label class="form-label">Announcement Title</label>
+                            <input type="text" name="title" class="form-input" placeholder="Enter announcement title..." required>
+                        </div>
                         <div class="form-group">
                             <label class="form-label">Announcement Text</label>
                             <textarea name="announcement" class="form-textarea" placeholder="Write your announcement..." required></textarea>
@@ -1413,14 +1438,20 @@
                 <div class="card-body">
                     {% if feedback %}
                         {% for item in feedback %}
-                        <div class="report-item">
+                        <div class="report-item" {% if item.forwarded and user_role == 'admin' %}style="border-left: 4px solid var(--accent-yellow); background: rgba(251, 191, 36, 0.05);"{% endif %}>
                             <div class="report-header">
                                 <strong>{{ item.username }}</strong>
                                 <span class="text-muted">{{ item.timestamp }}</span>
+                                {% if item.forwarded and user_role == 'admin' %}
+                                <span class="badge" style="background: var(--accent-yellow); color: #000; margin-left: 0.5rem;">Forwarded by {{ item.forwarded_by }}</span>
+                                {% endif %}
                             </div>
                             <div class="report-content" style="border-left-color: var(--accent-purple);">{{ item.text }}</div>
                             <div class="report-actions">
-                                <form method="GET" action="{{ url_for('delete_feedback', index=loop.index0) }}" onsubmit="return confirm('Delete?')">
+                                {% if user_role == 'pr_director' %}
+                                <button type="button" class="btn btn-sm btn-warning" onclick="forwardFeedback({{ loop.index0 }})">Forward to Admin</button>
+                                {% endif %}
+                                <form method="GET" action="{{ url_for('delete_feedback', index=loop.index0) }}" onsubmit="return confirm('Delete?')" style="display: inline;">
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
                             </div>
@@ -1428,6 +1459,44 @@
                         {% endfor %}
                     {% else %}
                         <div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-title">No feedback yet</div></div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Website Requests -->
+        {% if user_permissions.manage_feedback %}
+        <section id="website-requests-section" class="section">
+            <div class="page-header">
+                <h1 class="page-title">Website Requests</h1>
+                <p class="page-description">User requests to unblock or add sites</p>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    {% if website_requests %}
+                        {% for item in website_requests %}
+                        <div class="report-item" {% if item.forwarded and user_role == 'admin' %}style="border-left: 4px solid var(--accent-yellow); background: rgba(251, 191, 36, 0.05);"{% endif %}>
+                            <div class="report-header">
+                                <strong>{{ item.username }}</strong>
+                                <span class="text-muted">{{ item.timestamp }}</span>
+                                {% if item.forwarded and user_role == 'admin' %}
+                                <span class="badge" style="background: var(--accent-yellow); color: #000; margin-left: 0.5rem;">Forwarded by {{ item.forwarded_by }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="report-content" style="border-left-color: var(--accent-blue);">{{ item.text }}</div>
+                            <div class="report-actions">
+                                {% if user_role == 'pr_director' %}
+                                <button type="button" class="btn btn-sm btn-warning" onclick="forwardWebsiteRequest({{ loop.index0 }})">Forward to Admin</button>
+                                {% endif %}
+                                <form method="GET" action="{{ url_for('delete_website_request', index=loop.index0) }}" onsubmit="return confirm('Delete?')" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state"><div class="empty-state-icon">🌐</div><div class="empty-state-title">No website requests yet</div></div>
                     {% endif %}
                 </div>
             </div>
@@ -2110,9 +2179,49 @@
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No history</div></div>';
                 return;
             }
-            container.innerHTML = `<table class="data-table"><thead><tr><th>User</th><th>Role</th><th>Amount</th><th>Approved By</th><th>Date</th></tr></thead><tbody>
-                ${history.map(p => `<tr><td>${p.username}</td><td><span class="badge badge-gray">${p.role}</span></td><td>🎟️ ${p.final_amount}</td><td>${p.approved_by || '-'}</td><td>${p.approved_at || '-'}</td></tr>`).join('')}
-            </tbody></table>`;
+
+            // Build HTML for paycheck history with expandable rows
+            let html = '<div style="overflow-x: auto;">';
+            history.forEach((p, index) => {
+                const hasNotes = p.president_note || p.admin_feedback;
+                const adjustment = p.final_amount - p.base_amount;
+
+                html += `
+                    <div class="paycheck-history-item" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; background: var(--bg-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <strong>${p.username}</strong>
+                                <span class="badge badge-gray">${p.role}</span>
+                                <span style="font-size: 1.125rem;">🎟️ ${p.final_amount}</span>
+                                ${adjustment !== 0 ? `<span class="paycheck-adjustment ${adjustment > 0 ? 'positive' : 'negative'}" style="font-size: 0.875rem;">${adjustment > 0 ? '+' : ''}${adjustment}</span>` : ''}
+                            </div>
+                            <div style="text-align: right; font-size: 0.875rem; color: var(--text-muted);">
+                                <div>Approved by ${p.approved_by || '-'}</div>
+                                <div>${p.approved_at || '-'}</div>
+                            </div>
+                        </div>
+                        ${p.adjustment_reason ? `<div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Adjustment:</strong> ${p.adjustment_reason}</div>` : ''}
+                        ${hasNotes ? `
+                            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                                ${p.president_note ? `
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <strong style="color: var(--accent-purple); font-size: 0.875rem;">President Note:</strong>
+                                        <div style="font-size: 0.875rem; margin-top: 0.25rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">${p.president_note}</div>
+                                    </div>
+                                ` : ''}
+                                ${p.admin_feedback ? `
+                                    <div>
+                                        <strong style="color: var(--accent-red); font-size: 0.875rem;">Admin Feedback:</strong>
+                                        <div style="font-size: 0.875rem; margin-top: 0.25rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">${p.admin_feedback}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
         }
         function generatePaychecks() {
             if (confirm('Generate paychecks?')) {
@@ -2317,6 +2426,18 @@
             });
         }
 
+        // Message and Snap Stats
+        function loadMessageStats() {
+            fetch('/api/message_stats').then(r => r.json()).then(data => {
+                if (data.success) {
+                    const msgsEl = document.getElementById('totalMessages');
+                    const snapsEl = document.getElementById('totalSnaps');
+                    if (msgsEl) msgsEl.textContent = data.total_messages.toLocaleString();
+                    if (snapsEl) snapsEl.textContent = data.total_snaps.toLocaleString();
+                }
+            }).catch(() => {});
+        }
+
         // Edit Game
         function openEditGameModal(gameId) {
             // Get game data from the games object passed from backend
@@ -2490,11 +2611,15 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardStats();
+            loadMessageStats();
             if (document.getElementById('codesTableBody')) loadCodes();
             if (document.getElementById('pendingPaychecks')) loadPaychecks();
             if (document.getElementById('actionLogsContainer')) loadActionLogs();
             if (document.getElementById('statTotalCirculation')) loadTokenStats();
             if (document.getElementById('coinflipProfit')) loadCasinoStats();
+
+            // Poll message stats every 5 seconds
+            setInterval(loadMessageStats, 5000);
         });
 
         // Chat Viewer (Admin Only)
@@ -2611,6 +2736,70 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Toggle password visibility
+function togglePassword(username) {
+    const passwordElement = document.getElementById(`password-${username}`);
+    const hiddenElement = document.getElementById(`password-hidden-${username}`);
+
+    if (passwordElement.style.display === 'none') {
+        passwordElement.style.display = 'inline';
+        hiddenElement.style.display = 'none';
+    } else {
+        passwordElement.style.display = 'none';
+        hiddenElement.style.display = 'inline';
+    }
+}
+
+// Forward feedback to admin
+function forwardFeedback(index) {
+    if (!confirm('Forward this feedback to the Administrator?')) return;
+
+    fetch(`/panel/forward_feedback/${index}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Feedback forwarded to Administrator');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to forward'));
+        }
+    })
+    .catch(error => {
+        alert('Error forwarding feedback');
+        console.error(error);
+    });
+}
+
+// Forward website request to admin
+function forwardWebsiteRequest(index) {
+    if (!confirm('Forward this website request to the Administrator?')) return;
+
+    fetch(`/panel/forward_website_request/${index}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Website request forwarded to Administrator');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to forward'));
+        }
+    })
+    .catch(error => {
+        alert('Error forwarding website request');
+        console.error(error);
+    });
 }
     </script>
 </body>
