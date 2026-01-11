@@ -1289,17 +1289,29 @@ else:
                             date_text = line.strip()
                             break
 
-                    # Get announcement content - try multiple selectors
+                    # Extract links from the announcement
+                    links = []
+                    try:
+                        link_elements = elem.find_elements(By.CSS_SELECTOR, 'a[href]')
+                        for link_elem in link_elements:
+                            href = link_elem.get_attribute('href')
+                            if href and ('http' in href) and ('classroom.google.com' not in href):
+                                link_text = link_elem.text.strip() or href
+                                links.append({'url': href, 'title': link_text})
+                    except:
+                        pass
+
+                    # Get announcement content
                     announcement_text = ""
                     try:
-                        # Try to get just the announcement content
-                        content_elem = elem.find_element(By.CSS_SELECTOR, '.pco8Kc, .n8F6Jd, .Xq1mf, .JzO0Vc')
+                        # Get the main content area
+                        content_elem = elem.find_element(By.CSS_SELECTOR, '.pco8Kc')
                         announcement_text = content_elem.text.strip()
                     except:
-                        # Fallback: use full text and clean it
+                        # Fallback: use full text
                         announcement_text = full_text
 
-                    # Clean up the text
+                    # Clean up the text - remove metadata but keep the actual content
                     lines_to_remove = [
                         'Add comment', 'class comments', 'More options', 'more_vert',
                         'Created', 'Post by', '(Edited', 'Edited'
@@ -1307,27 +1319,38 @@ else:
                     for removal in lines_to_remove:
                         announcement_text = announcement_text.replace(removal, '')
 
-                    # Remove URLs and metadata
+                    # Clean line by line
                     text_lines = announcement_text.split('\n')
                     cleaned_lines = []
+                    skip_names = ['Emily Hall', 'Jan 8', 'Yesterday', 'Today', 'Jan 7', 'Jan 9', 'Jan 10']
+
                     for line in text_lines:
                         line = line.strip()
-                        # Skip empty lines, short lines, and URLs
-                        if line and len(line) > 3 and not line.startswith('http') and not line.startswith('Jan ') and not line.startswith('Feb '):
-                            # Skip date patterns and names that might be author info
-                            if line not in ['Emily Hall', 'Jan 8', 'Yesterday', 'Today']:
+                        # Skip empty lines, very short lines, and author names
+                        if line and len(line) > 3 and line not in skip_names:
+                            # Don't skip if it's the actual content (longer than typical metadata)
+                            if len(line) > 15 or not any(month in line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']):
                                 cleaned_lines.append(line)
 
-                    announcement_text = '\n'.join(cleaned_lines).strip()
+                    announcement_text = '\n\n'.join(cleaned_lines).strip()
 
-                    if announcement_text and len(announcement_text) > 20:
+                    # Build materials list from extracted links
+                    materials = []
+                    for link in links:
+                        materials.append({
+                            'type': 'link',
+                            'url': link['url'],
+                            'title': link['title'] if len(link['title']) < 100 else 'View Link'
+                        })
+
+                    if announcement_text and len(announcement_text) > 15:
                         announcements.append({
                             'id': str(len(announcements)),
                             'text': announcement_text,
                             'date': date_text or 'Recently',
-                            'materials': []
+                            'materials': materials
                         })
-                        print(f"   ✅ Added: {announcement_text[:60]}...")
+                        print(f"   ✅ Added: {announcement_text[:60]}... ({len(materials)} links)")
 
                 except Exception as e:
                     print(f"   ⚠️  Error parsing announcement: {e}")

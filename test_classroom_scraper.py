@@ -146,7 +146,7 @@ try:
         print("\n   ✅ Found announcements! Parsing them...")
         announcements = []
 
-        for i, elem in enumerate(announcement_elements[:5]):  # Only show first 5
+        for i, elem in enumerate(announcement_elements):  # Process all announcements
             try:
                 full_text = elem.text.strip()
                 if full_text and len(full_text) >= 20:
