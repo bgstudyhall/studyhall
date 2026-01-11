@@ -2,23 +2,225 @@
   "announcements": [
     {
       "id": "0",
-      "text": "Please fill out the form and indicate which committee you'd most like to serve on this Spring!!",
-      "date": "Jan 8",
+      "text": "https://docs.google.com/forms/d/e/1FAIpQLSce9nyeaZBrjC0LfOh55huBqo7FeOPIeks8g69KsqPJAk_qLg/viewform?usp=publish-editor\n\nPlease fill out the form and indicate which committee you'd most like to serve on this Spring!!",
+      "clean_text": "https://docs.google.com/forms/d/e/1FAIpQLSce9nyeaZBrjC0LfOh55huBqo7FeOPIeks8g69KsqPJAk_qLg/viewform?usp=publish-editor\n\nPlease fill out the form and indicate which committee you'd most like to serve on this Spring!!",
+      "date": "Created Jan 8",
       "materials": [
         {
           "type": "link",
           "url": "https://docs.google.com/forms/d/e/1FAIpQLSce9nyeaZBrjC0LfOh55huBqo7FeOPIeks8g69KsqPJAk_qLg/viewform?usp=publish-editor",
-          "title": "Committee Selection Form"
+          "title": "View Link"
+        }
+      ],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838529533922/details",
+      "links": [
+        {
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSce9nyeaZBrjC0LfOh55huBqo7FeOPIeks8g69KsqPJAk_qLg/viewform?usp=publish-editor",
+          "text": "View Link"
         }
       ]
     },
     {
       "id": "1",
       "text": "Full group meeting today during 11th period in the auditorium!\n\nNEON Night tomorrow at the Basketball game beginning at 5:30!\n\nPlease answer the mid-year dance question posted to Google Classroom.",
-      "date": "Jan 8",
-      "materials": []
+      "clean_text": "Full group meeting today during 11th period in the auditorium!\n\nNEON Night tomorrow at the Basketball game beginning at 5:30!\n\nPlease answer the mid-year dance question posted to Google Classroom.",
+      "date": "Created Jan 8",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/793095369061/details",
+      "links": []
+    },
+    {
+      "id": "2",
+      "text": "Material: \"1/8/26: Full Group Meeting \"\n\nEmily Hall posted a new material: 1/8/26: Full Group Meeting",
+      "clean_text": "Material: \"1/8/26: Full Group Meeting \"\n\nEmily Hall posted a new material: 1/8/26: Full Group Meeting",
+      "date": "Created Jan 7",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838285884226/details",
+      "links": []
+    },
+    {
+      "id": "3",
+      "text": "Material: \"1/7/26: Officer's Meeting\"\n\nEmily Hall posted a new material: 1/7/26: Officer's Meeting",
+      "clean_text": "Material: \"1/7/26: Officer's Meeting\"\n\nEmily Hall posted a new material: 1/7/26: Officer's Meeting",
+      "date": "Created Jan 7",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838286599607/details",
+      "links": []
+    },
+    {
+      "id": "4",
+      "text": "Tomorrow, THURSDAY, we will have a full group meeting during 11th period in the auditorium! Please attend!",
+      "clean_text": "Tomorrow, THURSDAY, we will have a full group meeting during 11th period in the auditorium! Please attend!",
+      "date": "Created Jan 7",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838283507839/details",
+      "links": []
+    },
+    {
+      "id": "5",
+      "text": "Question: \"Should we host a mid-year dance? \"\n\nEmily Hall posted a new question: Should we host a mid-year dance?",
+      "clean_text": "Question: \"Should we host a mid-year dance? \"\n\nEmily Hall posted a new question: Should we host a mid-year dance?",
+      "date": "Created Jan 6",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/793050049732/details",
+      "links": []
+    },
+    {
+      "id": "6",
+      "text": "Birthday Wall - I'm looking for a volunteer to do the Birthday Wall today, any time after period 6.\n\nMeetings - Officer's meeting tomorrow (Wednesday) during 6th period in room 202.",
+      "clean_text": "Birthday Wall - I'm looking for a volunteer to do the Birthday Wall today, any time after period 6.\n\nMeetings - Officer's meeting tomorrow (Wednesday) during 6th period in room 202.",
+      "date": "Created Jan 6",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838067566507/details",
+      "links": []
+    },
+    {
+      "id": "7",
+      "text": "Emily Hall \u2022 Jan 6\n\nPerfect! The January/July birthdays are outside of room 202 - grab them any time and return the December/June to me. Thanks!\n\nAdd class comment\u2026",
+      "clean_text": "Emily Hall \u2022 Jan 6\n\nPerfect! The January/July birthdays are outside of room 202 - grab them any time and return the December/June to me. Thanks!\n\nAdd class comment\u2026",
+      "date": "Emily Hall \u2022 Jan 6",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/838067566507/details",
+      "links": []
+    },
+    {
+      "id": "8",
+      "text": "Reminder - Friday is a themed basketball game (NEON) and the following students are signed up to work:\n\nJV (5-7)\n\nVolunteers (up to 3) Sawyer Nichols, Theo Loya, Nolan\n\nVarsity (7-9)\n\nVolunteers (up to 3)Sawyer, Theo, Ben",
+      "clean_text": "Reminder - Friday is a themed basketball game (NEON) and the following students are signed up to work:\n\nJV (5-7)\n\nVolunteers (up to 3) Sawyer Nichols, Theo Loya, Nolan\n\nVarsity (7-9)\n\nVolunteers (up to 3)Sawyer, Theo, Ben",
+      "date": "Created Jan 5",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/837951829321/details",
+      "links": []
+    },
+    {
+      "id": "9",
+      "text": "To those participating in Secret Santa - it begins TOMORROW, 12/18. You will give a clue & small gift on 12/18, 12/19, and 12/22. On 12/23, you will give your \"big\" gift and reveal yourself. Please let me know if you need any help!",
+      "clean_text": "To those participating in Secret Santa - it begins TOMORROW, 12/18. You will give a clue & small gift on 12/18, 12/19, and 12/22. On 12/23, you will give your \"big\" gift and reveal yourself. Please let me know if you need any help!",
+      "date": "Created Dec 17, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/836455817752/details",
+      "links": []
+    },
+    {
+      "id": "10",
+      "text": "Food Drive Deliveries -\n\nIf you were selected to go on food drive deliveries, you will have a meeting on 12/18 during 6th period in Ms. Hardy's room. Make sure you attend!",
+      "clean_text": "Food Drive Deliveries -\n\nIf you were selected to go on food drive deliveries, you will have a meeting on 12/18 during 6th period in Ms. Hardy's room. Make sure you attend!",
+      "date": "Created Dec 17, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/836777467215/details",
+      "links": []
+    },
+    {
+      "id": "11",
+      "text": "Several things!\n\n1. Please review what you have signed up for!\n\n- The following are signed up to pack baskets after school on Friday, 12/19 (3:05-4:30) Elodie, Harpo, Makenna, Solara, Aubrey, Aiden, Zero, Hannah, Kaylynn, Railey. If you are not able to make it, let me know!\n\n- The following are signed up to work at the game on Friday: JV - Maddie I., Madi B., Carleigh. Varsity - Emely & Leyah\n\n- If you are in student council, you are expected to be at our events and participating, including the themed basketball games. Please join us in the student section on Friday.\n\n2. On Reward Day, we need someone to host the Senior vs. Staff volleyball game on the microphone. You need to be willing to introduce the teams & coaches, as well as commentate on the game. Please see me if you are interested!",
+      "clean_text": "Several things!\n\n1. Please review what you have signed up for!\n\n- The following are signed up to pack baskets after school on Friday, 12/19 (3:05-4:30) Elodie, Harpo, Makenna, Solara, Aubrey, Aiden, Zero, Hannah, Kaylynn, Railey. If you are not able to make it, let me know!\n\n- The following are signed up to work at the game on Friday: JV - Maddie I., Madi B., Carleigh. Varsity - Emely & Leyah\n\n- If you are in student council, you are expected to be at our events and participating, including the themed basketball games. Please join us in the student section on Friday.\n\n2. On Reward Day, we need someone to host the Senior vs. Staff volleyball game on the microphone. You need to be willing to introduce the teams & coaches, as well as commentate on the game. Please see me if you are interested!",
+      "date": "Created Dec 15, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/792891430965/details",
+      "links": []
+    },
+    {
+      "id": "12",
+      "text": "The following students are signed up to help with Toys for Tots this Saturday. You will meet me by the train track crossing on Walnut Street (towards the High School) at 11:30. We will collect the toys around 11:50-12:00 and then work until 1:30 to sort them in the tech building.\n\nMakenna\n\nElodie\n\nJaidyn\n\nAubrey\n\nAiden\n\nZero\n\nKassidy\n\nIsabel\n\nMerren",
+      "clean_text": "The following students are signed up to help with Toys for Tots this Saturday. You will meet me by the train track crossing on Walnut Street (towards the High School) at 11:30. We will collect the toys around 11:50-12:00 and then work until 1:30 to sort them in the tech building.\n\nMakenna\n\nElodie\n\nJaidyn\n\nAubrey\n\nAiden\n\nZero\n\nKassidy\n\nIsabel\n\nMerren",
+      "date": "Created Dec 11, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/835933716092/details",
+      "links": []
+    },
+    {
+      "id": "13",
+      "text": "Aubrey Schinn, Elias, Ethan Beardslee, Isabel, and Maddie A.,  - Come see me 11th to get your Secret Santa packets!",
+      "clean_text": "Aubrey Schinn, Elias, Ethan Beardslee, Isabel, and Maddie A.,  - Come see me 11th to get your Secret Santa packets!",
+      "date": "Created Dec 9, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/835564858275/details",
+      "links": []
+    },
+    {
+      "id": "14",
+      "text": "We have signs to hang up advertising our basketball games. If you're available 11th, come see me to hang them up, please!",
+      "clean_text": "We have signs to hang up advertising our basketball games. If you're available 11th, come see me to hang them up, please!",
+      "date": "Created Dec 9, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/835547914814/details",
+      "links": []
+    },
+    {
+      "id": "15",
+      "text": "We have earned 1389 additional points in the food drive, bringing our total to 1904! Only 121 more points until we hit our goal.",
+      "clean_text": "We have earned 1389 additional points in the food drive, bringing our total to 1904! Only 121 more points until we hit our goal.",
+      "date": "Created Dec 8, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/835259570733/details",
+      "links": []
+    },
+    {
+      "id": "16",
+      "text": "The following students need to turn in their Secret Santa interest forms ASAP:\n\nIsabel, Ethan Beardslee, Laeni, and Solara. There are extra forms outside room 202.",
+      "clean_text": "The following students need to turn in their Secret Santa interest forms ASAP:\n\nIsabel, Ethan Beardslee, Laeni, and Solara. There are extra forms outside room 202.",
+      "date": "Created Dec 5, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/834993650662/details",
+      "links": []
+    },
+    {
+      "id": "17",
+      "text": "Full group meeting today during 11th period!\n\nPlease sign up to collect food in the morning - we still have days with nobody there! https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing\n\nSign up to work at our basketball games: https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing",
+      "clean_text": "Full group meeting today during 11th period!\n\nPlease sign up to collect food in the morning - we still have days with nobody there! https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing\n\nSign up to work at our basketball games: https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing",
+      "date": "Created Dec 4, 2025",
+      "materials": [
+        {
+          "type": "link",
+          "url": "https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing",
+          "title": "https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing"
+        },
+        {
+          "type": "link",
+          "url": "https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing",
+          "title": "https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing"
+        }
+      ],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/834733591344/details",
+      "links": [
+        {
+          "url": "https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing",
+          "text": "https://docs.google.com/document/d/1YXT23wR_uzmt8zpGeN8fXeN_-ogVO47JI1-t9texrqc/edit?usp=sharing"
+        },
+        {
+          "url": "https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing",
+          "text": "https://docs.google.com/document/d/1_qrL82uetM_4KpFhZR7UzQyGM5zOEL211S9PmcIYnfo/edit?usp=sharing"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "text": "Material: \"12/4/25: Full Group Meeting\"\n\nEmily Hall posted a new material: 12/4/25: Full Group Meeting\n\nDec 3, 2025\n\nDec 3, 2025",
+      "clean_text": "Material: \"12/4/25: Full Group Meeting\"\n\nEmily Hall posted a new material: 12/4/25: Full Group Meeting\n\nDec 3, 2025\n\nDec 3, 2025",
+      "date": "Created Dec 3, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/832406590939/details",
+      "links": []
+    },
+    {
+      "id": "19",
+      "text": "Material: \"12/3/25: Officer's Meeting\"\n\nEmily Hall posted a new material: 12/3/25: Officer's Meeting\n\nDec 3, 2025\n\nDec 3, 2025",
+      "clean_text": "Material: \"12/3/25: Officer's Meeting\"\n\nEmily Hall posted a new material: 12/3/25: Officer's Meeting\n\nDec 3, 2025\n\nDec 3, 2025",
+      "date": "Created Dec 3, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/832406769835/details",
+      "links": []
+    },
+    {
+      "id": "20",
+      "text": "The following students participating in Secret Santa need to pick up a questionnaire outside of room 202. Please fill it out and return to me by Monday, 12/8.\n\nMakenna, Lucy, Macey, Kamry, Solara, Madeline A., Laeni, Peyton, Emma K., Ethan B., Merren, Hannah, Isabel, Elias, Aubrey, Elodie, Jaidyn, Keelan",
+      "clean_text": "The following students participating in Secret Santa need to pick up a questionnaire outside of room 202. Please fill it out and return to me by Monday, 12/8.\n\nMakenna, Lucy, Macey, Kamry, Solara, Madeline A., Laeni, Peyton, Emma K., Ethan B., Merren, Hannah, Isabel, Elias, Aubrey, Elodie, Jaidyn, Keelan",
+      "date": "Created Dec 1, 2025",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/Nzk5OTQxMzg4NjAx/p/831924345184/details",
+      "links": []
     }
   ],
-  "last_updated": "2026-01-10T20:50:00.000000",
-  "classroom_name": "Student Council"
+  "last_updated": "2026-01-11T00:37:02.115410",
+  "classroom_name": "Unknown"
 }

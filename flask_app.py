@@ -1280,6 +1280,10 @@ else:
                     if not full_text or len(full_text) < 20:
                         continue
 
+                    # Extract announcement ID and URL
+                    announcement_id = elem.get_attribute('data-stream-item-id')
+                    announcement_url = f'https://classroom.google.com/c/{CLASSROOM_ID}/p/{announcement_id}/details' if announcement_id else None
+
                     lines = full_text.split('\n')
 
                     # Find date
@@ -1347,8 +1351,11 @@ else:
                         announcements.append({
                             'id': str(len(announcements)),
                             'text': announcement_text,
+                            'clean_text': announcement_text,
                             'date': date_text or 'Recently',
-                            'materials': materials
+                            'materials': materials,
+                            'classroom_url': announcement_url,
+                            'links': [{'url': m['url'], 'text': m['title']} for m in materials]
                         })
                         print(f"   ✅ Added: {announcement_text[:60]}... ({len(materials)} links)")
 
@@ -1736,52 +1743,6 @@ def casino():
 # ===============================================================
 # Google Classroom Routes
 # ===============================================================
-
-@app.route('/classroom')
-@maintenance_check
-@login_required
-def classroom():
-    """Display Google Classroom announcements."""
-    username = session['username']
-
-    unread_count = get_unread_count(username)
-    group_unread_count = get_total_group_unread_count(username)
-    lounge_unread_count = get_lounge_unread_count(username)
-
-    return render_template('classroom.html',
-        username=username,
-        unread_count=unread_count,
-        group_unread_count=group_unread_count,
-        lounge_unread_count=lounge_unread_count,
-        user_role=users[username]['role'],
-        user_rank=users[username].get('rank'),
-        RANKS=RANKS,
-        STAFF_ROLES=STAFF_ROLES
-    )
-
-@app.route('/api/classroom/status')
-@login_required
-def get_classroom_status():
-    """Get classroom configuration status."""
-    return jsonify({
-        'configured': CLASSROOM_ID is not None,
-        'logged_in': os.path.exists(CLASSROOM_COOKIES_FILE),
-        'classroom_id': CLASSROOM_ID,
-        'classroom_name': classroom_announcements_cache.get('classroom_name', 'Not configured')
-    })
-
-@app.route('/api/classroom/announcements')
-@login_required
-def get_classroom_announcements():
-    """Get cached classroom announcements."""
-    return jsonify(classroom_announcements_cache)
-
-@app.route('/api/classroom/refresh', methods=['POST'])
-@login_required
-def manual_classroom_refresh():
-    """Manually trigger a classroom announcements refresh."""
-    scrape_classroom_announcements()
-    return jsonify({'success': True, 'message': 'Refreshed successfully'})
 
 @app.route('/profile', methods=['GET', 'POST'])
 @maintenance_check
@@ -3449,7 +3410,8 @@ def bg():
         group_unread_count=group_unread_count,
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role'],
-        BIRTHDAYS=BIRTHDAYS
+        BIRTHDAYS=BIRTHDAYS,
+        classroom_announcements=classroom_announcements_cache.get('announcements', [])
     )
 
 
