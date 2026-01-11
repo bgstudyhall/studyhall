@@ -187,11 +187,20 @@ BIRTHDAYS = {
 # ===============================================================
 CLASSROOM_COOKIES_FILE = 'google_cookies.pkl'
 CLASSROOM_ANNOUNCEMENTS_FILE = 'announcements_cache.json'
+TEST_ANNOUNCEMENTS_FILE = 'test_announcements_cache.json'
 CLASSROOM_CONFIG_FILE = 'classroom_config.json'
-CLASSROOM_ID = None  # Will be set after first login
+CLASSROOM_ID = None  # Will be set after first login (Student Council)
+TEST_CLASSROOM_ID = 'ODM4ODA4ODcyMTIw'  # Test classroom
 
 # Global cache for Google Classroom announcements
 classroom_announcements_cache = {
+    'announcements': [],
+    'last_updated': None,
+    'classroom_name': 'Loading...'
+}
+
+# Global cache for Test classroom announcements
+test_announcements_cache = {
     'announcements': [],
     'last_updated': None,
     'classroom_name': 'Loading...'
@@ -1185,8 +1194,22 @@ if not SELENIUM_AVAILABLE:
             with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'r') as f:
                 classroom_announcements_cache = json.load(f)
 
+    def save_test_announcements_cache():
+        with open(TEST_ANNOUNCEMENTS_FILE, 'w') as f:
+            json.dump(test_announcements_cache, f)
+
+    def load_test_announcements_cache():
+        global test_announcements_cache
+        if os.path.exists(TEST_ANNOUNCEMENTS_FILE):
+            with open(TEST_ANNOUNCEMENTS_FILE, 'r') as f:
+                test_announcements_cache = json.load(f)
+
     def scrape_classroom_announcements():
         print("⚠️  Google Classroom scraping disabled - selenium not installed")
+        return
+
+    def scrape_test_classroom():
+        print("⚠️  Test classroom scraping disabled - selenium not installed")
         return
 
     def background_classroom_scraper():
@@ -1237,6 +1260,18 @@ else:
         if os.path.exists(CLASSROOM_ANNOUNCEMENTS_FILE):
             with open(CLASSROOM_ANNOUNCEMENTS_FILE, 'r') as f:
                 classroom_announcements_cache = json.load(f)
+
+    def save_test_announcements_cache():
+        """Save test classroom announcements to file."""
+        with open(TEST_ANNOUNCEMENTS_FILE, 'w') as f:
+            json.dump(test_announcements_cache, f)
+
+    def load_test_announcements_cache():
+        """Load test classroom announcements from file."""
+        global test_announcements_cache
+        if os.path.exists(TEST_ANNOUNCEMENTS_FILE):
+            with open(TEST_ANNOUNCEMENTS_FILE, 'r') as f:
+                test_announcements_cache = json.load(f)
 
     def scrape_classroom_announcements():
         """Scrape announcements from Google Classroom."""
@@ -1377,10 +1412,150 @@ else:
             if driver:
                 driver.quit()
 
+    def scrape_test_classroom():
+        """Scrape announcements from Test classroom."""
+        global test_announcements_cache, TEST_CLASSROOM_ID
+
+        if not TEST_CLASSROOM_ID or not os.path.exists(CLASSROOM_COOKIES_FILE):
+            print("⚠️  Test classroom not configured or not logged in yet")
+            return
+
+        driver = None
+        try:
+            print(f"🔄 Scraping Test classroom announcements... [{datetime.now().strftime('%H:%M:%S')}]")
+            driver = get_classroom_driver(load_cookies=True)
+            driver.get(f'https://classroom.google.com/u/0/c/{TEST_CLASSROOM_ID}')
+
+            time.sleep(3)
+
+            # Scroll down to load announcements
+            driver.execute_script("window.scrollTo(0, 1000);")
+            time.sleep(2)
+            driver.execute_script("window.scrollTo(0, 2000);")
+            time.sleep(2)
+
+            # Get classroom name
+            try:
+                name_elem = driver.find_element(By.CSS_SELECTOR, '.YVvGBb.z3vRcc, .fqWr5c')
+                test_announcements_cache['classroom_name'] = name_elem.text.strip()
+            except:
+                test_announcements_cache['classroom_name'] = 'Test'
+
+            announcements = []
+
+            # Find announcements using the data-stream-item-id attribute
+            announcement_elements = driver.find_elements(By.CSS_SELECTOR, '[data-stream-item-id]')
+            print(f"   Found {len(announcement_elements)} announcements in Test classroom")
+
+            for elem in announcement_elements:
+                try:
+                    full_text = elem.text.strip()
+
+                    if not full_text or len(full_text) < 20:
+                        continue
+
+                    # Extract announcement ID and URL
+                    announcement_id = elem.get_attribute('data-stream-item-id')
+                    announcement_url = f'https://classroom.google.com/c/{TEST_CLASSROOM_ID}/p/{announcement_id}/details' if announcement_id else None
+
+                    lines = full_text.split('\n')
+
+                    # Find date
+                    date_text = ""
+                    for line in lines[:10]:
+                        if any(month in line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                            date_text = line.strip()
+                            break
+
+                    # Extract links from the announcement
+                    links = []
+                    try:
+                        link_elements = elem.find_elements(By.CSS_SELECTOR, 'a[href]')
+                        for link_elem in link_elements:
+                            href = link_elem.get_attribute('href')
+                            if href and ('http' in href) and ('classroom.google.com' not in href):
+                                link_text = link_elem.text.strip() or href
+                                links.append({'url': href, 'title': link_text})
+                    except:
+                        pass
+
+                    # Get announcement content
+                    announcement_text = ""
+                    try:
+                        # Get the main content area
+                        content_elem = elem.find_element(By.CSS_SELECTOR, '.pco8Kc')
+                        announcement_text = content_elem.text.strip()
+                    except:
+                        # Fallback: use full text
+                        announcement_text = full_text
+
+                    # Clean up the text - remove metadata but keep the actual content
+                    lines_to_remove = [
+                        'Add comment', 'class comments', 'More options', 'more_vert',
+                        'Created', 'Post by', '(Edited', 'Edited'
+                    ]
+                    for removal in lines_to_remove:
+                        announcement_text = announcement_text.replace(removal, '')
+
+                    # Clean line by line
+                    text_lines = announcement_text.split('\n')
+                    cleaned_lines = []
+                    skip_names = ['Emily Hall', 'Jan 8', 'Yesterday', 'Today', 'Jan 7', 'Jan 9', 'Jan 10', 'Jan 11']
+
+                    for line in text_lines:
+                        line = line.strip()
+                        # Skip empty lines, very short lines, and author names
+                        if line and len(line) > 3 and line not in skip_names:
+                            # Don't skip if it's the actual content (longer than typical metadata)
+                            if len(line) > 15 or not any(month in line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']):
+                                cleaned_lines.append(line)
+
+                    announcement_text = '\n\n'.join(cleaned_lines).strip()
+
+                    # Build materials list from extracted links
+                    materials = []
+                    for link in links:
+                        materials.append({
+                            'type': 'link',
+                            'url': link['url'],
+                            'title': link['title'] if len(link['title']) < 100 else 'View Link'
+                        })
+
+                    if announcement_text and len(announcement_text) > 15:
+                        announcements.append({
+                            'id': str(len(announcements)),
+                            'text': announcement_text,
+                            'clean_text': announcement_text,
+                            'date': date_text or 'Recently',
+                            'materials': materials,
+                            'classroom_url': announcement_url,
+                            'links': [{'url': m['url'], 'text': m['title']} for m in materials]
+                        })
+                        print(f"   ✅ Added: {announcement_text[:60]}... ({len(materials)} links)")
+
+                except Exception as e:
+                    print(f"   ⚠️  Error parsing announcement: {e}")
+                    continue
+
+            driver.quit()
+
+            test_announcements_cache['announcements'] = announcements
+            test_announcements_cache['last_updated'] = datetime.now().isoformat()
+
+            save_test_announcements_cache()
+
+            print(f"✅ Scraped {len(announcements)} announcements from Test classroom")
+
+        except Exception as e:
+            print(f"❌ Test classroom scraping error: {str(e)}")
+            if driver:
+                driver.quit()
+
     def background_classroom_scraper():
         """Background thread that periodically scrapes classroom announcements."""
         while True:
             scrape_classroom_announcements()
+            scrape_test_classroom()
             # Scrape every 10 minutes
             time.sleep(600)
 
@@ -3411,7 +3586,8 @@ def bg():
         lounge_unread_count=lounge_unread_count,
         user_role=users[username]['role'],
         BIRTHDAYS=BIRTHDAYS,
-        classroom_announcements=classroom_announcements_cache.get('announcements', [])
+        classroom_announcements=classroom_announcements_cache.get('announcements', []),
+        test_announcements=test_announcements_cache.get('announcements', [])
     )
 
 
@@ -8943,6 +9119,7 @@ def initialize_classroom():
 
     # ALWAYS load cached announcements if they exist (even without Selenium)
     load_classroom_announcements_cache()
+    load_test_announcements_cache()
 
     if not SELENIUM_AVAILABLE:
         print("⚠️  Selenium not installed - scraping disabled")

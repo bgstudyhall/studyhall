@@ -911,6 +911,14 @@
                             <p>Latest announcements</p>
                         </div>
                     </div>
+
+                    <!-- Test Classroom Section -->
+                    <div class="bg-section-card" onclick="openBGWindow('test')">
+                        <div class="bg-section-info">
+                            <h3>Test</h3>
+                            <p>Test classroom announcements</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div> <!-- Close mainContent wrapper -->
@@ -1365,6 +1373,43 @@
         </div>
     </div>
 
+    <!-- Test Classroom Window Modal -->
+    <div id="testWindow" class="bg-window" style="display: none;">
+        <div class="bg-window-content">
+            <div class="bg-window-header">
+                <h2>Test Classroom Announcements</h2>
+                <button class="bg-window-close" onclick="closeBGWindow('test')">✕</button>
+            </div>
+            <div class="bg-window-body">
+                {% if test_announcements %}
+                    <div class="announcement-list">
+                        {% for announcement in test_announcements[:10] %}
+                            <div class="announcement-card">
+                                <div class="announcement-header">Test Announcement</div>
+                                <div class="announcement-date">{{ announcement.date.replace('Created ', '').replace('Material: ', '') if announcement.date else 'No date' }}</div>
+                                <div class="announcement-content">
+                                    {{ announcement.clean_text or announcement.text[:200] + '...' }}
+                                    {% if announcement.links %}
+                                        {% for link in announcement.links %}
+                                            <br><a href="{{ link.url }}" target="_blank">{{ link.text or link.url }}</a>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                {% if announcement.classroom_url %}
+                                    <a href="{{ announcement.classroom_url }}" target="_blank" class="announcement-link">
+                                        View in Google Classroom →
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No announcements available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <script>
     // ========================================
 // VIDEO INTRO HANDLER - FIXED
@@ -1437,6 +1482,8 @@ setTimeout(() => {
             markPastGames();
         } else if (windowName === 'council') {
             document.getElementById('councilWindow').style.display = 'flex';
+        } else if (windowName === 'test') {
+            document.getElementById('testWindow').style.display = 'flex';
         }
     }
 
@@ -1447,6 +1494,8 @@ setTimeout(() => {
             document.getElementById('sportsWindow').style.display = 'none';
         } else if (windowName === 'council') {
             document.getElementById('councilWindow').style.display = 'none';
+        } else if (windowName === 'test') {
+            document.getElementById('testWindow').style.display = 'none';
         }
     }
 
@@ -1533,6 +1582,8 @@ setTimeout(() => {
                     closeBGWindow('sports');
                 } else if (this.id === 'councilWindow') {
                     closeBGWindow('council');
+                } else if (this.id === 'testWindow') {
+                    closeBGWindow('test');
                 }
             }
         });
