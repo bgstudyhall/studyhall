@@ -3626,33 +3626,16 @@ def bg():
     )
 
 
-@app.route('/admin/announcements')
-@login_required
-def admin_announcements():
-    """Admin panel for managing classroom announcements"""
-    username = session['username']
-    if users[username]['role'] not in ['admin']:
-        return "Access denied", 403
-
-    return render_template('admin_announcements.html',
-        student_council=classroom_announcements_cache.get('announcements', []),
-        test=test_announcements_cache.get('announcements', [])
-    )
-
-@app.route('/admin/announcements/add', methods=['POST'])
-@login_required
-def add_announcement():
-    """Add a new announcement"""
-    username = session['username']
-    if users[username]['role'] not in ['admin']:
-        return "Access denied", 403
-
+@app.route('/panel/add_classroom_announcement', methods=['POST'])
+@admin_required
+def add_classroom_announcement():
+    """Add a new classroom announcement"""
     classroom_type = request.form.get('classroom_type')  # 'student_council' or 'test'
     announcement_text = request.form.get('announcement')
     classroom_url = request.form.get('url', '')
 
     if not announcement_text:
-        return "Announcement text required", 400
+        return redirect(url_for('admin_panel'))
 
     # Create announcement object
     new_announcement = {
@@ -3675,16 +3658,12 @@ def add_announcement():
         test_announcements_cache['last_updated'] = datetime.now().isoformat()
         save_test_announcements_cache()
 
-    return redirect(url_for('admin_announcements'))
+    return redirect(url_for('admin_panel'))
 
-@app.route('/admin/announcements/delete/<classroom_type>/<announcement_id>', methods=['POST'])
-@login_required
-def delete_announcement(classroom_type, announcement_id):
-    """Delete an announcement"""
-    username = session['username']
-    if users[username]['role'] not in ['admin']:
-        return "Access denied", 403
-
+@app.route('/panel/delete_classroom_announcement/<classroom_type>/<announcement_id>', methods=['POST'])
+@admin_required
+def delete_classroom_announcement(classroom_type, announcement_id):
+    """Delete a classroom announcement"""
     if classroom_type == 'student_council':
         classroom_announcements_cache['announcements'] = [
             a for a in classroom_announcements_cache['announcements'] if a['id'] != announcement_id
@@ -3696,7 +3675,7 @@ def delete_announcement(classroom_type, announcement_id):
         ]
         save_test_announcements_cache()
 
-    return redirect(url_for('admin_announcements'))
+    return redirect(url_for('admin_panel'))
 
 
 @app.route('/youtube')
@@ -4618,6 +4597,8 @@ def admin_panel():
         groups=groups_data,
         codes=codes,
         lottery_state=lottery_state,
+        student_council_announcements=classroom_announcements_cache.get('announcements', []),
+        test_announcements=test_announcements_cache.get('announcements', []),
         maintenance_mode=maintenance_mode,
         STAFF_ROLES=STAFF_ROLES,
         pending_reports=pending_reports,
