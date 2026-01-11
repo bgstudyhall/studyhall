@@ -3626,32 +3626,77 @@ def bg():
     )
 
 
-@app.route('/test-scraper')
+@app.route('/admin/announcements')
 @login_required
-def test_scraper():
-    """Manual endpoint to test classroom scraper - admin only"""
+def admin_announcements():
+    """Admin panel for managing classroom announcements"""
     username = session['username']
     if users[username]['role'] not in ['admin']:
         return "Access denied", 403
 
-    from io import StringIO
-    import sys
+    return render_template('admin_announcements.html',
+        student_council=classroom_announcements_cache.get('announcements', []),
+        test=test_announcements_cache.get('announcements', [])
+    )
 
-    # Capture print output
-    old_stdout = sys.stdout
-    sys.stdout = StringIO()
+@app.route('/admin/announcements/add', methods=['POST'])
+@login_required
+def add_announcement():
+    """Add a new announcement"""
+    username = session['username']
+    if users[username]['role'] not in ['admin']:
+        return "Access denied", 403
 
-    try:
-        scrape_test_classroom()
-        output = sys.stdout.getvalue()
-    except Exception as e:
-        output = f"Error: {str(e)}\n"
-        import traceback
-        output += traceback.format_exc()
-    finally:
-        sys.stdout = old_stdout
+    classroom_type = request.form.get('classroom_type')  # 'student_council' or 'test'
+    announcement_text = request.form.get('announcement')
+    classroom_url = request.form.get('url', '')
 
-    return f"<pre>{output}</pre><br><a href='/bg'>Back to BG</a>"
+    if not announcement_text:
+        return "Announcement text required", 400
+
+    # Create announcement object
+    new_announcement = {
+        'id': str(int(datetime.now().timestamp())),
+        'text': announcement_text,
+        'clean_text': announcement_text,
+        'date': datetime.now().strftime('%b %d'),
+        'materials': [],
+        'classroom_url': classroom_url if classroom_url else None,
+        'links': []
+    }
+
+    # Add to appropriate cache
+    if classroom_type == 'student_council':
+        classroom_announcements_cache['announcements'].insert(0, new_announcement)
+        classroom_announcements_cache['last_updated'] = datetime.now().isoformat()
+        save_classroom_announcements_cache()
+    elif classroom_type == 'test':
+        test_announcements_cache['announcements'].insert(0, new_announcement)
+        test_announcements_cache['last_updated'] = datetime.now().isoformat()
+        save_test_announcements_cache()
+
+    return redirect(url_for('admin_announcements'))
+
+@app.route('/admin/announcements/delete/<classroom_type>/<announcement_id>', methods=['POST'])
+@login_required
+def delete_announcement(classroom_type, announcement_id):
+    """Delete an announcement"""
+    username = session['username']
+    if users[username]['role'] not in ['admin']:
+        return "Access denied", 403
+
+    if classroom_type == 'student_council':
+        classroom_announcements_cache['announcements'] = [
+            a for a in classroom_announcements_cache['announcements'] if a['id'] != announcement_id
+        ]
+        save_classroom_announcements_cache()
+    elif classroom_type == 'test':
+        test_announcements_cache['announcements'] = [
+            a for a in test_announcements_cache['announcements'] if a['id'] != announcement_id
+        ]
+        save_test_announcements_cache()
+
+    return redirect(url_for('admin_announcements'))
 
 
 @app.route('/youtube')
@@ -9172,55 +9217,14 @@ def delete_lounge_message(message_index):
 # Google Classroom Initialization
 # ===============================================================
 
-def initialize_classroom():
-    """Initialize Google Classroom scraper and background thread."""
-    global CLASSROOM_ID
-
-    print("\n" + "="*60)
-    print("Google Classroom Integration")
-    print("="*60)
-
-    # ALWAYS load cached announcements if they exist (even without Selenium)
-    load_classroom_announcements_cache()
-    load_test_announcements_cache()
-
-    if not SELENIUM_AVAILABLE:
-        print("⚠️  Selenium not installed - scraping disabled")
-        print("   However, cached announcements will still be displayed if available")
-        print("   To enable scraping, install: pip install selenium")
-        print("="*60 + "\n")
-        return
-
-    # Load classroom configuration if exists
-    if os.path.exists(CLASSROOM_CONFIG_FILE):
-        with open(CLASSROOM_CONFIG_FILE, 'r') as f:
-            config = json.load(f)
-            CLASSROOM_ID = config.get('classroom_id')
-            print(f"✅ Classroom ID loaded: {CLASSROOM_ID}")
-    else:
-        print("⚠️  No classroom configured yet")
-        print("   To configure:")
-        print("   1. Create a file: classroom_config.json")
-        print("   2. Add: {\"classroom_id\": \"YOUR_CLASSROOM_ID\"}")
-        print("   3. Login to Google Classroom and save cookies as google_cookies.pkl")
-
-    # Start background scraper if configured
-    if (CLASSROOM_ID or TEST_CLASSROOM_ID) and os.path.exists(CLASSROOM_COOKIES_FILE):
-        print("\n🔄 Performing initial classroom scrape...")
-        if CLASSROOM_ID:
-            scrape_classroom_announcements()
-        if TEST_CLASSROOM_ID:
-            scrape_test_classroom()
-
-        # Start background scraper thread
-        scraper_thread = threading.Thread(target=background_classroom_scraper, daemon=True)
-        scraper_thread.start()
-        print("✅ Background classroom scraper started (updates every 1 minute)")
-
-    print("="*60 + "\n")
-
-# Initialize Google Classroom on module load (works with both gunicorn and direct run)
-initialize_classroom()
+# Load classroom announcements on startup (manual system - no automation)
+print("\n" + "="*60)
+print("Loading Classroom Announcements (Manual System)")
+print("="*60)
+load_classroom_announcements_cache()
+load_test_announcements_cache()
+print("✅ Announcements loaded from cache files")
+print("="*60 + "\n")
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)

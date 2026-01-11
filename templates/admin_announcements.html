@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Announcements - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .classroom-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .classroom-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .add-form {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .announcements-list {
+            margin-top: 20px;
+        }
+
+        .announcement-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .announcement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .announcement-date {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .announcement-text {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+
+        .announcement-url {
+            color: #667eea;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .empty-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Manage Classroom Announcements</h1>
+            <a href="/bg" class="back-link">← Back to BG</a>
+        </div>
+
+        <!-- Student Council Section -->
+        <div class="classroom-section">
+            <h2>Student Council Announcements</h2>
+
+            <div class="add-form">
+                <form action="/admin/announcements/add" method="POST">
+                    <input type="hidden" name="classroom_type" value="student_council">
+
+                    <div class="form-group">
+                        <label for="sc_announcement">Announcement Text:</label>
+                        <textarea name="announcement" id="sc_announcement" required placeholder="Enter announcement text here...&#10;You can use multiple lines"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sc_url">Google Classroom Link (optional):</label>
+                        <input type="text" name="url" id="sc_url" placeholder="https://classroom.google.com/...">
+                    </div>
+
+                    <button type="submit" class="btn">Add Announcement</button>
+                </form>
+            </div>
+
+            <div class="announcements-list">
+                {% if student_council %}
+                    {% for ann in student_council %}
+                    <div class="announcement-item">
+                        <div class="announcement-header">
+                            <span class="announcement-date">{{ ann.date }}</span>
+                            <form action="/admin/announcements/delete/student_council/{{ ann.id }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this announcement?')">Delete</button>
+                            </form>
+                        </div>
+                        <div class="announcement-text">{{ ann.text }}</div>
+                        {% if ann.classroom_url %}
+                        <div class="announcement-url">
+                            <a href="{{ ann.classroom_url }}" target="_blank">View in Google Classroom</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-message">No announcements yet</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Test Section -->
+        <div class="classroom-section">
+            <h2>Test Classroom Announcements</h2>
+
+            <div class="add-form">
+                <form action="/admin/announcements/add" method="POST">
+                    <input type="hidden" name="classroom_type" value="test">
+
+                    <div class="form-group">
+                        <label for="test_announcement">Announcement Text:</label>
+                        <textarea name="announcement" id="test_announcement" required placeholder="Enter announcement text here...&#10;You can use multiple lines"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="test_url">Google Classroom Link (optional):</label>
+                        <input type="text" name="url" id="test_url" placeholder="https://classroom.google.com/...">
+                    </div>
+
+                    <button type="submit" class="btn">Add Announcement</button>
+                </form>
+            </div>
+
+            <div class="announcements-list">
+                {% if test %}
+                    {% for ann in test %}
+                    <div class="announcement-item">
+                        <div class="announcement-header">
+                            <span class="announcement-date">{{ ann.date }}</span>
+                            <form action="/admin/announcements/delete/test/{{ ann.id }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this announcement?')">Delete</button>
+                            </form>
+                        </div>
+                        <div class="announcement-text">{{ ann.text }}</div>
+                        {% if ann.classroom_url %}
+                        <div class="announcement-url">
+                            <a href="{{ ann.classroom_url }}" target="_blank">View in Google Classroom</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-message">No announcements yet</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
