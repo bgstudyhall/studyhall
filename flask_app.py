@@ -1419,21 +1419,33 @@ else:
 
         except Exception as e:
             print(f"❌ Classroom scraping error: {str(e)}")
+            import traceback
+            print(f"   Full traceback:")
+            traceback.print_exc()
             if driver:
-                driver.quit()
+                try:
+                    driver.quit()
+                except:
+                    pass
 
     def scrape_test_classroom():
         """Scrape announcements from Test classroom."""
         global test_announcements_cache, TEST_CLASSROOM_ID
 
-        if not TEST_CLASSROOM_ID or not os.path.exists(CLASSROOM_COOKIES_FILE):
-            print("⚠️  Test classroom not configured or not logged in yet")
+        if not TEST_CLASSROOM_ID:
+            print("⚠️  Test classroom ID not configured")
+            return
+
+        if not os.path.exists(CLASSROOM_COOKIES_FILE):
+            print(f"⚠️  Cookies file not found at: {CLASSROOM_COOKIES_FILE}")
             return
 
         driver = None
         try:
             print(f"🔄 Scraping Test classroom announcements... [{datetime.now().strftime('%H:%M:%S')}]")
+            print(f"   Creating Chrome driver...")
             driver = get_classroom_driver(load_cookies=True)
+            print(f"   ✅ Chrome driver created successfully")
             driver.get(f'https://classroom.google.com/u/0/c/{TEST_CLASSROOM_ID}')
 
             time.sleep(3)
@@ -1565,8 +1577,14 @@ else:
 
         except Exception as e:
             print(f"❌ Test classroom scraping error: {str(e)}")
+            import traceback
+            print(f"   Full traceback:")
+            traceback.print_exc()
             if driver:
-                driver.quit()
+                try:
+                    driver.quit()
+                except:
+                    pass
 
     def background_classroom_scraper():
         """Background thread that periodically scrapes classroom announcements."""
@@ -3606,6 +3624,34 @@ def bg():
         classroom_announcements=classroom_announcements_cache.get('announcements', []),
         test_announcements=test_announcements_cache.get('announcements', [])
     )
+
+
+@app.route('/test-scraper')
+@login_required
+def test_scraper():
+    """Manual endpoint to test classroom scraper - admin only"""
+    username = session['username']
+    if users[username]['role'] not in ['admin']:
+        return "Access denied", 403
+
+    from io import StringIO
+    import sys
+
+    # Capture print output
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+
+    try:
+        scrape_test_classroom()
+        output = sys.stdout.getvalue()
+    except Exception as e:
+        output = f"Error: {str(e)}\n"
+        import traceback
+        output += traceback.format_exc()
+    finally:
+        sys.stdout = old_stdout
+
+    return f"<pre>{output}</pre><br><a href='/bg'>Back to BG</a>"
 
 
 @app.route('/youtube')
