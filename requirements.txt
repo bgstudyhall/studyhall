@@ -11,3 +11,4 @@ python-engineio==4.8.0
 APScheduler==3.10.4
 Flask-Compress==1.14
 Brotli==1.1.0
+selenium==4.16.0
