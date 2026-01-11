@@ -1556,8 +1556,8 @@ else:
         while True:
             scrape_classroom_announcements()
             scrape_test_classroom()
-            # Scrape every 10 minutes
-            time.sleep(600)
+            # Scrape every 1 minute
+            time.sleep(60)
 
 # Routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -9142,14 +9142,17 @@ def initialize_classroom():
         print("   3. Login to Google Classroom and save cookies as google_cookies.pkl")
 
     # Start background scraper if configured
-    if CLASSROOM_ID and os.path.exists(CLASSROOM_COOKIES_FILE):
+    if (CLASSROOM_ID or TEST_CLASSROOM_ID) and os.path.exists(CLASSROOM_COOKIES_FILE):
         print("\n🔄 Performing initial classroom scrape...")
-        scrape_classroom_announcements()
+        if CLASSROOM_ID:
+            scrape_classroom_announcements()
+        if TEST_CLASSROOM_ID:
+            scrape_test_classroom()
 
         # Start background scraper thread
         scraper_thread = threading.Thread(target=background_classroom_scraper, daemon=True)
         scraper_thread.start()
-        print("✅ Background classroom scraper started (updates every 10 minutes)")
+        print("✅ Background classroom scraper started (updates every 1 minute)")
 
     print("="*60 + "\n")
 
