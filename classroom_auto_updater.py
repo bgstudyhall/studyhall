@@ -17,6 +17,7 @@ import hashlib
 CHECK_INTERVAL = 300  # 5 minutes in seconds
 CACHE_FILE = 'announcements_cache.json'
 LOCK_FILE = '.classroom_updater.lock'
+AUTO_DEPLOY = False  # Set to True to auto-deploy to Fly.io (expensive!)
 
 def log(message):
     """Print timestamped log message"""
@@ -90,21 +91,26 @@ def commit_and_deploy():
         subprocess.run(['git', 'push', 'origin', 'master'], check=True, capture_output=True)
         log("✅ Pushed to GitHub")
 
-        # Deploy to Fly.io
-        log("🚀 Deploying to Fly.io...")
-        result = subprocess.run(
-            ['fly', 'deploy'],
-            capture_output=True,
-            text=True,
-            timeout=300
-        )
+        # Deploy to Fly.io (optional)
+        if AUTO_DEPLOY:
+            log("🚀 Deploying to Fly.io...")
+            result = subprocess.run(
+                ['fly', 'deploy'],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
 
-        if result.returncode == 0:
-            log("✅ Deployed successfully!")
-            return True
+            if result.returncode == 0:
+                log("✅ Deployed successfully!")
+            else:
+                log(f"⚠️  Deploy failed: {result.stderr[:200]}")
+                return False
         else:
-            log(f"⚠️  Deploy failed: {result.stderr[:200]}")
-            return False
+            log("⏭️  Skipping Fly.io deploy (AUTO_DEPLOY=False)")
+            log("   Fly.io will auto-deploy when it detects the push to GitHub")
+
+        return True
 
     except subprocess.TimeoutExpired:
         log("⏱️  Deploy timed out")
