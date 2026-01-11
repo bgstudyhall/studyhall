@@ -1382,7 +1382,7 @@ else:
                             'title': link['title'] if len(link['title']) < 100 else 'View Link'
                         })
 
-                    if announcement_text and len(announcement_text) > 15:
+                    if announcement_text and len(announcement_text) > 4:
                         announcements.append({
                             'id': str(len(announcements)),
                             'text': announcement_text,
@@ -1428,10 +1428,17 @@ else:
 
             time.sleep(3)
 
-            # Scroll down to load announcements
-            driver.execute_script("window.scrollTo(0, 1000);")
+            # Scroll down to load announcements - scroll multiple times to ensure all load
+            for i in range(5):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1.5)
+
+            # Scroll back to top
+            driver.execute_script("window.scrollTo(0, 0);")
             time.sleep(2)
-            driver.execute_script("window.scrollTo(0, 2000);")
+
+            # Scroll down again to make sure everything is loaded
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
 
             # Get classroom name
@@ -1521,7 +1528,7 @@ else:
                             'title': link['title'] if len(link['title']) < 100 else 'View Link'
                         })
 
-                    if announcement_text and len(announcement_text) > 15:
+                    if announcement_text and len(announcement_text) > 4:
                         announcements.append({
                             'id': str(len(announcements)),
                             'text': announcement_text,

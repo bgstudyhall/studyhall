@@ -41,7 +41,7 @@ classroom_id = 'ODM4ODA4ODcyMTIw'
 print(f"\n3. Test Classroom ID: {classroom_id}")
 
 # Set up driver function
-def get_classroom_driver(load_cookies=False, headless=True):
+def get_classroom_driver(load_cookies=False, headless=False):
     """Create and configure Chrome driver for Google Classroom."""
     options = Options()
     if headless:
@@ -82,11 +82,26 @@ try:
     print("   ⏳ Waiting for page to load...")
     time.sleep(5)
 
-    # Scroll to load content
-    print("   🔄 Scrolling to load announcements...")
-    driver.execute_script("window.scrollTo(0, 1000);")
+    # MANUAL CONFIRMATION - Wait for user to switch accounts if needed
+    print("\n" + "="*70)
+    print("   ⚠️  BROWSER IS OPEN - Check if you're logged in with correct account")
+    print("   If you need to switch accounts, do it now in the browser window")
+    print("="*70)
+    input("   👉 Press ENTER when ready to continue scraping... ")
+    print("\n   ✅ Continuing with scraping...")
+
+    # Scroll to load content - scroll multiple times to ensure all announcements load
+    print("   🔄 Scrolling to load all announcements...")
+    for i in range(5):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1.5)
+
+    # Scroll back to top
+    driver.execute_script("window.scrollTo(0, 0);")
     time.sleep(2)
-    driver.execute_script("window.scrollTo(0, 2000);")
+
+    # Scroll down again to make sure everything is loaded
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(2)
 
     # Try to get classroom name
@@ -112,7 +127,11 @@ try:
         for i, elem in enumerate(announcement_elements):
             try:
                 full_text = elem.text.strip()
+                print(f"\n   [DEBUG {i+1}] Full text length: {len(full_text)}")
+                print(f"   [DEBUG {i+1}] First 100 chars: {full_text[:100]}")
+
                 if not full_text or len(full_text) < 20:
+                    print(f"   [DEBUG {i+1}] SKIPPED - Text too short (len={len(full_text)})")
                     continue
 
                 # Extract announcement ID and URL
@@ -169,6 +188,8 @@ try:
 
                 announcement_text = '\n\n'.join(cleaned_lines).strip()
 
+                print(f"   [DEBUG {i+1}] Cleaned text: '{announcement_text}' (len={len(announcement_text)})")
+
                 # Build materials list
                 materials = []
                 for link in links:
@@ -178,7 +199,7 @@ try:
                         'title': link['title'] if len(link['title']) < 100 else 'View Link'
                     })
 
-                if announcement_text and len(announcement_text) > 15:
+                if announcement_text and len(announcement_text) > 4:
                     preview = announcement_text[:100].replace('\n', ' ')
                     print(f"   [{i+1}] {preview}... ({len(materials)} links)")
                     announcements.append({
