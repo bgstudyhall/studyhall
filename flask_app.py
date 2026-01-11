@@ -1231,8 +1231,9 @@ else:
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
 
-        # Set binary location for Chromium in Docker
-        options.binary_location = '/usr/bin/chromium'
+        # Set binary location for Chromium in Docker (if it exists)
+        if os.path.exists('/usr/bin/chromium'):
+            options.binary_location = '/usr/bin/chromium'
 
         driver = webdriver.Chrome(options=options)
 
