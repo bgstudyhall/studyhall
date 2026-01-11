@@ -2,6 +2,15 @@
   "announcements": [
     {
       "id": "0",
+      "text": "test2",
+      "clean_text": "test2",
+      "date": "Recently",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/ODM4ODA4ODcyMTIw/p/838809563260/details",
+      "links": []
+    },
+    {
+      "id": "1",
       "text": "This is one test",
       "clean_text": "This is one test",
       "date": "Recently",
@@ -10,6 +19,6 @@
       "links": []
     }
   ],
-  "last_updated": "2026-01-11T00:59:50.684735",
+  "last_updated": "2026-01-11T01:33:29.514079",
   "classroom_name": "Test"
 }
