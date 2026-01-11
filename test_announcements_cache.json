@@ -2,6 +2,15 @@
   "announcements": [
     {
       "id": "0",
+      "text": "eeueuheu heuheuheuhe heheh edu edu",
+      "clean_text": "eeueuheu heuheuheuhe heheh edu edu",
+      "date": "Recently",
+      "materials": [],
+      "classroom_url": "https://classroom.google.com/c/ODM4ODA4ODcyMTIw/p/838810926373/details",
+      "links": []
+    },
+    {
+      "id": "1",
       "text": "test2",
       "clean_text": "test2",
       "date": "Recently",
@@ -10,7 +19,7 @@
       "links": []
     },
     {
-      "id": "1",
+      "id": "2",
       "text": "This is one test",
       "clean_text": "This is one test",
       "date": "Recently",
@@ -19,6 +28,6 @@
       "links": []
     }
   ],
-  "last_updated": "2026-01-11T01:33:29.514079",
+  "last_updated": "2026-01-11T02:00:11.531225",
   "classroom_name": "Test"
 }
