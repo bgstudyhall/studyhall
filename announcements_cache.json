@@ -4,7 +4,13 @@
       "id": "0",
       "text": "Please fill out the form and indicate which committee you'd most like to serve on this Spring!!",
       "date": "Jan 8",
-      "materials": []
+      "materials": [
+        {
+          "type": "link",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSce9nyeaZBrjC0LfOh55huBqo7FeOPIeks8g69KsqPJAk_qLg/viewform?usp=publish-editor",
+          "title": "Committee Selection Form"
+        }
+      ]
     },
     {
       "id": "1",
@@ -13,6 +19,6 @@
       "materials": []
     }
   ],
-  "last_updated": "2026-01-10T18:10:00.000000",
+  "last_updated": "2026-01-10T20:50:00.000000",
   "classroom_name": "Student Council"
 }
